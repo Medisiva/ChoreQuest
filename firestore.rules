@@ -1,0 +1,133 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper: check if user is a member of the family
+    function isFamilyMember(familyId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/families/$(familyId)/parentUsers/$(request.auth.uid));
+    }
+
+    // Family documents - only family members can read/write
+    match /families/{familyId} {
+      allow read: if isFamilyMember(familyId);
+      allow create: if isAuthenticated();
+      allow update: if isFamilyMember(familyId);
+      allow delete: if false; // Soft delete only via Cloud Function
+
+      // Child profiles
+      match /childProfiles/{childId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId);
+      }
+
+      // Parent users
+      match /parentUsers/{parentId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId);
+      }
+
+      // Tasks
+      match /tasks/{taskId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId);
+      }
+
+      // Task claims
+      match /taskClaims/{claimId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId);
+      }
+
+      // Star transactions (child)
+      match /starTransactions/{txId} {
+        allow read: if isFamilyMember(familyId);
+        allow create: if false; // Only Cloud Functions write transactions
+        allow update: if false;
+        allow delete: if false;
+      }
+
+      // Parent star transactions
+      match /parentStarTransactions/{txId} {
+        allow read: if isFamilyMember(familyId);
+        allow create: if false;
+        allow update: if false;
+        allow delete: if false;
+      }
+
+      // Rewards (child)
+      match /rewards/{rewardId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId);
+      }
+
+      // Parent rewards
+      match /parentRewards/{rewardId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId);
+      }
+
+      // Redemptions
+      match /redemptions/{redemptionId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId);
+      }
+
+      // Parent redemptions
+      match /parentRedemptions/{redemptionId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId);
+      }
+
+      // Family requests (kid-to-parent)
+      match /familyRequests/{requestId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId);
+      }
+
+      // Accountability logs - ONLY Cloud Functions can write
+      match /accountabilityLogs/{logId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if false;
+      }
+
+      // Active consequences
+      match /activeConsequences/{consequenceId} {
+        allow read: if isFamilyMember(familyId);
+        allow update: if isFamilyMember(familyId); // Parent can clear
+        allow create: if false; // Only Cloud Functions create
+        allow delete: if false;
+      }
+
+      // Consequence definitions
+      match /consequenceDefinitions/{defId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId);
+      }
+
+      // Achievements / badges
+      match /achievements/{achievementId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if false; // Only Cloud Functions
+      }
+    }
+
+    // Leaderboard summary documents
+    match /leaderboard/{familyId} {
+      allow read: if isFamilyMember(familyId);
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // Task library (read-only from clients)
+    match /taskLibrary/{taskId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+  }
+}

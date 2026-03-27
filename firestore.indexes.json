@@ -1,0 +1,87 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "tasks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "taskClaims",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "childProfileId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "taskClaims",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "taskId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "starTransactions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "childProfileId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "starTransactions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "childProfileId", "order": "ASCENDING" },
+        { "fieldPath": "transactionType", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "familyRequests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "requestedByChildId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "familyRequests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "accountabilityLogs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "childProfileId", "order": "ASCENDING" },
+        { "fieldPath": "periodType", "order": "ASCENDING" },
+        { "fieldPath": "periodStart", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "accountabilityLogs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "childProfileId", "order": "ASCENDING" },
+        { "fieldPath": "periodStart", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "activeConsequences",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "childProfileId", "order": "ASCENDING" },
+        { "fieldPath": "clearedByParentAt", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

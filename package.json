@@ -1,0 +1,22 @@
+{
+  "name": "chorequest",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ChoreQuest - Family Development & Reward Platform",
+  "workspaces": [
+    "app",
+    "functions"
+  ],
+  "scripts": {
+    "app:start": "cd app && npx expo start",
+    "app:android": "cd app && npx expo start --android",
+    "app:ios": "cd app && npx expo start --ios",
+    "functions:build": "cd functions && npm run build",
+    "functions:serve": "cd functions && npm run serve",
+    "emulators": "firebase emulators:start --only auth,firestore,functions,storage",
+    "dev": "concurrently \"npm run app:start\" \"npm run emulators\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
