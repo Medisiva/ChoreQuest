@@ -9,5 +9,19 @@ import * as admin from "firebase-admin";
 // Initialize Firebase Admin SDK (must happen before any function imports)
 admin.initializeApp();
 
+// ── Scheduled Functions ───────────────────────────────────────────────────────
+export {
+  dailyRecurrenceGenerate,
+  weeklyRecurrenceGenerate,
+  monthlyRecurrenceGenerate,
+} from "./scheduled/recurrenceGenerate";
+
+export { weeklyEvaluation } from "./scheduled/weeklyEvaluation";
+export { monthlyEvaluation } from "./scheduled/monthlyEvaluation";
+
+// ── Firestore Triggers ────────────────────────────────────────────────────────
+export { onTaskClaimApproved } from "./triggers/onTaskClaimApproved";
+
 // ── HTTP Functions ─────────────────────────────────────────────────────────────
 export { verifyChildPin } from "./http/verifyChildPin";
+export { seedTaskLibrary } from "./http/seedTaskLibrary";

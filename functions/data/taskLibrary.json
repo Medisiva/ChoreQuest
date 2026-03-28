@@ -1,0 +1,755 @@
+[
+  {
+    "title": "Make Your Bed",
+    "description": "Pull up the sheets and blankets and arrange pillows neatly.",
+    "category": "Household",
+    "suggestedStars": 1,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Clean Your Room",
+    "description": "Pick up toys, clothes, and items off the floor. Put everything in its place.",
+    "category": "Household",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Set the Table",
+    "description": "Place plates, cups, napkins, and utensils for each family member before a meal.",
+    "category": "Household",
+    "suggestedStars": 1,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Take Out the Trash",
+    "description": "Remove full trash bags from indoor bins and carry them to the outdoor trash can.",
+    "category": "Household",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Feed the Pets",
+    "description": "Measure out the correct amount of food and fill the pet's bowl. Refresh water too.",
+    "category": "Household",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Water the Plants",
+    "description": "Use a watering can to give each indoor or outdoor plant the right amount of water.",
+    "category": "Household",
+    "suggestedStars": 1,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Load the Dishwasher",
+    "description": "Rinse dishes and place them in the dishwasher racks correctly.",
+    "category": "Household",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Unload the Dishwasher",
+    "description": "Put away clean dishes, cups, and utensils in their correct cabinets and drawers.",
+    "category": "Household",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Fold Laundry",
+    "description": "Neatly fold clean clothes and sort them into piles for each family member.",
+    "category": "Household",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Sweep the Floor",
+    "description": "Use a broom to sweep the kitchen or living room floor and collect dust into a dustpan.",
+    "category": "Household",
+    "suggestedStars": 2,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Organize Toys",
+    "description": "Sort toys into bins or shelves. Group similar items together.",
+    "category": "Household",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Wipe Kitchen Counters",
+    "description": "Use a damp cloth to wipe down all kitchen counters after meals.",
+    "category": "Household",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Vacuum a Room",
+    "description": "Vacuum the carpet or floor in one room, making sure to get corners and under furniture.",
+    "category": "Household",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Sort Recycling",
+    "description": "Separate recyclable items (paper, plastic, glass) into the correct bins.",
+    "category": "Household",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Clean the Bathroom Sink",
+    "description": "Wipe down the bathroom sink and counter with cleaning spray and a cloth.",
+    "category": "Household",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Put Away Groceries",
+    "description": "Help unpack grocery bags and put items in the pantry, fridge, or freezer.",
+    "category": "Household",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Dust Furniture",
+    "description": "Use a duster or cloth to remove dust from shelves, tables, and surfaces.",
+    "category": "Household",
+    "suggestedStars": 2,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Mop the Floor",
+    "description": "Mop the kitchen or bathroom floor with a damp mop and cleaning solution.",
+    "category": "Household",
+    "suggestedStars": 4,
+    "difficulty": "Hard",
+    "ageGroupSuggestion": "12-14",
+    "isMilestone": false
+  },
+  {
+    "title": "Clean Windows",
+    "description": "Spray glass cleaner on windows and wipe them clean with a cloth or paper towel.",
+    "category": "Household",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Mow the Lawn",
+    "description": "Use a lawn mower to cut the grass in the yard with adult supervision.",
+    "category": "Household",
+    "suggestedStars": 5,
+    "difficulty": "AdultSupervised",
+    "ageGroupSuggestion": "12-14",
+    "isMilestone": false
+  },
+  {
+    "title": "Read for 20 Minutes",
+    "description": "Read a book or age-appropriate material quietly for at least 20 minutes.",
+    "category": "Learning",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Practice Spelling Words",
+    "description": "Practice this week's spelling list by writing each word three times.",
+    "category": "Learning",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Complete a Math Worksheet",
+    "description": "Finish one page of math problems appropriate for your grade level.",
+    "category": "Learning",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Science Experiment",
+    "description": "Do a simple science experiment with adult supervision and record your observations.",
+    "category": "Learning",
+    "suggestedStars": 5,
+    "difficulty": "AdultSupervised",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Learn a New Vocabulary Word",
+    "description": "Look up a new word in the dictionary, learn its meaning, and use it in a sentence.",
+    "category": "Learning",
+    "suggestedStars": 1,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Write in Your Journal",
+    "description": "Write at least half a page about your day, a story, or something you learned.",
+    "category": "Learning",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Learn the Alphabet (A-Z)",
+    "description": "Learn to recognize and write all 26 letters of the alphabet. Complete one letter per step.",
+    "category": "Learning",
+    "suggestedStars": 50,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": true,
+    "milestoneSteps": 26,
+    "starsPerStep": 1,
+    "milestoneBonus": 24
+  },
+  {
+    "title": "Practice Multiplication Tables",
+    "description": "Work on memorizing multiplication tables from 1 through 12.",
+    "category": "Learning",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Do Homework",
+    "description": "Complete all assigned homework neatly and on time.",
+    "category": "Learning",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Watch an Educational Video",
+    "description": "Watch an approved educational video and tell a parent one thing you learned.",
+    "category": "Learning",
+    "suggestedStars": 1,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Practice Handwriting",
+    "description": "Fill one page of handwriting practice with neat, careful letter formation.",
+    "category": "Learning",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Read 20 Books Challenge",
+    "description": "Read 20 complete books over time. Log each book as a step when finished.",
+    "category": "Learning",
+    "suggestedStars": 30,
+    "difficulty": "Hard",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": true,
+    "milestoneSteps": 20,
+    "starsPerStep": 1,
+    "milestoneBonus": 10
+  },
+  {
+    "title": "Learn About a Country",
+    "description": "Research a new country: find it on a map, learn its capital, flag, and one fun fact.",
+    "category": "Learning",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Practice Typing",
+    "description": "Spend 15 minutes practicing typing on an approved typing program.",
+    "category": "Learning",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Build a Book Report",
+    "description": "Write a short report about a book you finished: title, author, summary, and your opinion.",
+    "category": "Learning",
+    "suggestedStars": 4,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Study for a Test",
+    "description": "Spend at least 30 minutes reviewing notes and materials for an upcoming test.",
+    "category": "Learning",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Practice a Foreign Language",
+    "description": "Spend 15 minutes on a language-learning app or practice vocabulary flashcards.",
+    "category": "Learning",
+    "suggestedStars": 2,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Write a Short Story",
+    "description": "Write an original short story with a beginning, middle, and end (at least one page).",
+    "category": "Learning",
+    "suggestedStars": 4,
+    "difficulty": "Hard",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Complete a Puzzle",
+    "description": "Finish an age-appropriate jigsaw puzzle or logic puzzle from start to end.",
+    "category": "Learning",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Learn to Count to 100",
+    "description": "Practice counting from 1 to 100 out loud or by writing the numbers.",
+    "category": "Learning",
+    "suggestedStars": 2,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Brush Teeth Independently",
+    "description": "Brush your teeth thoroughly for two full minutes, morning and night, without reminders.",
+    "category": "LifeSkills",
+    "suggestedStars": 1,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Tie Your Shoes",
+    "description": "Practice tying your shoes by yourself until you can do it without help.",
+    "category": "LifeSkills",
+    "suggestedStars": 2,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Pack Your Lunch",
+    "description": "Choose healthy items and pack your own lunch for school or an outing.",
+    "category": "LifeSkills",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Set Your Alarm",
+    "description": "Set your alarm clock for the correct wake-up time and get up on your own.",
+    "category": "LifeSkills",
+    "suggestedStars": 1,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Make a Simple Breakfast",
+    "description": "Prepare a simple breakfast like cereal, toast, or fruit on your own.",
+    "category": "LifeSkills",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Basic Cooking Skill",
+    "description": "Help prepare a meal component with adult supervision (stir, measure, chop soft foods).",
+    "category": "LifeSkills",
+    "suggestedStars": 4,
+    "difficulty": "AdultSupervised",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Organize Your Backpack",
+    "description": "Clean out old papers and organize school supplies in your backpack.",
+    "category": "LifeSkills",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Get Dressed Independently",
+    "description": "Pick out weather-appropriate clothes and get dressed without help.",
+    "category": "LifeSkills",
+    "suggestedStars": 1,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Take a Shower Independently",
+    "description": "Take a full shower on your own, including washing hair and body.",
+    "category": "LifeSkills",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Do Your Own Laundry",
+    "description": "Sort darks and lights, load the washing machine, add detergent, and start a cycle.",
+    "category": "LifeSkills",
+    "suggestedStars": 4,
+    "difficulty": "Hard",
+    "ageGroupSuggestion": "12-14",
+    "isMilestone": false
+  },
+  {
+    "title": "Learn to Tell Time",
+    "description": "Practice reading analog and digital clocks to tell the correct time.",
+    "category": "LifeSkills",
+    "suggestedStars": 2,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Make Your Own Snack",
+    "description": "Prepare a healthy snack on your own (fruit, crackers and cheese, veggies and dip).",
+    "category": "LifeSkills",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Learn to Use a Phone Safely",
+    "description": "Practice making a call, sending a text, and knowing when it is appropriate to use a phone.",
+    "category": "LifeSkills",
+    "suggestedStars": 2,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Manage Weekly Allowance",
+    "description": "Track spending and saving of your weekly allowance for one full week.",
+    "category": "LifeSkills",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Cook a Full Meal",
+    "description": "Plan and cook a complete meal for the family with minimal adult help.",
+    "category": "LifeSkills",
+    "suggestedStars": 5,
+    "difficulty": "AdultSupervised",
+    "ageGroupSuggestion": "15-17",
+    "isMilestone": false
+  },
+  {
+    "title": "7-Day Morning Routine Streak",
+    "description": "Complete your full morning routine (brush teeth, get dressed, make bed, eat breakfast) every day for 7 days.",
+    "category": "LifeSkills",
+    "suggestedStars": 15,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": true,
+    "milestoneSteps": 7,
+    "starsPerStep": 1,
+    "milestoneBonus": 8
+  },
+  {
+    "title": "Learn Your Home Address",
+    "description": "Memorize your full home address including street, city, state, and zip code.",
+    "category": "LifeSkills",
+    "suggestedStars": 3,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Practice Good Table Manners",
+    "description": "Use napkin, chew with mouth closed, say please and thank you during a full meal.",
+    "category": "LifeSkills",
+    "suggestedStars": 1,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Iron Your Clothes",
+    "description": "Learn to safely iron a shirt or pair of pants with adult supervision.",
+    "category": "LifeSkills",
+    "suggestedStars": 4,
+    "difficulty": "AdultSupervised",
+    "ageGroupSuggestion": "12-14",
+    "isMilestone": false
+  },
+  {
+    "title": "Plan a Weekly Schedule",
+    "description": "Write out your activities and commitments for the upcoming week.",
+    "category": "LifeSkills",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "12-14",
+    "isMilestone": false
+  },
+  {
+    "title": "Practice Instrument for 20 Minutes",
+    "description": "Practice your musical instrument for at least 20 focused minutes.",
+    "category": "Hobbies",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Draw or Paint a Picture",
+    "description": "Spend time creating an original drawing or painting.",
+    "category": "Hobbies",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Build with Legos or Blocks",
+    "description": "Build a creative structure using Legos, blocks, or other building toys.",
+    "category": "Hobbies",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Outdoor Play for 30 Minutes",
+    "description": "Spend at least 30 minutes playing outside (running, biking, climbing, etc.).",
+    "category": "Hobbies",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "3-5",
+    "isMilestone": false
+  },
+  {
+    "title": "Practice a Sport Skill",
+    "description": "Spend 20 minutes practicing a specific sport skill (dribbling, throwing, kicking).",
+    "category": "Hobbies",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Learn a Dance Move",
+    "description": "Learn and practice a new dance move or short routine.",
+    "category": "Hobbies",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Craft Project",
+    "description": "Complete a craft project using supplies like paper, glue, scissors, or fabric.",
+    "category": "Hobbies",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Photography Walk",
+    "description": "Take a walk and photograph 10 interesting things you see in your neighborhood.",
+    "category": "Hobbies",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Write a Song or Poem",
+    "description": "Compose an original song or poem with at least two verses.",
+    "category": "Hobbies",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Garden for 20 Minutes",
+    "description": "Spend time weeding, planting, or tending a garden bed or potted plants.",
+    "category": "Hobbies",
+    "suggestedStars": 3,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Learn a Card or Board Game",
+    "description": "Learn the rules of a new card game or board game and play one round.",
+    "category": "Hobbies",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "30-Day Drawing Challenge",
+    "description": "Complete one drawing each day for 30 days. Each day counts as one step.",
+    "category": "Hobbies",
+    "suggestedStars": 45,
+    "difficulty": "Hard",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": true,
+    "milestoneSteps": 30,
+    "starsPerStep": 1,
+    "milestoneBonus": 15
+  },
+  {
+    "title": "Build a Model Kit",
+    "description": "Assemble a model kit (airplane, car, ship) following the instructions.",
+    "category": "Hobbies",
+    "suggestedStars": 4,
+    "difficulty": "Hard",
+    "ageGroupSuggestion": "12-14",
+    "isMilestone": false
+  },
+  {
+    "title": "Bake Something",
+    "description": "Follow a recipe to bake cookies, muffins, or bread with adult supervision.",
+    "category": "Hobbies",
+    "suggestedStars": 4,
+    "difficulty": "AdultSupervised",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": false
+  },
+  {
+    "title": "Practice Yoga or Stretching",
+    "description": "Follow along with a kid-friendly yoga or stretching routine for 15 minutes.",
+    "category": "Hobbies",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Learn Origami",
+    "description": "Follow instructions to fold a paper into an origami shape (crane, boat, frog, etc.).",
+    "category": "Hobbies",
+    "suggestedStars": 2,
+    "difficulty": "Medium",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Record a Video or Podcast",
+    "description": "Plan and record a short video or audio podcast about a topic you enjoy.",
+    "category": "Hobbies",
+    "suggestedStars": 4,
+    "difficulty": "Hard",
+    "ageGroupSuggestion": "12-14",
+    "isMilestone": false
+  },
+  {
+    "title": "Play a Board Game with Family",
+    "description": "Play a full board or card game with family members. Practice good sportsmanship.",
+    "category": "Hobbies",
+    "suggestedStars": 2,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  },
+  {
+    "title": "Try a New Recipe",
+    "description": "Find and follow a new recipe you have never tried before, with help as needed.",
+    "category": "Hobbies",
+    "suggestedStars": 4,
+    "difficulty": "AdultSupervised",
+    "ageGroupSuggestion": "12-14",
+    "isMilestone": false
+  },
+  {
+    "title": "Sew or Knit a Small Project",
+    "description": "Work on a small sewing or knitting project like a pouch, scarf, or patch.",
+    "category": "Hobbies",
+    "suggestedStars": 4,
+    "difficulty": "Hard",
+    "ageGroupSuggestion": "12-14",
+    "isMilestone": false
+  },
+  {
+    "title": "Learn 10 Instrument Songs",
+    "description": "Learn to play 10 songs on your instrument. Log each song as a completed step.",
+    "category": "Hobbies",
+    "suggestedStars": 20,
+    "difficulty": "Hard",
+    "ageGroupSuggestion": "9-11",
+    "isMilestone": true,
+    "milestoneSteps": 10,
+    "starsPerStep": 1,
+    "milestoneBonus": 10
+  },
+  {
+    "title": "Nature Scavenger Hunt",
+    "description": "Go outdoors and find 10 items from a nature scavenger hunt list.",
+    "category": "Hobbies",
+    "suggestedStars": 3,
+    "difficulty": "Easy",
+    "ageGroupSuggestion": "6-8",
+    "isMilestone": false
+  }
+]
