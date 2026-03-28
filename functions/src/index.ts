@@ -21,7 +21,11 @@ export { monthlyEvaluation } from "./scheduled/monthlyEvaluation";
 
 // ── Firestore Triggers ────────────────────────────────────────────────────────
 export { onTaskClaimApproved } from "./triggers/onTaskClaimApproved";
+export { onRequestConfirmed } from "./triggers/onRequestConfirmed";
+export { onBadgeEarned } from "./triggers/onBadgeEarned";
 
 // ── HTTP Functions ─────────────────────────────────────────────────────────────
 export { verifyChildPin } from "./http/verifyChildPin";
 export { seedTaskLibrary } from "./http/seedTaskLibrary";
+export { exportFamilyData } from "./http/exportFamilyData";
+export { deleteFamilyAccount } from "./http/deleteFamilyAccount";

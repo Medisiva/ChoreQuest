@@ -76,6 +76,23 @@ export default function ParentLayout() {
           ),
         }}
       />
+      {/* Hidden routes — navigable via router.push() but not shown in tab bar */}
+      <Tabs.Screen
+        name="leaderboard"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="children"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="approvals"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="rewards"
+        options={{ href: null }}
+      />
     </Tabs>
   );
 }
