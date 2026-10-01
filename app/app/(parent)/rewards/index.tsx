@@ -106,26 +106,17 @@ export default function ParentRewardsScreen() {
     [childRewards]
   );
 
-  const getRewardCost = useCallback(
-    (rewardId: string): number => {
-      const reward = childRewards.find((r) => r.id === rewardId);
-      return reward?.starCost ?? 0;
-    },
-    [childRewards]
-  );
-
   const handleApproveRedemption = useCallback(
     async (redemption: Redemption) => {
       if (!family?.id) return;
       setProcessingId(redemption.id);
       try {
-        const cost = getRewardCost(redemption.rewardId);
-        await approveRedemption(family.id, redemption.id, redemption.childProfileId, cost);
+        await approveRedemption(family.id, redemption.id, redemption.childProfileId, redemption.starCost);
         Alert.alert('Approved', 'Stars have been deducted and the reward is granted.');
       } catch (error: unknown) {
-        const err = error as { code?: string };
-        if (err.code === 'INSUFFICIENT_STARS') {
-          Alert.alert('Cannot Approve', 'This child no longer has enough stars.');
+        const err = error as { code?: string; message?: string };
+        if (err.code === 'functions/failed-precondition') {
+          Alert.alert('Cannot Approve', err.message || 'This request cannot be approved.');
         } else {
           Alert.alert('Error', 'Something went wrong. Try again.');
         }
@@ -133,7 +124,7 @@ export default function ParentRewardsScreen() {
         setProcessingId(null);
       }
     },
-    [family?.id, getRewardCost]
+    [family?.id]
   );
 
   const handleDeclineRedemption = useCallback(
@@ -261,7 +252,8 @@ export default function ParentRewardsScreen() {
             {pendingRedemptions.map((r) => (
               <View key={r.id} style={styles.pendingCard}>
                 <View style={styles.pendingInfo}>
-                  <Text style={styles.pendingName}>{getRewardName(r.rewardId)}</Text>
+                  <Text style={styles.pendingName}>{r.rewardName || getRewardName(r.rewardId)}</Text>
+                  <Text style={styles.pendingCost}>⭐ {r.starCost}</Text>
                   <Text style={styles.pendingChild}>
                     from {getChildName(r.childProfileId)}
                   </Text>

@@ -179,6 +179,8 @@ export interface Redemption {
   familyAccountId: string;
   rewardId: string;
   childProfileId: string;
+  starCost: number;
+  rewardName?: string;
   status: RedemptionStatus;
   requestedAt: Timestamp;
   approvedAt?: Timestamp;

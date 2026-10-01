@@ -85,10 +85,10 @@ service cloud.firestore {
         allow write: if isFamilyMember(familyId);
       }
 
-      // Redemptions
+      // Child redemption requests/reviews are validated by backend transactions.
       match /redemptions/{redemptionId} {
         allow read: if isFamilyMember(familyId);
-        allow write: if isFamilyMember(familyId);
+        allow write: if false;
       }
 
       // Parent redemptions
