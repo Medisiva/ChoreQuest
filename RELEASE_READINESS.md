@@ -38,7 +38,7 @@ Status: in development. No signed APK/AAB, deployed backend, store listing, or s
 - PIN verification rejects callers from other families, deleted families, and invalid input before accessing child profiles.
 - Local app is linked to Expo medisivateam/chorequest. EAS configuration lives in app/eas.json, with APK preview and AAB production profiles.
 
-Validation: npm test passes 6 app tests and 49 backend tests. npm run app:typecheck and functions compilation pass. Tests use transactional fakes and mocked trigger envelopes; Firebase emulator integration and device tests are still required. Android Metro/Hermes export is checked separately; it does not validate native compilation or runtime behavior.
+Validation: npm test passes 6 app tests and 54 backend tests. npm run app:typecheck and functions compilation pass. Tests use transactional fakes and mocked trigger envelopes; Firebase emulator integration and device tests are still required. Android Metro/Hermes export is checked separately; it does not validate native compilation or runtime behavior.
 
 ## Firebase integration and dependency validation
 
@@ -73,3 +73,11 @@ Validation: npm test passes 6 app tests and 49 backend tests. npm run app:typech
 - Recent ledger reads are limited to a 33-day window; no collection listener was added. Screens refresh on family changes and support pull-to-refresh, loading and retry messages. Profile avatars currently use role icons.
 - Added boundary tests for UTC/local dates, weeks spanning years, monthly cutoffs, deductions and future records. All 55 unit/transport tests, TypeScript checks, backend compilation and Android Metro/Hermes export pass. Latest Firebase rule changes still need emulator revalidation; this leaderboard has not yet been visually inspected or exercised on a device.
 - No signed APK/AAB, production deployment or store submission has occurred. The parent/child server authorization boundary remains the highest-priority release blocker.
+
+## Latest milestone: canonical weekly/monthly evaluation
+
+- Replaced the outdated evaluation jobs (children/childId/type=earn/stars) with childProfiles and canonical positive deltaStars ledgers. Streak bonuses are excluded from goal earnings so a bonus cannot satisfy the next target. Zero targets disable evaluation, and profiles created during a period begin with their first full period.
+- Jobs run every six hours and evaluate the last fully closed family-local week/month, including actual DST midnight boundaries. They respect each child’s configured streak threshold/bonus and canonical child-specific Yellow/Orange/Red consequence definitions.
+- A single Firestore transaction checks the deterministic period log and updates counters, balance/lifetime earnings, bonus ledger, consequence and log together. Deleted families are refused inside the transaction. Repeated runs skip completed logs.
+- Five added tests cover DST, month/year rollover, configured streaks, disabled targets and simulated commit failure/retry without duplicate bonuses or logs. All 60 unit/transport tests, backend compilation and app TypeScript checks pass. Firebase scheduler integration remains pending; no production deployment occurred.
+- Remaining limits: prolonged scheduler downtime needs an explicit multi-period backfill strategy; changing a target during a period currently uses its value at evaluation. Large-family transaction query volume needs load testing. Android bundle was last validated at the preceding leaderboard milestone; this change only affects backend jobs. Parent/child server authorization, native/device testing, visual QA and signed build remain unfinished.
