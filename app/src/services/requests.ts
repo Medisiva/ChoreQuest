@@ -1,20 +1,10 @@
 // S7-01: Family request service layer
 // All status transitions validate current status before writing.
 
-import {
-  doc,
-  collection,
-  writeBatch,
-  updateDoc,
-  Timestamp,
-  setDoc,
-  query,
-  where,
-  getDocs,
-  orderBy,
-} from 'firebase/firestore';
-import { db } from './firebase';
-import type { RequestStatus } from '../types';
+import { doc, collection } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
+import { db, functions } from './firebase';
+import { useChildSessionStore } from '../stores/childSessionStore';
 
 interface CreateRequestParams {
   familyAccountId: string;
@@ -25,104 +15,34 @@ interface CreateRequestParams {
   suggestedStars: number;
 }
 
-export async function createRequest(
-  familyId: string,
-  params: CreateRequestParams
-): Promise<string> {
-  const requestRef = doc(collection(db, 'families', familyId, 'familyRequests'));
-
-  await setDoc(requestRef, {
-    ...params,
-    status: 'pending' as RequestStatus,
-    createdAt: Timestamp.now(),
-  });
-
-  return requestRef.id;
+function sessionToken(childId?: string): string {
+  const session = useChildSessionStore.getState();
+  if (!session.isSessionValid() || !session.sessionToken || (childId && session.activeChildId !== childId)) throw new Error('Enter your PIN again.');
+  return session.sessionToken;
 }
-
-export async function acceptRequest(
-  familyId: string,
-  requestId: string,
-  agreedStars: number,
-  parentId: string
-): Promise<void> {
-  const batch = writeBatch(db);
-  const requestRef = doc(db, 'families', familyId, 'familyRequests', requestId);
-
-  batch.update(requestRef, {
-    status: 'accepted' as RequestStatus,
-    agreedStars,
-    acceptedByParentId: parentId,
-    acceptedAt: Timestamp.now(),
-  });
-
-  await batch.commit();
+export async function createRequest(familyId: string, params: CreateRequestParams): Promise<string> {
+  const result = await httpsCallable<Record<string, unknown>, { requestId: string }>(functions, 'createFamilyRequest')({ familyId, childId: params.requestedByChildId, title: params.title, category: params.category, suggestedStars: params.suggestedStars, ...(params.description ? { description: params.description } : {}), operationId: doc(collection(db, 'operationIds')).id, sessionToken: sessionToken(params.requestedByChildId) });
+  return result.data.requestId;
 }
-
-export async function declineRequest(
-  familyId: string,
-  requestId: string,
-  reason: string
-): Promise<void> {
-  if (!reason.trim()) throw new Error('Decline reason is required');
-
-  await updateDoc(doc(db, 'families', familyId, 'familyRequests', requestId), {
-    status: 'declined' as RequestStatus,
-    declineReason: reason,
-  });
+async function update(familyId: string, requestId: string, status: string, fields: Record<string, unknown> = {}): Promise<void> {
+  await httpsCallable(functions, 'updateFamilyRequest')({ familyId, requestId, status, ...fields });
 }
-
-export async function snoozeRequest(
-  familyId: string,
-  requestId: string,
-  snoozeDays: number
-): Promise<void> {
-  const snoozeUntil = Timestamp.fromDate(
-    new Date(Date.now() + snoozeDays * 24 * 60 * 60 * 1000)
-  );
-
-  await updateDoc(doc(db, 'families', familyId, 'familyRequests', requestId), {
-    status: 'snoozed' as RequestStatus,
-    snoozeUntil,
-  });
+export function acceptRequest(familyId: string, requestId: string, agreedStars: number, _parentId: string): Promise<void> {
+  return update(familyId, requestId, 'accepted', { agreedStars });
 }
-
-export async function markRequestComplete(
-  familyId: string,
-  requestId: string
-): Promise<void> {
-  await updateDoc(doc(db, 'families', familyId, 'familyRequests', requestId), {
-    status: 'completed' as RequestStatus,
-    completedAt: Timestamp.now(),
-  });
+export function declineRequest(familyId: string, requestId: string, reason: string): Promise<void> {
+  return update(familyId, requestId, 'declined', { reason });
 }
-
-export async function confirmRequestComplete(
-  familyId: string,
-  requestId: string
-): Promise<void> {
-  await updateDoc(doc(db, 'families', familyId, 'familyRequests', requestId), {
-    status: 'confirmed' as RequestStatus,
-    confirmedAt: Timestamp.now(),
-  });
+export function snoozeRequest(familyId: string, requestId: string, snoozeDays: number): Promise<void> {
+  return update(familyId, requestId, 'snoozed', { snoozeDays });
 }
-
-export async function getWeeklyRequestCount(
-  familyId: string,
-  childId: string
-): Promise<number> {
-  const now = new Date();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-  monday.setHours(0, 0, 0, 0);
-
-  const q = query(
-    collection(db, 'families', familyId, 'familyRequests'),
-    where('requestedByChildId', '==', childId),
-    where('createdAt', '>=', Timestamp.fromDate(monday)),
-    orderBy('createdAt', 'desc')
-  );
-
-  const snap = await getDocs(q);
-  return snap.size;
+export function markRequestComplete(familyId: string, requestId: string): Promise<void> {
+  return update(familyId, requestId, 'completed');
+}
+export function confirmRequestComplete(familyId: string, requestId: string): Promise<void> {
+  return update(familyId, requestId, 'confirmed', { sessionToken: sessionToken() });
+}
+export async function getWeeklyRequestCount(familyId: string, childId: string): Promise<number> {
+  const result = await httpsCallable<Record<string, unknown>, { count: number }>(functions, 'getChildRequestCount')({ familyId, childId, sessionToken: sessionToken(childId) });
+  return result.data.count;
 }

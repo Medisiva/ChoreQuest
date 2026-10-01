@@ -99,10 +99,9 @@ service cloud.firestore {
         allow write: if isFamilyMember(familyId);
       }
 
-      // Family requests (kid-to-parent)
       match /familyRequests/{requestId} {
         allow read: if isFamilyMember(familyId);
-        allow write: if isFamilyMember(familyId);
+        allow write: if false; // Server enforces sessions, quotas and transitions.
       }
 
       // Accountability logs - ONLY Cloud Functions can write

@@ -1,12 +1,15 @@
 // S1-13: childSessionStore (Zustand)
 // Holds: activeChildId, sessionToken, sessionExpiry
 // NEVER persisted to AsyncStorage — memory only
-// Auto-clears on 30min inactivity or app background > 30 seconds
+// Expires after 30 minutes or app background > 30 seconds
 
 import { create } from 'zustand';
 import { AppState, AppStateStatus } from 'react-native';
 
 interface ChildSessionState {
+  parentLocked: boolean;
+  unlockParent: () => void;
+  lockParent: () => void;
   activeChildId: string | null;
   sessionToken: string | null;
   sessionExpiry: Date | null;
@@ -22,6 +25,9 @@ const SESSION_DURATION_MS = 30 * 60 * 1000; // 30 minutes
 const BACKGROUND_TIMEOUT_MS = 30 * 1000; // 30 seconds in background → clear
 
 export const useChildSessionStore = create<ChildSessionState>((set, get) => ({
+  parentLocked: true,
+  unlockParent: () => set({ parentLocked: false, activeChildId: null, sessionToken: null, sessionExpiry: null }),
+  lockParent: () => set({ parentLocked: true }),
   activeChildId: null,
   sessionToken: null,
   sessionExpiry: null,
@@ -29,6 +35,7 @@ export const useChildSessionStore = create<ChildSessionState>((set, get) => ({
   startSession: (childId, token) => {
     const expiry = new Date(Date.now() + SESSION_DURATION_MS);
     set({
+      parentLocked: true,
       activeChildId: childId,
       sessionToken: token,
       sessionExpiry: expiry,
@@ -55,6 +62,7 @@ export const useChildSessionStore = create<ChildSessionState>((set, get) => ({
     const handleAppStateChange = (nextState: AppStateStatus) => {
       if (nextState === 'background' || nextState === 'inactive') {
         // Start timer — if app doesn't return to foreground, clear session
+        if (backgroundTimer) return;
         backgroundTimer = setTimeout(() => {
           const { activeChildId } = get();
           if (activeChildId) {

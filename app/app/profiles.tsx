@@ -23,14 +23,14 @@ import type { ChildProfile } from '@/types';
 export default function ProfileSelector() {
   const router = useRouter();
   const { family, children, parentProfile, loading } = useFamilyStore();
-  const { startSession } = useChildSessionStore();
+  const { startSession, parentLocked } = useChildSessionStore();
 
   const [selectedChild, setSelectedChild] = useState<ChildProfile | null>(null);
   const [showPin, setShowPin] = useState(false);
 
   const handleParentTap = useCallback(() => {
-    router.push('/(parent)/dashboard');
-  }, [router]);
+    router.push(parentLocked ? '/parent-unlock' : '/(parent)/dashboard');
+  }, [router, parentLocked]);
 
   const handleChildTap = useCallback((child: ChildProfile) => {
     setSelectedChild(child);
@@ -55,8 +55,8 @@ export default function ProfileSelector() {
   }, []);
 
   const handleAddChild = useCallback(() => {
-    router.push('/(parent)/children/create' as never);
-  }, [router]);
+    router.push(parentLocked ? '/parent-unlock' : '/(parent)/children/create' as never);
+  }, [router, parentLocked]);
 
   if (loading) {
     return (

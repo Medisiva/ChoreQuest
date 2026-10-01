@@ -11,8 +11,11 @@ import {
   signInWithCredential,
   UserCredential,
   AuthError,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
 } from 'firebase/auth';
 import { auth } from './firebase';
+import { useChildSessionStore } from '../stores/childSessionStore';
 
 // Human-readable error messages for Firebase Auth error codes
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -58,6 +61,7 @@ export async function signIn(
 ): Promise<AuthResponse> {
   try {
     const credential = await signInWithEmailAndPassword(auth, email, password);
+    useChildSessionStore.getState().unlockParent();
     return { success: true, credential };
   } catch (error) {
     return handleAuthError(error);
@@ -74,6 +78,7 @@ export async function signUp(
       email,
       password
     );
+    useChildSessionStore.getState().unlockParent();
     return { success: true, credential };
   } catch (error) {
     return handleAuthError(error);
@@ -82,6 +87,8 @@ export async function signUp(
 
 export async function signOut(): Promise<void> {
   await firebaseSignOut(auth);
+  useChildSessionStore.getState().endSession();
+  useChildSessionStore.getState().lockParent();
 }
 
 export async function resetPassword(
@@ -102,6 +109,7 @@ export async function signInWithGoogle(
   try {
     const credential = GoogleAuthProvider.credential(idToken);
     const userCredential = await signInWithCredential(auth, credential);
+    useChildSessionStore.getState().unlockParent();
     return { success: true, credential: userCredential };
   } catch (error) {
     return handleAuthError(error);
@@ -119,8 +127,18 @@ export async function signInWithApple(
       rawNonce: nonce,
     });
     const userCredential = await signInWithCredential(auth, credential);
+    useChildSessionStore.getState().unlockParent();
     return { success: true, credential: userCredential };
   } catch (error) {
     return handleAuthError(error);
   }
+}
+
+export async function unlockParentMode(password: string): Promise<void> {
+  const user = auth.currentUser;
+  if (!user?.email) throw new Error('Sign in with your parent account again.');
+  try {
+    await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
+    useChildSessionStore.getState().unlockParent();
+  } catch (error) { throw new Error(handleAuthError(error).message); }
 }

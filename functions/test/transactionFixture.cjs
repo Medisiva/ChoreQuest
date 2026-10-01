@@ -26,13 +26,14 @@ function fixture() {
     const module = { exports: {} };
     vm.runInNewContext(fs.readFileSync(require.resolve(file), 'utf8'), { module, exports: module.exports, Date, URL, process: { env: {} }, require: (name) => {
       if (name === 'firebase-functions/v2/https') return { onCall: (callback) => callback, HttpsError };
-      if (name === 'firebase-admin') return { storage: () => ({ bucket: () => ({ name: 'test-bucket', file: () => ({ exists: async () => [true] }) }) }), firestore: Object.assign(() => db, { FieldValue: { serverTimestamp: () => 'server-time', delete: () => deleted } }) };
+      if (name === 'firebase-admin') return { storage: () => ({ bucket: () => ({ name: 'test-bucket', file: () => ({ exists: async () => [true] }) }) }), firestore: Object.assign(() => db, { Timestamp: { fromMillis: (ms) => ({ toMillis: () => ms }) }, FieldValue: { serverTimestamp: () => 'server-time', delete: () => deleted } }) };
+      if (name === '../utils/recurrence') return require('../lib/utils/recurrence');
       if (name === '../utils/authorization') return authorization;
       if (name === 'crypto') return crypto;
       throw new Error(name);
     } }); return module.exports;
   }
   authorization = load('../lib/utils/authorization');
-  return { docs, token, ...load('../lib/http/manageStars'), ...load('../lib/http/manageQuests') };
+  return { docs, token, ...load('../lib/http/manageStars'), ...load('../lib/http/manageQuests'), ...load('../lib/http/manageRequests') };
 }
 module.exports = { fixture };

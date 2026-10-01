@@ -3,8 +3,10 @@
 // Uses Expo Router Tabs with design tokens from DS-001
 // Active color varies per tab, no labels, larger icons, 48dp tap targets
 
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { Text, StyleSheet, View } from 'react-native';
+import { useEffect } from 'react';
+import { useChildSessionStore } from '@/stores/childSessionStore';
 import { colors, layout } from '@/constants/tokens';
 
 const TAB_COLORS = {
@@ -34,6 +36,13 @@ function ChildTabIcon({ emoji, focused, activeColor }: ChildTabIconProps) {
 }
 
 export default function ChildLayout() {
+  const { activeChildId, sessionExpiry, endSession } = useChildSessionStore();
+  useEffect(() => {
+    if (!sessionExpiry) return;
+    const timer = setTimeout(endSession, Math.max(0, sessionExpiry.getTime() - Date.now()));
+    return () => clearTimeout(timer);
+  }, [sessionExpiry, endSession]);
+  if (!activeChildId || !sessionExpiry || sessionExpiry.getTime() <= Date.now()) return <Redirect href="/profiles" />;
   return (
     <Tabs
       screenOptions={{
