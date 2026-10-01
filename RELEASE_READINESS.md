@@ -15,6 +15,9 @@ Status: in development. No signed APK/AAB, deployed backend, store listing, or s
 - Parent request awards use acceptedByParentId, parentUsers, and the canonical transaction fields instead of the incompatible members/parentUid schema. Retry awards are idempotent.
 - Recurrence generation uses canonical task fields, deterministic create-only instance IDs, family-local day/week/month periods, and nonrecurring copies. Concurrent scheduler retries create one occurrence; completed template locks are hidden from the child feed.
 - Rejected quests show parent feedback and can resubmit. Submission uses a transaction and refuses already submitted/approved claims.
+- Family data export checks revocation and canonical parent membership, validates document paths, includes settings/leaderboard data, and omits PIN credentials/session records. Settings shares the returned JSON using the Android share sheet instead of reporting a placeholder success.
+- Family deletion requires recent authentication and family-creator authorization, atomically disables access and records a retryable purge job, and reports scheduling truthfully. A daily purge worker removes family storage, all Firestore descendants, leaderboard, profile mappings, and mapped parent Auth accounts; its behavior is mock-tested only and has not run against real accounts.
+- Firestore and Storage membership checks deny access to deleted families. Storage paths now require actual family membership rather than any signed-in user.
 - Onboarding and child creation now call authenticated server functions, which hash PINs with bcrypt and create canonical config/mapping/leaderboard documents. Concurrent bootstrap retries retain one family. Neither flow writes demo hashes or plaintext PINs to Firestore.
 - Parent settings include a PIN reset screen. The backend authorizes family membership, resets failed attempts, and records a session revocation timestamp; enforcement of that timestamp by child mutation endpoints remains pending.
 - Firestore rules allow each user to read their own parentProfiles mapping and the canonical settings document; family bootstrap, profile creation, membership, PIN credentials, and profile balances are server-owned.
@@ -24,7 +27,7 @@ Status: in development. No signed APK/AAB, deployed backend, store listing, or s
 - PIN verification rejects callers from other families, deleted families, and invalid input before accessing child profiles.
 - Local app is linked to Expo medisivateam/chorequest. EAS configuration lives in app/eas.json, with APK preview and AAB production profiles.
 
-Validation: npm test passes 6 app service tests and 26 backend tests. npm run app:typecheck and functions compilation pass. Tests use transactional fakes and mocked trigger envelopes; Firebase emulator integration and device tests are still required. Android Metro/Hermes export is checked separately; it does not validate native compilation or runtime behavior.
+Validation: npm test passes 6 app service tests and 31 backend tests. npm run app:typecheck and functions compilation pass. Tests use transactional fakes and mocked trigger envelopes; Firebase emulator integration and device tests are still required. Android Metro/Hermes export is checked separately; it does not validate native compilation or runtime behavior.
 
 ## Next implementation work
 
@@ -32,7 +35,7 @@ Validation: npm test passes 6 app service tests and 26 backend tests. npm run ap
 2. Run Firebase emulator integration tests for bootstrap/profile rules, authorized updates, and denied balance/credential writes. Server bootstrap and canonical paths are repaired. Audit client star writes versus rules that reserve ledgers for the backend. Java 21 is installed, but Firebase CLI/emulator tooling is not installed in the project.
 3. Validate recurring tasks in Firebase emulators and on device, including template editing/cancellation and scheduled weekly/monthly boundaries. The schema, duplicate generation, recursive copying, and timezone period bugs are repaired.
 4. Replace mock leaderboard and accountability data, connect consequence clearing and task editing, and validate profile balance refresh after awards. Reject/resubmit and milestone flows need full integration tests.
-5. Audit weekly/monthly jobs, badge criteria, push notifications, photo proof, reward redemptions, export authorization, and genuine account/data deletion. The current deletion endpoint promises a 30-day purge without a purge implementation.
+5. Audit weekly/monthly jobs, badge criteria, push notifications, photo proof, reward redemptions, export authorization, and validate export/deletion in emulators. The purge worker is implemented but has not been deployed or exercised against real Firebase Storage/Auth; exports currently share JSON text instead of attaching a file. Individual parent leave/delete behavior for multi-parent families still needs a product flow.
 6. Finish shared design tokens, parent/child layouts, accessibility, app branding, loading/error/empty states, and inspect real screens visually.
 7. Review remaining dependency advisories; configure authentication persistence and Android permissions; validate EAS environments and notification credentials.
 8. Build a signed internal APK, test on a physical Android device and emulator, prepare accurate store screenshots/listing/privacy disclosures, then prepare the AAB and applicable Play testing/review steps.

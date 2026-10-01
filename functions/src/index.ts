@@ -31,3 +31,4 @@ export { exportFamilyData } from "./http/exportFamilyData";
 export { deleteFamilyAccount } from "./http/deleteFamilyAccount";
 export { setupFamily, createChildProfile, resetChildPin } from "./http/setupFamily";
 export { onChildProfileChanged, onParentProfileChanged } from "./triggers/onProfileChanged";
+export { purgeDeletedFamilies } from "./scheduled/purgeDeletedFamilies";

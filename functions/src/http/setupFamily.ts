@@ -66,7 +66,7 @@ export const setupFamily = onCall(async (request) => {
     if (existing.exists) return { familyId: existing.data()!.familyAccountId, parentId: uid };
     const now = admin.firestore.FieldValue.serverTimestamp();
     const parent = { familyAccountId: family.id, firebaseUid: uid, displayName: typeof request.auth!.token.name === "string" ? request.auth!.token.name : "Parent", avatarId: "default-parent", starBalance: 0, totalStarsEarned: 0, totalStarsRedeemed: 0, createdAt: now };
-    transaction.create(family, { familyName, memberIds: [uid], createdAt: now, timezone, isDeleted: false });
+    transaction.create(family, { familyName, ownerUid: uid, memberIds: [uid], createdAt: now, timezone, isDeleted: false });
     transaction.create(family.collection("parentUsers").doc(uid), parent);
     transaction.create(mapping, parent);
     if (child) transaction.create(childRef, { ...child, familyAccountId: family.id });

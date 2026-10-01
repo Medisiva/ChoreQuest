@@ -11,13 +11,14 @@ import {
   Switch,
   Alert,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { signOut } from '@/services/auth';
-import { auth } from '@/services/firebase';
+import { callBackend } from '@/services/backend';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -31,22 +32,9 @@ export default function SettingsScreen() {
     if (!family || !user) return;
     setExporting(true);
     try {
-      const token = await auth.currentUser?.getIdToken();
-      const baseUrl = __DEV__ ? 'http://localhost:5001/chorequest-prod/us-central1' : '';
-      const response = await fetch(`${baseUrl}/exportFamilyData`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ familyId: family.id }),
-      });
+      const data = await callBackend<Record<string, unknown>>('exportFamilyData', { familyId: family.id });
+      await Share.share({ title: 'ChoreQuest family data', message: JSON.stringify(data, null, 2) });
 
-      if (response.ok) {
-        Alert.alert('Export Ready', 'Your family data has been exported. In production this would be downloadable.');
-      } else {
-        Alert.alert('Error', 'Could not export data.');
-      }
     } catch {
       Alert.alert('Error', 'Export failed. Try again.');
     } finally {
@@ -57,7 +45,7 @@ export default function SettingsScreen() {
   const handleDeleteAccount = useCallback(() => {
     Alert.alert(
       'Delete Account',
-      'This will permanently delete your family account and all data. This cannot be undone.',
+      'This disables access for everyone in your family. Family data and accounts are permanently removed after 30 days. Only the family creator can continue.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -66,7 +54,7 @@ export default function SettingsScreen() {
           onPress: () => {
             Alert.alert(
               'Are you absolutely sure?',
-              'Type DELETE to confirm.',
+              'Delete the entire family, including all child profiles and parent accounts?',
               [
                 { text: 'Cancel', style: 'cancel' },
                 {
@@ -74,19 +62,12 @@ export default function SettingsScreen() {
                   style: 'destructive',
                   onPress: async () => {
                     try {
-                      const token = await auth.currentUser?.getIdToken();
-                      const baseUrl = __DEV__ ? 'http://localhost:5001/chorequest-prod/us-central1' : '';
-                      await fetch(`${baseUrl}/deleteFamilyAccount`, {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({ familyId: family?.id, confirmText: 'DELETE' }),
-                      });
-                      Alert.alert('Account Deleted', 'Your account has been deleted.');
-                    } catch {
-                      Alert.alert('Error', 'Could not delete account.');
+                      await callBackend('deleteFamilyAccount', { familyId: family?.id, confirmText: 'DELETE' });
+                      await signOut();
+                      router.replace('/(auth)/login');
+                      Alert.alert('Deletion scheduled', 'Family access is disabled. Permanent cleanup runs after 30 days.');
+                    } catch (error) {
+                      Alert.alert('Could not delete account', error instanceof Error ? error.message : 'Please try again.');
                     }
                   },
                 },
@@ -96,7 +77,7 @@ export default function SettingsScreen() {
         },
       ]
     );
-  }, [family]);
+  }, [family, router]);
 
   const handleSignOut = useCallback(async () => {
     await signOut();

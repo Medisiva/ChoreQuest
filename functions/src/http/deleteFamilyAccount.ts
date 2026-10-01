@@ -1,84 +1,39 @@
-// S11: GDPR Account Deletion — soft delete family, then schedule hard delete
-// Soft-deletes immediately (isDeleted=true, deletedAt), schedules permanent deletion after 30 days.
-
 import { onRequest } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
 
-const db = admin.firestore();
-
+/** Disable access now, then let the retryable purge worker remove retained data. */
 export const deleteFamilyAccount = onRequest(async (req, res) => {
-  const executionId = `delete-${Date.now()}`;
-  logger.info(`[${executionId}] Delete family account started`);
-
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "Method not allowed" });
-    return;
-  }
-
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-
+  if (req.method !== "POST") { res.status(405).json({ error: "Method not allowed" }); return; }
+  const header = req.headers.authorization;
+  if (!header?.startsWith("Bearer ")) { res.status(401).json({ error: "Sign in first" }); return; }
+  let uid: string; let authTime: number;
+  try { const token = await admin.auth().verifyIdToken(header.slice(7), true); uid = token.uid; authTime = token.auth_time; }
+  catch { res.status(401).json({ error: "Sign in again" }); return; }
+  if (!Number.isFinite(authTime) || Date.now() / 1000 - authTime > 5 * 60) { res.status(401).json({ error: "Sign out and sign in again before deleting your family." }); return; }
+  const familyId = req.body?.familyId;
+  if (typeof familyId !== "string" || !familyId || familyId.includes("/") || req.body?.confirmText !== "DELETE") { res.status(400).json({ error: "Invalid deletion request" }); return; }
   try {
-    const token = authHeader.split("Bearer ")[1];
-    const decoded = await admin.auth().verifyIdToken(token);
-    const uid = decoded.uid;
-
-    const { familyId, confirmText } = req.body;
-    if (!familyId || confirmText !== "DELETE") {
-      res.status(400).json({ error: "familyId required and confirmText must be 'DELETE'" });
-      return;
-    }
-
-    // Verify caller is a member
-    const familyDoc = await db.doc(`families/${familyId}`).get();
-    if (!familyDoc.exists) {
-      res.status(404).json({ error: "Family not found" });
-      return;
-    }
-
-    const familyData = familyDoc.data();
-    if (!familyData?.memberIds?.includes(uid)) {
-      res.status(403).json({ error: "Not authorized" });
-      return;
-    }
-
-    // Soft delete: mark family as deleted
-    const batch = db.batch();
-    const familyRef = db.doc(`families/${familyId}`);
-
-    batch.update(familyRef, {
-      isDeleted: true,
-      deletedAt: admin.firestore.Timestamp.now(),
+    const db = admin.firestore(); const family = db.doc(`families/${familyId}`);
+    const result = await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(family);
+      const parent = await transaction.get(family.collection("parentUsers").doc(uid));
+      const queue = db.doc(`familyDeletionQueue/${familyId}`);
+      const pending = await transaction.get(queue);
+      if (!snapshot.exists || !parent.exists) return { status: 403, error: "Not authorized" };
+      const data = snapshot.data()!;
+      if ((data.ownerUid ?? data.memberIds?.[0]) !== uid) return { status: 403, error: "Only the family creator can delete the whole family." };
+      if (pending.exists) return { status: 200, purgeAfter: pending.data()!.purgeAfter.toDate().toISOString() };
+      const now = admin.firestore.Timestamp.now();
+      const purgeAfter = admin.firestore.Timestamp.fromMillis(now.toMillis() + 30 * 24 * 60 * 60 * 1000);
+      transaction.update(family, { isDeleted: true, deletedAt: now });
+      transaction.create(queue, { familyId, requestedBy: uid, requestedAt: now, purgeAfter });
+      return { status: 200, purgeAfter: purgeAfter.toDate().toISOString() };
     });
-
-    // Disable all tasks
-    const tasksSnap = await db.collection(`families/${familyId}/tasks`).get();
-    for (const taskDoc of tasksSnap.docs) {
-      batch.update(taskDoc.ref, { isActive: false });
-    }
-
-    await batch.commit();
-
-    // Delete Firebase Auth user
-    try {
-      await admin.auth().deleteUser(uid);
-    } catch (authError) {
-      logger.warn(`[${executionId}] Could not delete auth user:`, authError);
-    }
-
-    logger.info(`[${executionId}] Family ${familyId} soft-deleted by ${uid}`);
-
-    res.status(200).json({
-      success: true,
-      message: "Account deleted. Data will be permanently removed in 30 days.",
-      deletedAt: new Date().toISOString(),
-    });
+    if (result.error) { res.status(result.status).json({ error: result.error }); return; }
+    res.status(200).json({ success: true, message: "Family access disabled. Permanent deletion is scheduled within 30 days plus the next daily cleanup run.", purgeAfter: result.purgeAfter });
   } catch (error) {
-    logger.error(`[${executionId}] Delete failed:`, error);
-    res.status(500).json({ error: "Delete failed" });
+    logger.error("Family deletion request failed", { familyId, error });
+    res.status(500).json({ error: "Deletion could not be scheduled. Try again." });
   }
 });

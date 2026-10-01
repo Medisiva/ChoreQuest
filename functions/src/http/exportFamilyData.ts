@@ -1,79 +1,40 @@
-// S11: GDPR Data Export — export all family data as JSON
-// Called by parent from settings. Returns JSON blob of all family data.
-
 import { onRequest } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
 
-const db = admin.firestore();
+// Credential material is never included in a portable family export.
+const PRIVATE_FIELDS = new Set(["pinHash", "failedPinAttempts", "lockedUntil", "sessionsRevokedAt", "pushToken", "expoPushToken", "fcmToken"]);
+export function exportRecord(id: string, data: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries({ ...data, id }).filter(([key]) => !PRIVATE_FIELDS.has(key)));
+}
 
 export const exportFamilyData = onRequest(async (req, res) => {
-  const executionId = `export-${Date.now()}`;
-  logger.info(`[${executionId}] Export family data started`);
-
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "Method not allowed" });
-    return;
-  }
-
-  // Verify auth
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-
+  if (req.method !== "POST") { res.status(405).json({ error: "Method not allowed" }); return; }
+  const header = req.headers.authorization;
+  if (!header?.startsWith("Bearer ")) { res.status(401).json({ error: "Sign in first" }); return; }
+  let uid: string;
+  try { uid = (await admin.auth().verifyIdToken(header.slice(7), true)).uid; }
+  catch { res.status(401).json({ error: "Sign in again" }); return; }
+  const familyId = req.body?.familyId;
+  if (typeof familyId !== "string" || !familyId || familyId.includes("/")) { res.status(400).json({ error: "Invalid family ID" }); return; }
   try {
-    const token = authHeader.split("Bearer ")[1];
-    const decoded = await admin.auth().verifyIdToken(token);
-    const uid = decoded.uid;
-
-    const { familyId } = req.body;
-    if (!familyId) {
-      res.status(400).json({ error: "familyId required" });
-      return;
+    const db = admin.firestore(); const family = db.doc(`families/${familyId}`);
+    const parent = await family.collection("parentUsers").doc(uid).get();
+    if (!parent.exists) { res.status(403).json({ error: "Not a family parent" }); return; }
+    const snapshot = await family.get();
+    if (!snapshot.exists || snapshot.data()?.isDeleted) { res.status(404).json({ error: "Family unavailable" }); return; }
+    const subcollections = ["parentUsers", "childProfiles", "tasks", "taskClaims", "starTransactions", "parentStarTransactions", "rewards", "redemptions", "parentRewards", "parentRedemptions", "familyRequests", "consequenceDefinitions", "activeConsequences", "accountabilityLogs", "achievements", "settings"];
+    const data: Record<string, unknown[]> = { family: [exportRecord(snapshot.id, snapshot.data()!)] };
+    for (const name of subcollections) {
+      const records = await family.collection(name).get();
+      data[name] = records.docs.map((record) => exportRecord(record.id, record.data()));
     }
-
-    // Verify caller is a member of the family
-    const familyDoc = await db.doc(`families/${familyId}`).get();
-    if (!familyDoc.exists) {
-      res.status(404).json({ error: "Family not found" });
-      return;
-    }
-
-    const familyData = familyDoc.data();
-    if (!familyData?.memberIds?.includes(uid)) {
-      res.status(403).json({ error: "Not a family member" });
-      return;
-    }
-
-    // Collect all subcollections
-    const subcollections = [
-      "parentUsers", "childProfiles", "tasks", "taskClaims",
-      "starTransactions", "parentStarTransactions", "rewards",
-      "redemptions", "parentRewards", "parentRedemptions",
-      "familyRequests", "consequenceDefinitions", "activeConsequences",
-      "accountabilityLogs", "achievements",
-    ];
-
-    const exportData: Record<string, unknown[]> = {
-      family: [{ id: familyDoc.id, ...familyData }],
-    };
-
-    for (const sub of subcollections) {
-      const snap = await db.collection(`families/${familyId}/${sub}`).get();
-      exportData[sub] = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    }
-
-    logger.info(`[${executionId}] Export complete, ${Object.values(exportData).flat().length} records`);
-
-    res.status(200).json({
-      exportDate: new Date().toISOString(),
-      familyId,
-      data: exportData,
-    });
+    const leaderboard = await db.doc(`leaderboard/${familyId}`).get();
+    data.leaderboard = leaderboard.exists ? [exportRecord(leaderboard.id, leaderboard.data()!)] : [];
+    res.set("Cache-Control", "no-store");
+    res.status(200).json({ schemaVersion: 1, exportDate: new Date().toISOString(), familyId, data });
   } catch (error) {
-    logger.error(`[${executionId}] Export failed:`, error);
-    res.status(500).json({ error: "Export failed" });
+    logger.error("Family export failed", { familyId, error });
+    res.status(500).json({ error: "Export failed. Try again." });
   }
 });

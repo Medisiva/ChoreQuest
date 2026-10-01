@@ -11,7 +11,8 @@ service cloud.firestore {
     // Helper: check if user is a member of the family
     function isFamilyMember(familyId) {
       return isAuthenticated() &&
-        exists(/databases/$(database)/documents/families/$(familyId)/parentUsers/$(request.auth.uid));
+        exists(/databases/$(database)/documents/families/$(familyId)/parentUsers/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/families/$(familyId)).data.isDeleted == false;
     }
 
     // Family documents - only family members can read/write
