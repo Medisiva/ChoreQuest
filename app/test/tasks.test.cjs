@@ -1,12 +1,12 @@
 const test = require('node:test'); const assert = require('node:assert/strict');
 const fs = require('node:fs'); const path = require('node:path'); const vm = require('node:vm'); const ts = require('typescript');
-function fixture(valid = true) {
+function fixture(valid = true, task = { isActive: true }) {
   const calls = []; const module = { exports: {} };
   const source = ts.transpileModule(fs.readFileSync(path.join(__dirname, '../src/services/tasks.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
   vm.runInNewContext(source, { module, exports: module.exports, require: (name) => {
     if (name === './firebase') return { db: {}, functions: {} };
-    if (name === './firestore') return {};
-    if (name === 'firebase/firestore') return { doc: () => ({ id: 'operation' }), collection: () => ({}) };
+    if (name === './firestore') return { taskDocRef: () => ({}) };
+    if (name === 'firebase/firestore') return { doc: () => ({ id: 'operation' }), collection: () => ({}), runTransaction: async (_db, callback) => callback({ get: async () => ({ exists: () => true, data: () => task }), update: (_ref, data) => calls.push({ name: 'write', data }) }) };
     if (name === 'firebase/functions') return { httpsCallable: (_functions, name) => async (data) => { calls.push({ name, data }); return { data: { claimId: 'claim' } }; } };
     if (name === '../stores/childSessionStore') return { useChildSessionStore: { getState: () => ({ isSessionValid: () => valid, activeChildId: 'c', sessionToken: 'session' }) } };
     throw new Error(name);
@@ -20,4 +20,11 @@ test('quest transport includes active child session and never sends a client bal
 test('expired sessions and mismatched child IDs fail before calling backend', async () => {
   const f = fixture(false); await assert.rejects(f.services.claimTask('f', 't', 'c'), /PIN/); assert.equal(f.calls.length, 0);
   const sibling = fixture(); await assert.rejects(sibling.services.claimTask('f', 't', 'other'), /PIN/); assert.equal(sibling.calls.length, 0);
+});
+test('editing a claimed quest cannot change its reward but can clarify its title', async () => {
+  const f = fixture(true, { isActive: true, activeClaimId: 'claim' });
+  await assert.rejects(f.services.updateTask('f', 't', { starValue: 999 }), /cannot change/);
+  assert.equal(f.calls.length, 0);
+  await f.services.updateTask('f', 't', { title: 'Clearer instructions' });
+  assert.equal(f.calls[0].data.title, 'Clearer instructions');
 });

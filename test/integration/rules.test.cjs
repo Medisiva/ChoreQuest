@@ -46,6 +46,8 @@ test('claim, ledger, redemption and request writes are refused; task lock cannot
   }
   await assertSucceeds(updateDoc(doc(db, 'families/f/tasks/t'), { title: 'Tidy again' }));
   await assertFails(updateDoc(doc(db, 'families/f/tasks/t'), { activeClaimId: 'fake' }));
+  await assertFails(updateDoc(doc(db, 'families/f/tasks/t'), { starValue: 999 }));
+  await assertFails(updateDoc(doc(db, 'families/f/tasks/t'), { requiresPhoto: true }));
 });
 test('storage rejects other families, nonimages, and oversized photos', async () => {
   const parent = env.authenticatedContext('p').storage(); const other = env.authenticatedContext('other').storage();

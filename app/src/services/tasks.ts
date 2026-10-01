@@ -5,6 +5,7 @@ import {
   doc,
   collection,
   writeBatch,
+  runTransaction,
   Timestamp,
   updateDoc,
 } from 'firebase/firestore';
@@ -92,7 +93,13 @@ export async function updateTask(
   updates: Partial<Omit<Task, 'id' | 'familyAccountId' | 'createdAt' | 'createdByParentId'>>
 ): Promise<void> {
   const ref = taskDocRef(familyId, taskId);
-  await updateDoc(ref, updates);
+  await runTransaction(db, async (transaction) => {
+    const snapshot = await transaction.get(ref);
+    if (!snapshot.exists()) throw new Error('Quest not found.');
+    const restricted = ['starValue', 'starsPerStep', 'milestoneBonus', 'milestoneSteps', 'isMilestone', 'requiresPhoto', 'recurrenceType', 'recurrenceDays'];
+    if (snapshot.data().activeClaimId && restricted.some((key) => key in updates)) throw new Error('Reward and completion requirements cannot change while a quest is claimed.');
+    transaction.update(ref, updates);
+  });
 }
 
 /**

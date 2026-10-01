@@ -52,7 +52,10 @@ service cloud.firestore {
       match /tasks/{taskId} {
         allow read: if isFamilyMember(familyId);
         allow create: if isFamilyMember(familyId) && !request.resource.data.keys().hasAny(['activeClaimId']);
-        allow update: if isFamilyMember(familyId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['activeClaimId']);
+        allow update: if isFamilyMember(familyId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['activeClaimId']) &&
+          (!resource.data.keys().hasAny(['activeClaimId']) || !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+            'starValue', 'starsPerStep', 'milestoneBonus', 'milestoneSteps', 'isMilestone', 'requiresPhoto', 'recurrenceType', 'recurrenceDays'
+          ]));
         allow delete: if false;
       }
 

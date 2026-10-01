@@ -73,7 +73,7 @@ export default function TaskPoolManager() {
       return (
         <TouchableOpacity
           style={styles.taskCard}
-          onPress={() => console.log('Edit task', item.id)}
+          onPress={() => router.push({ pathname: '/(parent)/tasks/edit', params: { id: item.id } } as never)}
           onLongPress={() => handleDelete(item)}
           activeOpacity={0.7}
         >
