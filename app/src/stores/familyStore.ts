@@ -2,7 +2,7 @@
 // On auth, opens ONE onSnapshot listener on families/{familyId}.
 // Loads all childProfiles via single getDocs() call.
 // Exposes: family, children[], parentProfile.
-// Only re-queries children if family doc changes (child added/deleted).
+// Backend profile-change triggers refresh the family document after profile edits/awards.
 
 import { create } from 'zustand';
 import {
@@ -10,6 +10,7 @@ import {
   onSnapshot,
   collection,
   getDocs,
+  getDoc,
   Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../services/firebase';
@@ -30,7 +31,7 @@ interface FamilyState {
   clearFamily: () => void;
 }
 
-export const useFamilyStore = create<FamilyState>((set, get) => ({
+export const useFamilyStore = create<FamilyState>((set) => ({
   family: null,
   children: [],
   parentProfile: null,
@@ -42,7 +43,8 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
 
     // Single onSnapshot listener on the family document
     const familyRef = doc(db, 'families', familyId);
-    let previousMemberCount = -1;
+    let generation = 0;
+    let stopped = false;
 
     const unsubscribe = onSnapshot(
       familyRef,
@@ -63,37 +65,15 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
           ...snapshot.data(),
         } as FamilyAccount;
 
-        // Load parent profile
+        const currentGeneration = ++generation;
         try {
-          const parentSnap = await getDocs(
-            collection(db, 'families', familyId, 'parentUsers')
-          );
-
-          let parentProfile: ParentUser | null = null;
-          parentSnap.forEach((doc) => {
-            if (doc.id === parentUid) {
-              parentProfile = { id: doc.id, ...doc.data() } as ParentUser;
-            }
-          });
-
-          // Only reload children if member count changed (child added/removed)
-          const currentMemberCount = familyData.memberIds.length;
-          let children = get().children;
-
-          if (
-            currentMemberCount !== previousMemberCount ||
-            children.length === 0
-          ) {
-            const childrenSnap = await getDocs(
-              collection(db, 'families', familyId, 'childProfiles')
-            );
-
-            children = childrenSnap.docs.map(
-              (doc) => ({ id: doc.id, ...doc.data() }) as ChildProfile
-            );
-
-            previousMemberCount = currentMemberCount;
-          }
+          const [parentSnap, childrenSnap] = await Promise.all([
+            getDoc(doc(db, 'families', familyId, 'parentUsers', parentUid)),
+            getDocs(collection(db, 'families', familyId, 'childProfiles')),
+          ]);
+          if (stopped || currentGeneration !== generation) return;
+          const parentProfile = parentSnap.exists() ? { id: parentSnap.id, ...parentSnap.data() } as ParentUser : null;
+          const children = childrenSnap.docs.map((snapshot) => ({ id: snapshot.id, ...snapshot.data() }) as ChildProfile);
 
           set({
             family: familyData,
@@ -103,6 +83,7 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
             error: null,
           });
         } catch (error) {
+          if (stopped || currentGeneration !== generation) return;
           console.error('[familyStore] Failed to load family data:', error);
           set({
             family: familyData,
@@ -117,7 +98,7 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
       }
     );
 
-    return unsubscribe;
+    return () => { stopped = true; generation++; unsubscribe(); };
   },
 
   clearFamily: () =>

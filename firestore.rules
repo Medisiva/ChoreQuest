@@ -17,20 +17,31 @@ service cloud.firestore {
     // Family documents - only family members can read/write
     match /families/{familyId} {
       allow read: if isFamilyMember(familyId);
-      allow create: if isAuthenticated();
-      allow update: if isFamilyMember(familyId);
+      allow create: if false; // Authenticated setupFamily owns atomic bootstrap
+      allow update: if isFamilyMember(familyId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['familyName', 'timezone']);
       allow delete: if false; // Soft delete only via Cloud Function
 
-      // Child profiles
+      // Profile creation, credentials, membership and balances are server-owned.
       match /childProfiles/{childId} {
         allow read: if isFamilyMember(familyId);
-        allow write: if isFamilyMember(familyId);
+        allow create, delete: if false;
+        allow update: if isFamilyMember(familyId) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'nickname', 'avatarId', 'ageGroup', 'weeklyTargetStars', 'monthlyTargetStars',
+            'progressDisplayStyle', 'streakThreshold', 'streakBonusStars'
+          ]);
       }
-
-      // Parent users
       match /parentUsers/{parentId} {
         allow read: if isFamilyMember(familyId);
-        allow write: if isFamilyMember(familyId);
+        allow create, delete: if false;
+        allow update: if isFamilyMember(familyId) && request.auth.uid == parentId &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'avatarId']);
+      }
+
+      match /settings/{settingsId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId) && settingsId == 'config';
       }
 
       // Tasks
@@ -116,6 +127,12 @@ service cloud.firestore {
         allow read: if isFamilyMember(familyId);
         allow write: if false; // Only Cloud Functions
       }
+    }
+
+    // Each authenticated user can discover only their own family mapping.
+    match /parentProfiles/{uid} {
+      allow read: if isAuthenticated() && request.auth.uid == uid;
+      allow write: if false;
     }
 
     // Leaderboard summary documents

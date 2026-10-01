@@ -1,5 +1,5 @@
 // S1-10: Onboarding Wizard — 8-step flow shown on first launch after account creation
-// Collects ALL data in React Hook Form state, writes ONCE at OB-08 via WriteBatch.
+// Collects form data and sends one authenticated server-owned setup request.
 // Steps OB-04 through OB-07 are skippable.
 
 import { useState, useCallback } from 'react';
@@ -18,13 +18,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import {
-  doc,
-  collection,
-  writeBatch,
-  Timestamp,
-} from 'firebase/firestore';
-import { db } from '@/services/firebase';
+import { setupFamily } from '@/services/families';
 import { useAuthStore } from '@/stores/authStore';
 import AvatarPicker from '@/components/shared/AvatarPicker';
 import { colors, spacing, radius, typography, shadows, categoryColors } from '@/constants/tokens';
@@ -99,19 +93,6 @@ const DEFAULT_VALUES: OnboardingFormData = {
   ],
   weeklyRequestLimit: 3,
 };
-
-// ── Hash utility (simple hash for PIN — in production, use Cloud Function) ───
-
-function simpleHash(pin: string): string {
-  // Simple hash for demo/dev — real app should hash server-side
-  let hash = 0;
-  for (let i = 0; i < pin.length; i++) {
-    const char = pin.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0;
-  }
-  return Math.abs(hash).toString(16);
-}
 
 // ── Main Component ───────────────────────────────────────────────────────────
 
@@ -215,154 +196,26 @@ export default function OnboardingWizard() {
 
     try {
       const data = getValues();
-      const batch = writeBatch(db);
-      const now = Timestamp.now();
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-      // 1. Create family document
-      const familyRef = doc(collection(db, 'families'));
-      const familyId = familyRef.id;
-
-      batch.set(familyRef, {
+      await setupFamily({
         familyName: data.familyName.trim(),
-        memberIds: [user.uid],
-        createdAt: now,
-        timezone,
-        isDeleted: false,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        weeklyRequestLimit: data.weeklyRequestLimit,
+        ...(!skippedSteps.has(1) && data.childNickname.trim() ? { child: {
+          nickname: data.childNickname.trim(), avatarId: data.childAvatarId || 'avatar-01',
+          ageGroup: data.childAgeGroup, pin: data.childPin,
+          weeklyTargetStars: data.weeklyTarget, monthlyTargetStars: data.monthlyTarget,
+        } } : {}),
+        ...(!skippedSteps.has(3) && data.taskTitle.trim() ? { task: {
+          title: data.taskTitle.trim(), category: data.taskCategory, starValue: data.taskStarValue,
+        } } : {}),
+        childRewards: skippedSteps.has(4) ? [] : data.childRewards.filter((reward) => reward.name.trim()),
+        parentRewards: skippedSteps.has(5) ? [] : data.parentRewards.filter((reward) => reward.name.trim()),
       });
-
-      // 2. Create parent user document
-      const parentRef = doc(db, 'families', familyId, 'parentUsers', user.uid);
-      batch.set(parentRef, {
-        familyAccountId: familyId,
-        firebaseUid: user.uid,
-        displayName: user.displayName ?? 'Parent',
-        avatarId: 'default-parent',
-        starBalance: 0,
-        totalStarsEarned: 0,
-        totalStarsRedeemed: 0,
-        createdAt: now,
-      });
-
-      // 3. Create parentProfiles mapping for quick lookup
-      const profileMappingRef = doc(db, 'parentProfiles', user.uid);
-      batch.set(profileMappingRef, {
-        familyAccountId: familyId,
-        displayName: user.displayName ?? 'Parent',
-        avatarId: 'default-parent',
-        starBalance: 0,
-        totalStarsEarned: 0,
-        totalStarsRedeemed: 0,
-        createdAt: now,
-      });
-
-      // 4. Create child profile (if not skipped)
-      if (!skippedSteps.has(1) && data.childNickname.trim()) {
-        const childRef = doc(collection(db, 'families', familyId, 'childProfiles'));
-
-        batch.set(childRef, {
-          familyAccountId: familyId,
-          nickname: data.childNickname.trim(),
-          avatarId: data.childAvatarId || 'avatar-01',
-          ageGroup: data.childAgeGroup,
-          pinHash: simpleHash(data.childPin),
-          starBalance: 0,
-          totalStarsEarned: 0,
-          totalStarsRedeemed: 0,
-          weeklyTargetStars: data.weeklyTarget,
-          monthlyTargetStars: data.monthlyTarget,
-          progressDisplayStyle: 'ProgressBar',
-          currentStreakWeeks: 0,
-          consecutiveMissWeeks: 0,
-          monthlyConsecutiveMisses: 0,
-          streakThreshold: 4,
-          streakBonusStars: 10,
-          failedPinAttempts: 0,
-          createdAt: now,
-        });
-
-        // 5. Create family settings with request limit
-        const settingsRef = doc(db, 'families', familyId, 'settings', 'main');
-        batch.set(settingsRef, {
-          leaderboardEnabled: true,
-          weeklyRequestLimitPerChild: {
-            [childRef.id]: data.weeklyRequestLimit,
-          },
-        });
-      }
-
-      // 6. Create first task (if not skipped)
-      if (!skippedSteps.has(3) && data.taskTitle.trim()) {
-        const taskRef = doc(collection(db, 'families', familyId, 'tasks'));
-        batch.set(taskRef, {
-          familyAccountId: familyId,
-          title: data.taskTitle.trim(),
-          category: data.taskCategory,
-          starValue: data.taskStarValue,
-          difficulty: 'Easy',
-          ageGroupSuggestion: data.childAgeGroup,
-          isActive: true,
-          requiresPhoto: false,
-          isMilestone: false,
-          recurrenceType: 'none',
-          createdByParentId: user.uid,
-          createdAt: now,
-        });
-      }
-
-      // 7. Create child rewards (if not skipped)
-      if (!skippedSteps.has(4) && data.childRewards.length > 0) {
-        for (const reward of data.childRewards) {
-          if (reward.name.trim()) {
-            const rewardRef = doc(collection(db, 'families', familyId, 'rewards'));
-            batch.set(rewardRef, {
-              familyAccountId: familyId,
-              name: reward.name.trim(),
-              starCost: reward.starCost,
-              rewardType: 'Special',
-              isActive: true,
-              createdByParentId: user.uid,
-              createdAt: now,
-            });
-          }
-        }
-      }
-
-      // 8. Create parent rewards (if not skipped)
-      if (!skippedSteps.has(5) && data.parentRewards.length > 0) {
-        for (const reward of data.parentRewards) {
-          if (reward.name.trim()) {
-            const rewardRef = doc(collection(db, 'families', familyId, 'parentRewards'));
-            batch.set(rewardRef, {
-              familyAccountId: familyId,
-              name: reward.name.trim(),
-              starCost: reward.starCost,
-              rewardType: 'Special',
-              addedBy: 'parent',
-              approvedByParent: true,
-              isActive: true,
-              createdAt: now,
-            });
-          }
-        }
-      }
-
-      // 9. Create leaderboard summary
-      const leaderboardRef = doc(db, 'families', familyId, 'leaderboard', 'summary');
-      batch.set(leaderboardRef, {
-        weekly: {},
-        monthly: {},
-        allTime: {},
-        updatedAt: now,
-      });
-
-      // Commit everything atomically
-      await batch.commit();
 
       // Navigate to profiles
       router.replace('/profiles');
     } catch (error) {
-      console.error('[Onboarding] WriteBatch failed:', error);
+      console.error('[Onboarding] Setup failed:', error);
       Alert.alert('Error', 'Failed to save your setup. Please try again.');
     } finally {
       setSaving(false);

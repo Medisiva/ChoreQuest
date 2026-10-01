@@ -1,6 +1,6 @@
 // S2-01: Child Profile Creation screen (P-07 create mode)
 // Parent creates child: nickname, avatar, age group, PIN setup (double-confirm).
-// PIN hashed client-side with bcrypt before write.
+// PIN hashing and profile creation are handled by the authenticated backend.
 
 import { useState } from 'react';
 import {
@@ -56,15 +56,11 @@ export default function CreateChildScreen() {
 
     setLoading(true);
     try {
-      // Hash PIN client-side — using simple hash for now
-      // In production, use bcryptjs (pure JS implementation for React Native)
-      const pinHash = await hashPin(data.pin);
-
       await addChildProfile(family.id, {
         nickname: data.nickname,
         avatarId: data.avatarId,
         ageGroup: data.ageGroup,
-        pinHash,
+        pin: data.pin,
       });
 
       Alert.alert('Success!', `${data.nickname}'s profile is ready.`, [
@@ -229,16 +225,6 @@ export default function CreateChildScreen() {
 }
 
 // Simple PIN hashing — in production replace with bcryptjs
-async function hashPin(pin: string): Promise<string> {
-  // Using a simple hash for React Native compatibility
-  // bcryptjs (pure JS) should be added as a dependency for production
-  const encoder = new TextEncoder();
-  const data = encoder.encode(pin + 'chorequest-salt');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   flex: { flex: 1 },

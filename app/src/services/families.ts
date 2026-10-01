@@ -2,15 +2,8 @@
 // On new user registration, creates family + parentUser atomically via WriteBatch.
 // If the batch fails, neither document is created.
 
-import {
-  doc,
-  writeBatch,
-  collection,
-  Timestamp,
-  setDoc,
-} from 'firebase/firestore';
-import { db } from './firebase';
-import type { FamilyAccount, ParentUser } from '../types';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from './firebase';
 
 interface CreateFamilyParams {
   firebaseUid: string;
@@ -22,63 +15,9 @@ interface CreateFamilyParams {
 export async function createFamilyAccount(
   params: CreateFamilyParams
 ): Promise<{ familyId: string; parentId: string }> {
-  const { firebaseUid, displayName, familyName, timezone } = params;
-
-  const batch = writeBatch(db);
-
-  // Create family document
-  const familyRef = doc(collection(db, 'families'));
-  const familyId = familyRef.id;
-
-  const familyData: Omit<FamilyAccount, 'id'> = {
-    familyName,
-    memberIds: [firebaseUid],
-    createdAt: Timestamp.now(),
-    timezone,
-    isDeleted: false,
-  };
-
-  batch.set(familyRef, familyData);
-
-  // Create parentUser document within the family
-  const parentRef = doc(
-    db,
-    'families',
-    familyId,
-    'parentUsers',
-    firebaseUid
-  );
-
-  const parentData: Omit<ParentUser, 'id'> = {
-    familyAccountId: familyId,
-    firebaseUid,
-    displayName,
-    avatarId: 'default-parent',
-    starBalance: 0,
-    totalStarsEarned: 0,
-    totalStarsRedeemed: 0,
-    createdAt: Timestamp.now(),
-  };
-
-  batch.set(parentRef, parentData);
-
-  // Create a top-level parentProfiles mapping doc for quick lookup
-  // This allows authStore to find the family without querying all families
-  const profileMappingRef = doc(db, 'parentProfiles', firebaseUid);
-  batch.set(profileMappingRef, {
-    familyAccountId: familyId,
-    displayName,
-    avatarId: 'default-parent',
-    starBalance: 0,
-    totalStarsEarned: 0,
-    totalStarsRedeemed: 0,
-    createdAt: Timestamp.now(),
-  });
-
-  // Atomic write — both succeed or both fail
-  await batch.commit();
-
-  return { familyId, parentId: firebaseUid };
+  const setup = httpsCallable<CreateFamilyParams, { familyId: string; parentId: string }>(functions, 'setupFamily');
+  const result = await setup(params);
+  return result.data;
 }
 
 export async function addChildProfile(
@@ -87,35 +26,18 @@ export async function addChildProfile(
     nickname: string;
     avatarId: string;
     ageGroup: string;
-    pinHash: string;
+    pin: string;
   }
 ): Promise<string> {
-  const childRef = doc(
-    collection(db, 'families', familyId, 'childProfiles')
-  );
+  const create = httpsCallable<Record<string, unknown>, { childId: string }>(functions, 'createChildProfile');
+  const result = await create({ familyId, ...childData });
+  return result.data.childId;
+}
 
-  const profileData = {
-    familyAccountId: familyId,
-    nickname: childData.nickname,
-    avatarId: childData.avatarId,
-    ageGroup: childData.ageGroup,
-    pinHash: childData.pinHash,
-    starBalance: 0,
-    totalStarsEarned: 0,
-    totalStarsRedeemed: 0,
-    weeklyTargetStars: 20, // Default, parent can change
-    monthlyTargetStars: 80,
-    progressDisplayStyle: 'ProgressBar',
-    currentStreakWeeks: 0,
-    consecutiveMissWeeks: 0,
-    monthlyConsecutiveMisses: 0,
-    streakThreshold: 4,
-    streakBonusStars: 10,
-    failedPinAttempts: 0,
-    createdAt: Timestamp.now(),
-  };
+export async function resetChildPin(familyId: string, childId: string, pin: string): Promise<void> {
+  await httpsCallable(functions, 'resetChildPin')({ familyId, childId, pin });
+}
 
-  await setDoc(childRef, profileData);
-
-  return childRef.id;
+export async function setupFamily(data: Record<string, unknown>): Promise<void> {
+  await httpsCallable(functions, 'setupFamily')(data);
 }

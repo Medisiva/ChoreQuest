@@ -119,6 +119,11 @@ export default function SettingsScreen() {
           <Text style={styles.cardArrow}>→</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity style={styles.card} onPress={() => router.push('/(parent)/children/pin' as never)}>
+          <Text style={styles.cardLabel}>Reset a child’s PIN</Text>
+          <Text style={styles.cardArrow}>→</Text>
+        </TouchableOpacity>
+
         {/* Preferences */}
         <Text style={styles.sectionLabel}>PREFERENCES</Text>
         <View style={styles.card}>
