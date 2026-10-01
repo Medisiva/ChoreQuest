@@ -85,3 +85,14 @@ test('reviewing submitted quests persists approvals and rejection feedback', asy
   assert.equal(f.docs.get('families/f/taskClaims/a').status, 'approved');
   assert.equal(f.docs.get('families/f/taskClaims/b').rejectionReason, 'Please finish the corners');
 });
+
+test('rejected claims can resubmit but approved and submitted claims cannot', async () => {
+  const f = fixture();
+  const claim = await f.services.claimTask('f', 't', 'c1');
+  f.docs.get(`families/f/taskClaims/${claim}`).status = 'rejected';
+  await f.services.submitTaskCompletion('f', claim);
+  assert.equal(f.docs.get(`families/f/taskClaims/${claim}`).status, 'submitted');
+  await assert.rejects(f.services.submitTaskCompletion('f', claim), /Only an active quest/);
+  f.docs.get(`families/f/taskClaims/${claim}`).status = 'approved';
+  await assert.rejects(f.services.submitTaskCompletion('f', claim), /Only an active quest/);
+});

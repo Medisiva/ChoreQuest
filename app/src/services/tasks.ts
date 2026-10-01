@@ -206,7 +206,13 @@ export async function submitTaskCompletion(
     updates.photoProofUrl = photoProofUrl;
   }
 
-  await updateDoc(ref, updates);
+  await runTransaction(db, async (transaction) => {
+    const claim = await transaction.get(ref);
+    if (!claim.exists() || !['claimed', 'rejected'].includes(claim.data().status)) {
+      throw new Error('Only an active quest can be submitted.');
+    }
+    transaction.update(ref, updates);
+  });
 }
 
 /** Reviews submitted claims atomically, including the approve-all flow. */

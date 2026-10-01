@@ -40,7 +40,7 @@ export default function TaskDetailScreen() {
     [claims, id, activeChildId]
   );
   const otherClaim = useMemo(
-    () => claims.find((c) => c.taskId === id && c.childProfileId !== activeChildId && (c.status === 'claimed' || c.status === 'submitted')),
+    () => claims.find((c) => c.taskId === id && c.childProfileId !== activeChildId && (c.status === 'claimed' || c.status === 'submitted' || c.status === 'rejected')),
     [claims, id, activeChildId]
   );
 
@@ -181,8 +181,13 @@ export default function TaskDetailScreen() {
               <Text style={styles.claimButtonText}>Claim this Quest</Text>
             )}
           </TouchableOpacity>
-        ) : myClaim.status === 'claimed' ? (
+        ) : myClaim.status === 'claimed' || myClaim.status === 'rejected' ? (
           <View>
+            {myClaim.status === 'rejected' && (
+              <View style={styles.photoNotice}>
+                <Text style={styles.photoNoticeText}>Try again: {myClaim.rejectionReason || 'Ask your parent what needs another look.'}</Text>
+              </View>
+            )}
             <TouchableOpacity
               style={styles.submitButton}
               onPress={handleSubmit}

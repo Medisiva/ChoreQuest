@@ -32,18 +32,19 @@ export default function TaskFeedScreen() {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
 
   const filteredTasks = useMemo(() => {
-    if (selectedCategory === 'All') return tasks;
-    return tasks.filter((t) => t.category === selectedCategory);
-  }, [tasks, selectedCategory]);
+    // Completed recurring templates keep their lock and are replaced by fresh instances.
+    const available = tasks.filter((task) => !task.activeClaimId || claims.some((claim) => claim.id === task.activeClaimId));
+    return selectedCategory === 'All' ? available : available.filter((task) => task.category === selectedCategory);
+  }, [tasks, claims, selectedCategory]);
 
   const activeClaim = useMemo(
-    () => claims.find((c) => c.childProfileId === activeChildId && (c.status === 'claimed' || c.status === 'submitted')),
+    () => claims.find((c) => c.childProfileId === activeChildId && (c.status === 'claimed' || c.status === 'submitted' || c.status === 'rejected')),
     [claims, activeChildId]
   );
 
   const getClaimForTask = useCallback(
     (taskId: string): TaskClaim | undefined =>
-      claims.find((c) => c.taskId === taskId && (c.status === 'claimed' || c.status === 'submitted')),
+      claims.find((c) => c.taskId === taskId && (c.status === 'claimed' || c.status === 'submitted' || c.status === 'rejected')),
     [claims]
   );
 
@@ -85,7 +86,7 @@ export default function TaskFeedScreen() {
             {isClaimedBySibling && <Text style={styles.lockedText}>🔒 Someone is on it</Text>}
             {isClaimedByMe && (
               <Text style={styles.myClaimText}>
-                {claim?.status === 'submitted' ? '⏳ Waiting for review' : '✋ You claimed this'}
+                {claim?.status === 'submitted' ? '⏳ Waiting for review' : claim?.status === 'rejected' ? '↻ Check feedback and try again' : '✋ You claimed this'}
               </Text>
             )}
           </View>

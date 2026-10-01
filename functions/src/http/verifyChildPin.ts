@@ -19,16 +19,6 @@ interface ChildProfileData {
   [key: string]: unknown; // allow other fields without casting to any
 }
 
-interface SessionToken {
-  token: string;
-  expiresAt: string;
-}
-
-type VerifyChildPinResponse =
-  | { success: true; sessionToken: SessionToken }
-  | { success: false; locked: true; lockedUntil: string }
-  | { success: false; locked?: false; attemptsRemaining: number };
-
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const MAX_FAILED_ATTEMPTS = 3;
@@ -91,94 +81,43 @@ export const verifyChildPin = onRequest(async (req, res) => {
     const profileRef = db.doc(
       `families/${familyId}/childProfiles/${childProfileId}`
     );
-    const profileSnap = await profileRef.get();
-
-    if (!profileSnap.exists) {
-      res.status(404).json({ error: "Child profile not found" });
-      return;
-    }
-
-    const profileData = profileSnap.data() as ChildProfileData;
-
-    // ── Check lockout ────────────────────────────────────────────────────────
-    const now = admin.firestore.Timestamp.now();
-
-    if (profileData.lockedUntil && profileData.lockedUntil.toMillis() > now.toMillis()) {
-      const response: VerifyChildPinResponse = {
-        success: false,
-        locked: true,
-        lockedUntil: profileData.lockedUntil.toDate().toISOString(),
-      };
-      res.status(403).json(response);
-      logger.info("verifyChildPin END - account locked", { executionId });
-      return;
-    }
-
-    // ── Verify PIN ───────────────────────────────────────────────────────────
-    const pinCorrect = await bcrypt.compare(pin, profileData.pinHash);
-
-    if (pinCorrect) {
-      // Reset failed attempts via batch (per architecture rule #7)
-      const batch = db.batch();
-      batch.update(profileRef, {
-        failedPinAttempts: 0,
-        lockedUntil: null,
-      });
-      await batch.commit();
-
-      // Generate session token
-      const expiresAt = new Date(
-        Date.now() + SESSION_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000
-      );
-      const sessionToken: SessionToken = {
-        token: crypto.randomUUID(),
-        expiresAt: expiresAt.toISOString(),
-      };
-
-      const response: VerifyChildPinResponse = {
-        success: true,
-        sessionToken,
-      };
-      res.status(200).json(response);
-      logger.info("verifyChildPin END - success", { executionId });
-      return;
-    }
-
-    // ── Wrong PIN ────────────────────────────────────────────────────────────
-    const newFailedAttempts = (profileData.failedPinAttempts || 0) + 1;
-    const batch = db.batch();
-
-    if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
-      const lockedUntil = admin.firestore.Timestamp.fromDate(
-        new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000)
-      );
-      batch.update(profileRef, {
-        failedPinAttempts: newFailedAttempts,
-        lockedUntil,
-      });
-      await batch.commit();
-
-      const response: VerifyChildPinResponse = {
-        success: false,
-        locked: true,
-        lockedUntil: lockedUntil.toDate().toISOString(),
-      };
-      res.status(403).json(response);
-      logger.info("verifyChildPin END - locked after max attempts", {
-        executionId,
-      });
-      return;
-    }
-
-    batch.update(profileRef, { failedPinAttempts: newFailedAttempts });
-    await batch.commit();
-
-    const response: VerifyChildPinResponse = {
-      success: false,
-      attemptsRemaining: MAX_FAILED_ATTEMPTS - newFailedAttempts,
-    };
-    res.status(401).json(response);
-    logger.info("verifyChildPin END - wrong pin", { executionId });
+    // Serialize failed attempts and successful sessions so parallel guesses cannot
+    // bypass the lockout counter. Only the token hash is stored on the server.
+    const token = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+    const result = await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(profileRef);
+      if (!snapshot.exists) return { status: 404, body: { error: "Child profile not found" } };
+      const profile = snapshot.data() as ChildProfileData;
+      const now = admin.firestore.Timestamp.now();
+      if (profile.lockedUntil && profile.lockedUntil.toMillis() > now.toMillis()) {
+        return { status: 403, body: { success: false, locked: true, lockedUntil: profile.lockedUntil.toDate().toISOString() } };
+      }
+      // Old demo hashes cannot be verified securely; a parent must reset them.
+      if (typeof profile.pinHash !== "string" || !/^\$2[aby]\$/.test(profile.pinHash)) {
+        return { status: 409, body: { error: "Ask a parent to reset this profile's PIN." } };
+      }
+      if (await bcrypt.compare(pin, profile.pinHash)) {
+        const expiresAt = new Date(now.toMillis() + SESSION_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
+        transaction.update(profileRef, { failedPinAttempts: 0, lockedUntil: null });
+        transaction.set(db.doc(`families/${familyId}/childSessions/${tokenHash}`), {
+          childProfileId, parentUid: callerUid,
+          expiresAt: admin.firestore.Timestamp.fromDate(expiresAt), createdAt: now,
+        });
+        return { status: 200, body: { success: true, sessionToken: { token, expiresAt: expiresAt.toISOString() } } };
+      }
+      // An expired lockout starts a new attempt window.
+      const attempts = (profile.lockedUntil ? 0 : Math.max(0, profile.failedPinAttempts || 0)) + 1;
+      if (attempts >= MAX_FAILED_ATTEMPTS) {
+        const lockedUntil = admin.firestore.Timestamp.fromDate(new Date(now.toMillis() + LOCKOUT_MINUTES * 60 * 1000));
+        transaction.update(profileRef, { failedPinAttempts: attempts, lockedUntil });
+        return { status: 403, body: { success: false, locked: true, lockedUntil: lockedUntil.toDate().toISOString() } };
+      }
+      transaction.update(profileRef, { failedPinAttempts: attempts, lockedUntil: null });
+      return { status: 401, body: { success: false, attemptsRemaining: MAX_FAILED_ATTEMPTS - attempts } };
+    });
+    res.status(result.status).json(result.body);
+    logger.info("verifyChildPin END", { executionId, status: result.status });
   } catch (error: unknown) {
     logger.error("verifyChildPin ERROR", { executionId, error });
     res.status(500).json({ error: "Internal server error" });

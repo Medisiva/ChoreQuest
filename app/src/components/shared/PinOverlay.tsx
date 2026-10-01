@@ -19,6 +19,7 @@ import Animated, {
   withTiming,
   SlideInDown,
 } from 'react-native-reanimated';
+import { callBackend, type PinVerification } from '../../services/backend';
 import type { ChildProfile } from '../../types';
 
 interface PinOverlayProps {
@@ -66,27 +67,15 @@ export default function PinOverlay({
         setLoading(true);
 
         try {
-          // Call the verifyChildPin Cloud Function
-          const response = await fetch(
-            `${__DEV__ ? 'http://localhost:5001' : ''}/chorequest-prod/us-central1/verifyChildPin`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                familyId: child.familyAccountId,
-                childProfileId: child.id,
-                pin: newPin,
-              }),
-            }
-          );
-
-          const result = await response.json();
+          const result = await callBackend<PinVerification>('verifyChildPin', {
+            familyId: child.familyAccountId, childProfileId: child.id, pin: newPin,
+          });
 
           if (result.success) {
-            onSuccess(result.sessionToken);
+            onSuccess(result.sessionToken.token);
           } else if (result.locked) {
             setLocked(true);
-            setError('Too many attempts. Ask a parent to unlock.');
+            setError('Too many attempts. Try again in 15 minutes.');
             triggerShake();
           } else {
             setAttemptsRemaining(result.attemptsRemaining ?? 0);
@@ -96,7 +85,7 @@ export default function PinOverlay({
             triggerShake();
           }
         } catch (err) {
-          setError('Could not verify PIN. Try again.');
+          setError(err instanceof Error ? err.message : 'Could not verify PIN. Try again.');
           triggerShake();
         }
 

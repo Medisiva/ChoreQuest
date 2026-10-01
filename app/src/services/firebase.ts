@@ -79,4 +79,4 @@ export async function initializeFirebase(): Promise<void> {
   await enableOfflinePersistence();
 }
 
-export { app, auth, db, storage, functions, isDev };
+export { app, auth, db, storage, functions, isDev, useEmulators, emulatorHost };

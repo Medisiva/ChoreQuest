@@ -13,16 +13,20 @@ Status: in development. No signed APK/AAB, deployed backend, store listing, or s
 - Task awards use deterministic per-claim/per-step ledger IDs. Trigger retries do not award stars twice. Milestones reopen for the next step; the completion bonus is only awarded on the final step.
 - Completed one-off quests are deactivated. Recurring source tasks retain their completed lock until the scheduler generates a new instance.
 - Parent request awards use acceptedByParentId, parentUsers, and the canonical transaction fields instead of the incompatible members/parentUid schema. Retry awards are idempotent.
+- Recurrence generation uses canonical task fields, deterministic create-only instance IDs, family-local day/week/month periods, and nonrecurring copies. Concurrent scheduler retries create one occurrence; completed template locks are hidden from the child feed.
+- Rejected quests show parent feedback and can resubmit. Submission uses a transaction and refuses already submitted/approved claims.
+- PIN verification stores hashed, parent/child-bound expiring session records and serializes failure counters/lockouts. Expired lockouts start a fresh window; legacy demo hashes require a parent reset. Session enforcement by child mutation endpoints is still pending.
+- PIN entry uses authenticated HTTP requests and configured emulator/production URLs, and passes the actual token string to the session store.
 - PIN verification rejects callers from other families, deleted families, and invalid input before accessing child profiles.
 - Local app is linked to Expo medisivateam/chorequest. EAS configuration lives in app/eas.json, with APK preview and AAB production profiles.
 
-Validation: npm test passes 5 app service tests and 11 backend tests. npm run app:typecheck and functions compilation pass. Tests use transactional fakes and mocked trigger envelopes; Firebase emulator integration and device tests are still required. Android Metro/Hermes export is checked separately; it does not validate native compilation or runtime behavior.
+Validation: npm test passes 6 app service tests and 20 backend tests. npm run app:typecheck and functions compilation pass. Tests use transactional fakes and mocked trigger envelopes; Firebase emulator integration and device tests are still required. Android Metro/Hermes export is checked separately; it does not validate native compilation or runtime behavior.
 
 ## Next implementation work
 
-1. Replace the demo PIN hash with server-side bcrypt profile creation; repair client verification URLs, bearer authentication, session-token response handling, concurrent lockout updates, and parent/child mode boundaries.
+1. Replace the demo PIN hash with server-side bcrypt profile creation; implement PIN reset, enforce server session records on child operations, and guard parent/child mode boundaries. Client request authentication and atomic lockout handling are repaired; profile creation/onboarding still produce incompatible demo hashes.
 2. Repair family onboarding/bootstrap rules and mappings. Existing rules deny parentProfiles and nested settings/leaderboard bootstrap writes. Do not loosen access broadly to mask this problem. Audit client star writes versus rules that reserve ledgers for the backend.
-3. Fix recurring-task schema and generation: current scheduler uses starsReward instead of starValue and recursively creates recurring copies. Add deterministic instances and timezone-aware periods, retaining templates separately from claimable instances.
+3. Validate recurring tasks in Firebase emulators and on device, including template editing/cancellation and scheduled weekly/monthly boundaries. The schema, duplicate generation, recursive copying, and timezone period bugs are repaired.
 4. Replace mock leaderboard and accountability data, connect consequence clearing and task editing, and ensure family profile balances refresh after awards. Reject/resubmit and milestone flows need full integration tests.
 5. Audit weekly/monthly jobs, badge criteria, push notifications, photo proof, reward redemptions, export authorization, and genuine account/data deletion. The current deletion endpoint promises a 30-day purge without a purge implementation.
 6. Finish shared design tokens, parent/child layouts, accessibility, app branding, loading/error/empty states, and inspect real screens visually.
