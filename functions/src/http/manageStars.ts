@@ -1,3 +1,4 @@
+import { FieldValue } from "firebase-admin/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { documentId, positiveStars, requireParent, requireChildSession } from "../utils/authorization";
@@ -24,7 +25,7 @@ export const adjustChildStars = onCall(async (request) => {
     const updates: Record<string, unknown> = { starBalance: balance + delta };
     if (delta > 0) updates.totalStarsEarned = (child.data()!.totalStarsEarned || 0) + delta;
     transaction.update(profile, updates);
-    transaction.create(ledger, { familyAccountId: familyId, childProfileId: childId, deltaStars: delta, requestedAmount: amount, transactionType: input.type, reason: input.reason.trim(), createdByParentId: request.auth!.uid, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+    transaction.create(ledger, { familyAccountId: familyId, childProfileId: childId, deltaStars: delta, requestedAmount: amount, transactionType: input.type, reason: input.reason.trim(), createdByParentId: request.auth!.uid, createdAt: FieldValue.serverTimestamp() });
   });
   return { transactionId: ledger.id };
 });
@@ -45,7 +46,7 @@ export const requestChildRedemption = onCall(async (request) => {
     if (!reward.exists || !reward.data()?.isActive) throw new HttpsError("not-found", "Reward unavailable");
     const cost = positiveStars(reward.data()!.starCost);
     if (child.data()!.starBalance < cost) throw new HttpsError("failed-precondition", "Not enough stars");
-    transaction.create(ref, { familyAccountId: familyId, childProfileId: childId, rewardId, starCost: cost, rewardName: reward.data()!.name, status: "pending", requestedAt: admin.firestore.FieldValue.serverTimestamp() });
+    transaction.create(ref, { familyAccountId: familyId, childProfileId: childId, rewardId, starCost: cost, rewardName: reward.data()!.name, status: "pending", requestedAt: FieldValue.serverTimestamp() });
   });
   return { redemptionId: ref.id };
 });
@@ -63,7 +64,7 @@ export const reviewChildRedemption = onCall(async (request) => {
     if (data.status === input.status) return; // Safe repeat of an already-applied review.
     if (data.status !== "pending") throw new HttpsError("failed-precondition", "Request already reviewed");
     if (input.status === "declined") {
-      transaction.update(ref, { status: "declined", declinedAt: admin.firestore.FieldValue.serverTimestamp(), ...(typeof input.reason === "string" && input.reason.trim() ? { declineReason: input.reason.trim().slice(0, 500) } : {}) }); return;
+      transaction.update(ref, { status: "declined", declinedAt: FieldValue.serverTimestamp(), ...(typeof input.reason === "string" && input.reason.trim() ? { declineReason: input.reason.trim().slice(0, 500) } : {}) }); return;
     }
     const cost = positiveStars(data.starCost); const childId = documentId(data.childProfileId);
     const profile = db.doc(`families/${familyId}/childProfiles/${childId}`); const child = await transaction.get(profile);
@@ -71,8 +72,8 @@ export const reviewChildRedemption = onCall(async (request) => {
     if (existing.exists) throw new HttpsError("failed-precondition", "Request ledger is inconsistent");
     if (!child.exists || !Number.isSafeInteger(child.data()?.starBalance) || child.data()!.starBalance < cost) throw new HttpsError("failed-precondition", "Child can no longer afford this reward");
     transaction.update(profile, { starBalance: child.data()!.starBalance - cost, totalStarsRedeemed: (child.data()!.totalStarsRedeemed || 0) + cost });
-    transaction.create(ledger, { familyAccountId: familyId, childProfileId: childId, deltaStars: -cost, transactionType: "redemption", rewardRedemptionId: redemptionId, reason: "Reward redemption", createdAt: admin.firestore.FieldValue.serverTimestamp() });
-    transaction.update(ref, { status: "approved", approvedAt: admin.firestore.FieldValue.serverTimestamp() });
+    transaction.create(ledger, { familyAccountId: familyId, childProfileId: childId, deltaStars: -cost, transactionType: "redemption", rewardRedemptionId: redemptionId, reason: "Reward redemption", createdAt: FieldValue.serverTimestamp() });
+    transaction.update(ref, { status: "approved", approvedAt: FieldValue.serverTimestamp() });
   });
   return { success: true };
 });

@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase-admin/firestore";
 import { onRequest } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
@@ -15,7 +16,7 @@ interface VerifyChildPinRequest {
 interface ChildProfileData {
   pinHash: string;
   failedPinAttempts: number;
-  lockedUntil: admin.firestore.Timestamp | null;
+  lockedUntil: Timestamp | null;
   [key: string]: unknown; // allow other fields without casting to any
 }
 
@@ -89,7 +90,7 @@ export const verifyChildPin = onRequest(async (req, res) => {
       const snapshot = await transaction.get(profileRef);
       if (!snapshot.exists) return { status: 404, body: { error: "Child profile not found" } };
       const profile = snapshot.data() as ChildProfileData;
-      const now = admin.firestore.Timestamp.now();
+      const now = Timestamp.now();
       if (profile.lockedUntil && profile.lockedUntil.toMillis() > now.toMillis()) {
         return { status: 403, body: { success: false, locked: true, lockedUntil: profile.lockedUntil.toDate().toISOString() } };
       }
@@ -102,14 +103,14 @@ export const verifyChildPin = onRequest(async (req, res) => {
         transaction.update(profileRef, { failedPinAttempts: 0, lockedUntil: null });
         transaction.set(db.doc(`families/${familyId}/childSessions/${tokenHash}`), {
           childProfileId, parentUid: callerUid,
-          expiresAt: admin.firestore.Timestamp.fromDate(expiresAt), createdAt: now,
+          expiresAt: Timestamp.fromDate(expiresAt), createdAt: now,
         });
         return { status: 200, body: { success: true, sessionToken: { token, expiresAt: expiresAt.toISOString() } } };
       }
       // An expired lockout starts a new attempt window.
       const attempts = (profile.lockedUntil ? 0 : Math.max(0, profile.failedPinAttempts || 0)) + 1;
       if (attempts >= MAX_FAILED_ATTEMPTS) {
-        const lockedUntil = admin.firestore.Timestamp.fromDate(new Date(now.toMillis() + LOCKOUT_MINUTES * 60 * 1000));
+        const lockedUntil = Timestamp.fromDate(new Date(now.toMillis() + LOCKOUT_MINUTES * 60 * 1000));
         transaction.update(profileRef, { failedPinAttempts: attempts, lockedUntil });
         return { status: 403, body: { success: false, locked: true, lockedUntil: lockedUntil.toDate().toISOString() } };
       }

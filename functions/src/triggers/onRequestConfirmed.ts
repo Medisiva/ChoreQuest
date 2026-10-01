@@ -1,3 +1,4 @@
+import { FieldValue } from "firebase-admin/firestore";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
@@ -41,7 +42,7 @@ export const onRequestConfirmed = onDocumentUpdated(
         deltaStars: stars,
         source: "requestCompletion",
         familyRequestId: requestId,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
       });
     });
   }

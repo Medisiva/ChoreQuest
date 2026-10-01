@@ -10,6 +10,7 @@ test('profile refresh ignores retries, out-of-order events and deleted families'
   const module = { exports: {} };
   vm.runInNewContext(fs.readFileSync(require.resolve('../lib/triggers/onProfileChanged'), 'utf8'), { module, exports: module.exports, Date, require: (name) => {
     if (name === 'firebase-functions/v2/firestore') return { onDocumentWritten: (_path, callback) => callback };
+    if (name === 'firebase-admin/firestore') return { Timestamp: { fromDate: timestamp } };
     if (name === 'firebase-admin') return { firestore: Object.assign(() => db, { Timestamp: { fromDate: timestamp } }) };
     throw new Error(name);
   } });

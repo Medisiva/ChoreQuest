@@ -1,3 +1,4 @@
+import { FieldValue } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
@@ -26,7 +27,7 @@ async function processFamily(
     if ((await ref.get()).exists) continue;
     const instance = buildRecurringInstance(source, familyId, template.id, periodKey);
     const batch = db.batch();
-    batch.create(ref, { ...instance, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+    batch.create(ref, { ...instance, createdAt: FieldValue.serverTimestamp() });
     try {
       await batch.commit();
       created++;

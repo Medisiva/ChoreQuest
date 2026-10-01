@@ -51,6 +51,7 @@ function schedulerFixture() {
     module, exports: module.exports, Date, require: (name) => {
       if (name === 'firebase-functions/v2/scheduler') return { onSchedule: (_schedule, callback) => callback };
       if (name === 'firebase-functions') return { logger: { info() {}, error() {} } };
+      if (name === 'firebase-admin/firestore') return firestore;
       if (name === 'firebase-admin') return { firestore };
       if (name === 'crypto') return require('node:crypto');
       if (name === '../utils/recurrence') return require('../lib/utils/recurrence');

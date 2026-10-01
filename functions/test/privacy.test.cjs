@@ -18,6 +18,7 @@ function fixture({ uid = 'p', authTime = Date.now() / 1000, failStorage = false 
       if (name === 'firebase-functions/v2/https') return { onRequest: (handler) => handler };
       if (name === 'firebase-functions/v2/scheduler') return { onSchedule: (_schedule, handler) => handler };
       if (name === 'firebase-functions') return { logger: { error() {}, info() {} } };
+      if (name === 'firebase-admin/firestore') return admin.firestore;
       if (name === 'firebase-admin') return admin;
       throw new Error(name);
     } }); return module.exports;

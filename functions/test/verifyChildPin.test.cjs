@@ -45,6 +45,7 @@ function fixture({ member = false, deleted = false, profile, correct = false } =
     require: (name) => {
       if (name === 'firebase-functions/v2/https') return { onRequest: (handler) => handler };
       if (name === 'firebase-functions') return { logger: { info() {}, error() {} } };
+      if (name === 'firebase-admin/firestore') return admin.firestore;
       if (name === 'firebase-admin') return admin;
       if (name === 'bcrypt') return { compare: async () => correct };
       return require(name);

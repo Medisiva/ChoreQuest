@@ -1,3 +1,4 @@
+import { FieldValue } from "firebase-admin/firestore";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
@@ -46,7 +47,7 @@ export const onTaskClaimApproved = onDocumentUpdated(
       transaction.update(childRef, {
         starBalance: (child.starBalance ?? 0) + stars,
         totalStarsEarned: (child.totalStarsEarned ?? 0) + stars,
-        ...(complete && child.activeQuestId === claimId ? { activeQuestId: admin.firestore.FieldValue.delete() } : {}),
+        ...(complete && child.activeQuestId === claimId ? { activeQuestId: FieldValue.delete() } : {}),
       });
       transaction.set(ledgerRef, {
         familyAccountId: familyId,
@@ -56,14 +57,14 @@ export const onTaskClaimApproved = onDocumentUpdated(
         taskClaimId: claimId,
         milestoneStep: step,
         reason: `Approved: ${task.title}`,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
       });
       if (!complete) {
         // Keep the same claim open until the next step is submitted and reviewed.
         transaction.update(claimRef, { status: "claimed", currentMilestoneStep: step + 1 });
       } else if (!task.recurrenceType || task.recurrenceType === "none") {
         // A one-off quest must not award stars repeatedly after completion.
-        transaction.update(taskRef, { isActive: false, activeClaimId: admin.firestore.FieldValue.delete() });
+        transaction.update(taskRef, { isActive: false, activeClaimId: FieldValue.delete() });
       }
       // Recurring source tasks retain their lock; the scheduler creates the next instance.
     });

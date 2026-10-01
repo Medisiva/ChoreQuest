@@ -1,3 +1,4 @@
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { documentId, requireParent, requireChildSession } from "../utils/authorization";
@@ -24,7 +25,7 @@ export const createFamilyRequest = onCall(async (request) => {
     if (!Number.isSafeInteger(configured) || configured < 0 || configured > 100) throw new HttpsError("failed-precondition", "Invalid request limit");
     const count = child.data()?.requestCountPeriod === period ? child.data()?.weeklyRequestCount || 0 : 0;
     if (count >= configured) throw new HttpsError("resource-exhausted", "Weekly request limit reached");
-    transaction.create(ref, { familyAccountId: familyId, requestedByChildId: childId, title: input.title.trim(), ...(input.description?.trim() ? { description: input.description.trim() } : {}), category: input.category, suggestedStars: input.suggestedStars, status: "pending", createdAt: admin.firestore.FieldValue.serverTimestamp() });
+    transaction.create(ref, { familyAccountId: familyId, requestedByChildId: childId, title: input.title.trim(), ...(input.description?.trim() ? { description: input.description.trim() } : {}), category: input.category, suggestedStars: input.suggestedStars, status: "pending", createdAt: FieldValue.serverTimestamp() });
     transaction.update(child.ref, { requestCountPeriod: period, weeklyRequestCount: count + 1 });
   });
   return { requestId: ref.id };
@@ -42,7 +43,7 @@ export const updateFamilyRequest = onCall(async (request) => {
     const data = snapshot.data()!;
     // Child confirmation is bound to the child that created the request.
     if (input.status === "confirmed") await requireChildSession(transaction, familyId, documentId(data.requestedByChildId), request.auth!.uid, input.sessionToken);
-    const now = admin.firestore.FieldValue.serverTimestamp();
+    const now = FieldValue.serverTimestamp();
     const updates: Record<string, unknown> = { status: input.status };
     if (input.status === "accepted") {
       if (!Number.isSafeInteger(input.agreedStars) || input.agreedStars < 0 || input.agreedStars > 1000) throw new HttpsError("invalid-argument", "Invalid star amount");
@@ -52,7 +53,7 @@ export const updateFamilyRequest = onCall(async (request) => {
       updates.declineReason = input.reason.trim();
     } else if (input.status === "snoozed") {
       if (!Number.isSafeInteger(input.snoozeDays) || input.snoozeDays < 1 || input.snoozeDays > 30) throw new HttpsError("invalid-argument", "Choose 1–30 days");
-      updates.snoozeUntil = admin.firestore.Timestamp.fromMillis(Date.now() + input.snoozeDays * 86400000);
+      updates.snoozeUntil = Timestamp.fromMillis(Date.now() + input.snoozeDays * 86400000);
     } else if (input.status === "completed") {
       if (data.acceptedByParentId !== request.auth!.uid) throw new HttpsError("permission-denied", "Only the accepting parent can mark this done");
       updates.completedAt = now;

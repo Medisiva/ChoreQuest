@@ -1,3 +1,4 @@
+import { FieldValue } from "firebase-admin/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import * as bcrypt from "bcrypt";
@@ -30,7 +31,7 @@ export async function childData(input: Record<string, unknown>): Promise<Record<
     monthlyTargetStars: integer(input.monthlyTargetStars ?? 80, "monthly target"),
     progressDisplayStyle: "ProgressBar", currentStreakWeeks: 0, consecutiveMissWeeks: 0,
     monthlyConsecutiveMisses: 0, streakThreshold: 4, streakBonusStars: 10,
-    failedPinAttempts: 0, lockedUntil: null, createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    failedPinAttempts: 0, lockedUntil: null, createdAt: FieldValue.serverTimestamp(),
   };
 }
 function rewards(input: unknown): Record<string, unknown>[] {
@@ -64,7 +65,7 @@ export const setupFamily = onCall(async (request) => {
     const existing = await transaction.get(mapping);
     // Concurrent retries and a lost HTTP response must not create a second family.
     if (existing.exists) return { familyId: existing.data()!.familyAccountId, parentId: uid };
-    const now = admin.firestore.FieldValue.serverTimestamp();
+    const now = FieldValue.serverTimestamp();
     const parent = { familyAccountId: family.id, firebaseUid: uid, displayName: typeof request.auth!.token.name === "string" ? request.auth!.token.name : "Parent", avatarId: "default-parent", starBalance: 0, totalStarsEarned: 0, totalStarsRedeemed: 0, createdAt: now };
     transaction.create(family, { familyName, ownerUid: uid, memberIds: [uid], createdAt: now, timezone, isDeleted: false });
     transaction.create(family.collection("parentUsers").doc(uid), parent);
@@ -120,7 +121,7 @@ export const resetChildPin = onCall(async (request) => {
     if (!parent.exists || !familySnap.exists || familySnap.data()?.isDeleted) throw new HttpsError("permission-denied", "Family unavailable");
     if (!child.exists) throw new HttpsError("not-found", "Profile not found");
     // Session consumers compare this timestamp to their creation time.
-    transaction.update(childRef, { pinHash, failedPinAttempts: 0, lockedUntil: null, sessionsRevokedAt: admin.firestore.FieldValue.serverTimestamp() });
+    transaction.update(childRef, { pinHash, failedPinAttempts: 0, lockedUntil: null, sessionsRevokedAt: FieldValue.serverTimestamp() });
   });
   return { success: true };
 });

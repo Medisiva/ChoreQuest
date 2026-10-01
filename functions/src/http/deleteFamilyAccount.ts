@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase-admin/firestore";
 import { onRequest } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
@@ -24,8 +25,8 @@ export const deleteFamilyAccount = onRequest(async (req, res) => {
       const data = snapshot.data()!;
       if ((data.ownerUid ?? data.memberIds?.[0]) !== uid) return { status: 403, error: "Only the family creator can delete the whole family." };
       if (pending.exists) return { status: 200, purgeAfter: pending.data()!.purgeAfter.toDate().toISOString() };
-      const now = admin.firestore.Timestamp.now();
-      const purgeAfter = admin.firestore.Timestamp.fromMillis(now.toMillis() + 30 * 24 * 60 * 60 * 1000);
+      const now = Timestamp.now();
+      const purgeAfter = Timestamp.fromMillis(now.toMillis() + 30 * 24 * 60 * 60 * 1000);
       transaction.update(family, { isDeleted: true, deletedAt: now });
       transaction.create(queue, { familyId, requestedBy: uid, requestedAt: now, purgeAfter });
       return { status: 200, purgeAfter: purgeAfter.toDate().toISOString() };

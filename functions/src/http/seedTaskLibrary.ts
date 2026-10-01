@@ -1,3 +1,4 @@
+import { FieldValue } from "firebase-admin/firestore";
 import { onRequest } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
@@ -93,7 +94,7 @@ export const seedTaskLibrary = onRequest(async (req, res) => {
         difficulty: task.difficulty,
         ageGroupSuggestion: task.ageGroupSuggestion,
         isMilestone: task.isMilestone,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
       };
 
       if (task.isMilestone) {

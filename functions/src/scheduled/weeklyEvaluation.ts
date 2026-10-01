@@ -1,3 +1,4 @@
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
@@ -29,8 +30,8 @@ interface AccountabilityLog {
   familyId: string;
   childId: string;
   periodType: "weekly" | "monthly";
-  periodStart: admin.firestore.Timestamp;
-  periodEnd: admin.firestore.Timestamp;
+  periodStart: Timestamp;
+  periodEnd: Timestamp;
   targetStars: number;
   earnedStars: number;
   met: boolean;
@@ -38,7 +39,7 @@ interface AccountabilityLog {
   missLevel: number | null;
   consequenceApplied: string | null;
   bonusAwarded: number;
-  createdAt: admin.firestore.Timestamp;
+  createdAt: Timestamp;
 }
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -96,8 +97,8 @@ async function getApprovedStars(
     .where("childId", "==", childId)
     .where("type", "==", "earn")
     .where("status", "==", "approved")
-    .where("createdAt", ">=", admin.firestore.Timestamp.fromDate(periodStart))
-    .where("createdAt", "<=", admin.firestore.Timestamp.fromDate(periodEnd))
+    .where("createdAt", ">=", Timestamp.fromDate(periodStart))
+    .where("createdAt", "<=", Timestamp.fromDate(periodEnd))
     .get();
 
   let total = 0;
@@ -121,7 +122,7 @@ async function processChild(
   const child = childDoc.data() as ChildProfile;
   const childId = childDoc.id;
 
-  const periodStartTs = admin.firestore.Timestamp.fromDate(weekStart);
+  const periodStartTs = Timestamp.fromDate(weekStart);
 
   // ── Idempotency check: skip if log already exists for this period + child ──
   const existingLog = await db
@@ -187,7 +188,7 @@ async function processChild(
         type: "bonus",
         reason: `${STREAK_BONUS_THRESHOLD}-week streak bonus`,
         status: "approved",
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
       });
 
       logger.info(
@@ -232,7 +233,7 @@ async function processChild(
         periodType: "weekly" as const,
         periodStart: periodStartTs,
         status: "active",
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
       });
 
       logger.info(
@@ -257,7 +258,7 @@ async function processChild(
     childId,
     periodType: "weekly",
     periodStart: periodStartTs,
-    periodEnd: admin.firestore.Timestamp.fromDate(weekEnd),
+    periodEnd: Timestamp.fromDate(weekEnd),
     targetStars: target,
     earnedStars,
     met,
@@ -265,7 +266,7 @@ async function processChild(
     missLevel,
     consequenceApplied,
     bonusAwarded,
-    createdAt: admin.firestore.Timestamp.now(),
+    createdAt: Timestamp.now(),
   };
 
   batch.set(logRef, logData);

@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
@@ -6,7 +7,7 @@ import * as admin from "firebase-admin";
 // queue is removed only after storage, mappings, accounts and family data are gone.
 export const purgeDeletedFamilies = onSchedule("every 24 hours", async () => {
   const db = admin.firestore();
-  const jobs = await db.collection("familyDeletionQueue").where("purgeAfter", "<=", admin.firestore.Timestamp.now()).limit(20).get();
+  const jobs = await db.collection("familyDeletionQueue").where("purgeAfter", "<=", Timestamp.now()).limit(20).get();
   for (const job of jobs.docs) {
     const familyId = job.id;
     const family = db.doc(`families/${familyId}`);

@@ -1,3 +1,4 @@
+import { FieldValue } from "firebase-admin/firestore";
 // Cloud Function trigger — fires on any starTransaction write.
 // Checks 15 badge conditions against the child's data and awards
 // badges that haven't already been earned.
@@ -217,7 +218,7 @@ export const onBadgeEarned = onDocumentCreated(
           badgeId: badge.id,
           badgeName: badge.name,
           badgeDescription: badge.description,
-          earnedAt: admin.firestore.FieldValue.serverTimestamp(),
+          earnedAt: FieldValue.serverTimestamp(),
         });
 
         badgesAwarded++;

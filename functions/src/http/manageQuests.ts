@@ -1,3 +1,4 @@
+import { FieldValue } from "firebase-admin/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { documentId, requireParent, requireChildSession } from "../utils/authorization";
@@ -20,7 +21,7 @@ export const claimChildQuest = onCall(async (request) => {
     if (!legacy.empty) throw new HttpsError("already-exists", "Someone already claimed this quest");
     const previous = await transaction.get(db.collection(`families/${familyId}/taskClaims`).where("childProfileId", "==", childId).where("status", "in", ["claimed", "submitted", "rejected"]).limit(1));
     if (!previous.empty || child.data()?.activeQuestId) throw new HttpsError("failed-precondition", "Finish or release your current quest first");
-    transaction.create(claim, { familyAccountId: familyId, taskId, childProfileId: childId, status: "claimed", ...(snapshot.data()?.isMilestone ? { currentMilestoneStep: 1 } : {}), claimedAt: admin.firestore.FieldValue.serverTimestamp() });
+    transaction.create(claim, { familyAccountId: familyId, taskId, childProfileId: childId, status: "claimed", ...(snapshot.data()?.isMilestone ? { currentMilestoneStep: 1 } : {}), claimedAt: FieldValue.serverTimestamp() });
     transaction.update(task, { activeClaimId: operationId });
     transaction.update(child.ref, { activeQuestId: operationId });
   });
@@ -42,8 +43,8 @@ export const updateChildQuest = onCall(async (request) => {
     if (!["claimed", "rejected"].includes(claim.data()!.status)) throw new HttpsError("failed-precondition", "Quest cannot be changed now");
     if (input.status === "released") {
       transaction.update(claimRef, { status: "released" });
-      if (task.exists && task.data()?.activeClaimId === claimId) transaction.update(taskRef, { activeClaimId: admin.firestore.FieldValue.delete() });
-      if (child.data()?.activeQuestId === claimId) transaction.update(child.ref, { activeQuestId: admin.firestore.FieldValue.delete() });
+      if (task.exists && task.data()?.activeClaimId === claimId) transaction.update(taskRef, { activeClaimId: FieldValue.delete() });
+      if (child.data()?.activeQuestId === claimId) transaction.update(child.ref, { activeQuestId: FieldValue.delete() });
       return;
     }
     if (!task.exists || !task.data()?.isActive) throw new HttpsError("failed-precondition", "Quest unavailable");
@@ -59,7 +60,7 @@ export const updateChildQuest = onCall(async (request) => {
       const [exists] = await bucket.file(objectPath).exists();
       if (!exists) throw new HttpsError("invalid-argument", "Photo upload is incomplete");
     }
-    transaction.update(claimRef, { status: "submitted", submittedAt: admin.firestore.FieldValue.serverTimestamp(), ...(proof ? { photoProofUrl: proof } : {}) });
+    transaction.update(claimRef, { status: "submitted", submittedAt: FieldValue.serverTimestamp(), ...(proof ? { photoProofUrl: proof } : {}) });
   });
   return { success: true };
 });
@@ -77,7 +78,7 @@ export const reviewChildQuests = onCall(async (request) => {
     for (const snapshot of snapshots) if (!snapshot.exists || !["submitted", input.decision].includes(snapshot.data()!.status)) throw new HttpsError("failed-precondition", "Review queue changed. Refresh and try again");
     for (let i = 0; i < refs.length; i++) {
       if (snapshots[i].data()?.status === input.decision) continue;
-      transaction.update(refs[i], input.decision === "approved" ? { status: "approved", approvedAt: admin.firestore.FieldValue.serverTimestamp() } : { status: "rejected", rejectedAt: admin.firestore.FieldValue.serverTimestamp(), rejectionReason: input.reason.trim() });
+      transaction.update(refs[i], input.decision === "approved" ? { status: "approved", approvedAt: FieldValue.serverTimestamp() } : { status: "rejected", rejectedAt: FieldValue.serverTimestamp(), rejectionReason: input.reason.trim() });
     }
   });
   return { success: true };
