@@ -3,6 +3,8 @@
 // Parents and kids on the SAME leaderboard — the key differentiator.
 
 import React, { useState } from 'react';
+import { useLeaderboard } from '@/utils/useLeaderboard';
+import type { LeaderboardEntry, LeaderboardPeriod } from '@/utils/leaderboard';
 import {
   View,
   Text,
@@ -24,41 +26,7 @@ import {
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type Period = 'weekly' | 'monthly' | 'allTime';
-
-interface LeaderboardEntry {
-  id: string;
-  name: string;
-  avatarEmoji: string;
-  stars: number;
-  role: 'parent' | 'child';
-}
-
-// ── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_DATA: Record<Period, LeaderboardEntry[]> = {
-  weekly: [
-    { id: 'c1', name: 'Mia', avatarEmoji: '🦊', stars: 42, role: 'child' },
-    { id: 'p1', name: 'Dad', avatarEmoji: '🧔', stars: 35, role: 'parent' },
-    { id: 'c2', name: 'Leo', avatarEmoji: '🐯', stars: 28, role: 'child' },
-    { id: 'p2', name: 'Mom', avatarEmoji: '👩', stars: 22, role: 'parent' },
-    { id: 'c3', name: 'Sam', avatarEmoji: '🐸', stars: 15, role: 'child' },
-  ],
-  monthly: [
-    { id: 'c1', name: 'Mia', avatarEmoji: '🦊', stars: 168, role: 'child' },
-    { id: 'p2', name: 'Mom', avatarEmoji: '👩', stars: 142, role: 'parent' },
-    { id: 'p1', name: 'Dad', avatarEmoji: '🧔', stars: 130, role: 'parent' },
-    { id: 'c2', name: 'Leo', avatarEmoji: '🐯', stars: 112, role: 'child' },
-    { id: 'c3', name: 'Sam', avatarEmoji: '🐸', stars: 65, role: 'child' },
-  ],
-  allTime: [
-    { id: 'p1', name: 'Dad', avatarEmoji: '🧔', stars: 1240, role: 'parent' },
-    { id: 'c1', name: 'Mia', avatarEmoji: '🦊', stars: 1180, role: 'child' },
-    { id: 'p2', name: 'Mom', avatarEmoji: '👩', stars: 980, role: 'parent' },
-    { id: 'c2', name: 'Leo', avatarEmoji: '🐯', stars: 720, role: 'child' },
-    { id: 'c3', name: 'Sam', avatarEmoji: '🐸', stars: 340, role: 'child' },
-  ],
-};
+type Period = LeaderboardPeriod;
 
 const PERIOD_LABELS: Record<Period, string> = {
   weekly: 'Weekly',
@@ -142,7 +110,7 @@ export default function ParentLeaderboard() {
   const parentProfile = useFamilyStore((s) => s.parentProfile);
   const [period, setPeriod] = useState<Period>('weekly');
 
-  const entries = MOCK_DATA[period];
+  const { entries, loading, error, reload } = useLeaderboard(period);
   const currentParentId = parentProfile?.id ?? null;
 
   return (
@@ -173,6 +141,8 @@ export default function ParentLeaderboard() {
       {/* Leaderboard List */}
       <FlatList
         data={entries}
+        refreshing={loading}
+        onRefresh={reload}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         renderItem={({ item, index }) => (
@@ -185,7 +155,7 @@ export default function ParentLeaderboard() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              No leaderboard data yet. Complete tasks to get on the board!
+              {loading ? 'Loading scores…' : error ?? 'No family profiles yet. Add a profile to get started.'}
             </Text>
           </View>
         }

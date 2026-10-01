@@ -38,7 +38,7 @@ Status: in development. No signed APK/AAB, deployed backend, store listing, or s
 - PIN verification rejects callers from other families, deleted families, and invalid input before accessing child profiles.
 - Local app is linked to Expo medisivateam/chorequest. EAS configuration lives in app/eas.json, with APK preview and AAB production profiles.
 
-Validation: npm test passes 4 app tests and 49 backend tests. npm run app:typecheck and functions compilation pass. Tests use transactional fakes and mocked trigger envelopes; Firebase emulator integration and device tests are still required. Android Metro/Hermes export is checked separately; it does not validate native compilation or runtime behavior.
+Validation: npm test passes 6 app tests and 49 backend tests. npm run app:typecheck and functions compilation pass. Tests use transactional fakes and mocked trigger envelopes; Firebase emulator integration and device tests are still required. Android Metro/Hermes export is checked separately; it does not validate native compilation or runtime behavior.
 
 ## Firebase integration and dependency validation
 
@@ -54,7 +54,7 @@ Validation: npm test passes 4 app tests and 49 backend tests. npm run app:typech
 1. Resolve the remaining server boundary between parent and child mode. UI routes now require parent password reauthentication and child mutation endpoints validate PIN sessions, but existing parent Firebase credentials still grant parent privileges in child mode. PIN hashing, reset, request authentication, and atomic lockout handling are repaired.
 2. Extend Firebase emulator integration coverage beyond the validated bootstrap/rules/quest flow to rewards, family requests, PIN resets, photo proof, export/deletion and scheduled jobs. Server bootstrap and canonical paths are repaired. Child star adjustments and redemptions now use server-owned ledgers. Parent rewards/redemptions and any remaining balance mutations still need auditing. Java 21 and Firebase CLI/emulator tooling are installed; npm run test:integration runs against demo-chorequest.
 3. Validate recurring tasks in Firebase emulators and on device, including template editing/cancellation and scheduled weekly/monthly boundaries. The schema, duplicate generation, recursive copying, and timezone period bugs are repaired.
-4. Replace mock leaderboard and accountability data, connect consequence clearing, extend task editing, and validate profile balance refresh after awards. Reject/resubmit, single-active-quest locks, milestone progression and photo proof need full emulator/device integration tests.
+4. Replace mock accountability data, connect consequence clearing, extend task editing, and validate profile balance refresh after awards. Reject/resubmit, single-active-quest locks, milestone progression and photo proof need full emulator/device integration tests.
 5. Audit weekly/monthly jobs, badge criteria, push notifications, photo proof, reward redemptions, export authorization, and validate export/deletion in emulators. The purge worker is implemented but has not been deployed or exercised against real Firebase Storage/Auth; exports currently share JSON text instead of attaching a file. Individual parent leave/delete behavior for multi-parent families still needs a product flow.
 6. Finish shared design tokens, parent/child layouts, accessibility, app branding, loading/error/empty states, and inspect real screens visually.
 7. Review remaining dependency advisories; configure authentication persistence and Android permissions; validate EAS environments and notification credentials.
@@ -66,3 +66,10 @@ Validation: npm test passes 4 app tests and 49 backend tests. npm run app:typech
 - Expo: medisivateam/chorequest; project ID a130f2f3-ac0b-47e1-97cd-09a324ccdff8. CLI authorization was pending at the last interactive check. Do not extract browser session credentials to bypass it.
 - Google Play: Medisiva personal account. Identity, Android device, and phone verification were confirmed; Create app is enabled. No app has been created yet.
 - User input is not needed for the independent development above. CLI login, final release declarations/legal acceptance, any paid actions, and physical-device testing may need the user later. Avoid interrupting overnight work for these until necessary.
+
+## Latest milestone: live family leaderboard
+
+- Parent and child leaderboards now read actual family profiles and server-owned star ledgers instead of fictional sample members/scores. Weekly totals start Monday and monthly totals follow the family timezone. Positive earnings count toward rankings; spending and deductions do not erase earned scores. All-time totals use stored lifetime earnings.
+- Recent ledger reads are limited to a 33-day window; no collection listener was added. Screens refresh on family changes and support pull-to-refresh, loading and retry messages. Profile avatars currently use role icons.
+- Added boundary tests for UTC/local dates, weeks spanning years, monthly cutoffs, deductions and future records. All 55 unit/transport tests, TypeScript checks, backend compilation and Android Metro/Hermes export pass. Latest Firebase rule changes still need emulator revalidation; this leaderboard has not yet been visually inspected or exercised on a device.
+- No signed APK/AAB, production deployment or store submission has occurred. The parent/child server authorization boundary remains the highest-priority release blocker.
