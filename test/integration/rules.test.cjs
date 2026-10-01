@@ -13,7 +13,8 @@ test.beforeEach(async () => {
     const db = context.firestore();
     await setDoc(doc(db, 'families/f'), { isDeleted: false, familyName: 'Family', memberIds: ['p'] });
     await setDoc(doc(db, 'families/f/parentUsers/p'), { displayName: 'Parent', starBalance: 10 });
-    await setDoc(doc(db, 'families/f/childProfiles/c'), { nickname: 'Kid', starBalance: 10, pinHash: 'private' });
+    await setDoc(doc(db, 'families/f/childProfiles/c'), { nickname: 'Kid', starBalance: 10, pinHash: 'legacy-private' });
+    await setDoc(doc(db, 'families/f/childCredentials/c'), { pinHash: 'private' });
     await setDoc(doc(db, 'parentProfiles/p'), { familyAccountId: 'f' });
     await setDoc(doc(db, 'families/f/settings/config'), { leaderboardEnabled: true });
     await setDoc(doc(db, 'families/f/tasks/t'), { title: 'Tidy', isActive: true, activeClaimId: 'claim' });
@@ -33,6 +34,7 @@ test('profile appearance edits succeed; credentials, balances and membership are
   await assertSucceeds(updateDoc(doc(db, 'families/f/childProfiles/c'), { nickname: 'New name' }));
   await assertFails(updateDoc(doc(db, 'families/f/childProfiles/c'), { starBalance: 999 }));
   await assertFails(updateDoc(doc(db, 'families/f/childProfiles/c'), { pinHash: 'fake' }));
+  await assertFails(getDoc(doc(db, 'families/f/childCredentials/c')));
   await assertFails(setDoc(doc(db, 'families/f/parentUsers/other'), { starBalance: 0 }));
   await assertFails(updateDoc(doc(db, 'families/f'), { memberIds: ['p', 'other'] }));
   await assertFails(setDoc(doc(db, 'families/new'), { isDeleted: false }));

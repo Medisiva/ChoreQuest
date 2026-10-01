@@ -1,16 +1,16 @@
 const test = require('node:test'); const assert = require('node:assert/strict');
 const fs = require('node:fs'); const vm = require('node:vm');
 function fixture() {
-  const documents = new Map(); let next = 0; let revision = 0;
+  const documents = new Map(); let next = 0; let revision = 0; const deletedField = Symbol('delete');
   const ref = (path) => ({ path, id: path.split('/').at(-1), collection: (name) => ({ doc: (id = `id${++next}`) => ref(`${path}/${name}/${id}`) }), get: async () => snapshot(ref(path)) });
   const snapshot = (ref) => ({ exists: documents.has(ref.path), ref, data: () => documents.get(ref.path) });
   const db = { doc: ref, collection: (path) => ({ doc: (id = `id${++next}`) => ref(`${path}/${id}`) }), runTransaction: async (callback) => {
     for (let attempt = 0; attempt < 10; attempt++) {
       const observed = revision; const writes = [];
-      const result = await callback({ get: async (ref) => { assert.equal(writes.length, 0); return snapshot(ref); }, create: (ref, data) => writes.push([ref.path, data, false]), update: (ref, data) => writes.push([ref.path, data, true]) });
+      const result = await callback({ get: async (ref) => { assert.equal(writes.length, 0); return snapshot(ref); }, set: (ref, data) => writes.push([ref.path, data, true]), create: (ref, data) => writes.push([ref.path, data, false]), update: (ref, data) => writes.push([ref.path, data, true]) });
       if (observed !== revision) continue;
       for (const [path, , update] of writes) if (!update) assert.equal(documents.has(path), false, 'Create must not overwrite');
-      for (const [path, data, update] of writes) documents.set(path, update ? { ...documents.get(path), ...data } : data);
+      for (const [path, data, update] of writes) { const value = update ? { ...documents.get(path), ...data } : { ...data }; for (const key of Object.keys(value)) if (value[key] === deletedField) delete value[key]; documents.set(path, value); }
       if (writes.length) revision++;
       return result;
     }
@@ -20,8 +20,8 @@ function fixture() {
   const module = { exports: {} };
   vm.runInNewContext(fs.readFileSync(require.resolve('../lib/http/setupFamily'), 'utf8'), { module, exports: module.exports, Intl, require: (name) => {
     if (name === 'firebase-functions/v2/https') return { onCall: (callback) => callback, HttpsError };
-    if (name === 'firebase-admin/firestore') return { FieldValue: { serverTimestamp: () => 'server-time' } };
-    if (name === 'firebase-admin') return { firestore: Object.assign(() => db, { FieldValue: { serverTimestamp: () => 'server-time' } }) };
+    if (name === 'firebase-admin/firestore') return { FieldValue: { serverTimestamp: () => 'server-time', delete: () => deletedField } };
+    if (name === 'firebase-admin') return { firestore: Object.assign(() => db, { FieldValue: { serverTimestamp: () => 'server-time', delete: () => deletedField } }) };
     if (name === 'bcrypt') return require('bcrypt');
     throw new Error(name);
   } });
@@ -36,8 +36,10 @@ test('bootstrap persists canonical config, mapping and bcrypt PIN without plaint
   assert.equal(f.documents.get('parentProfiles/p').familyAccountId, result.familyId);
   assert.ok(f.documents.has(`families/${result.familyId}/settings/config`));
   const profile = [...f.documents].find(([path]) => path.includes('/childProfiles/'))[1];
-  assert.equal(profile.pin, undefined); assert.match(profile.pinHash, /^\$2b\$12\$/);
-  assert.equal(await require('bcrypt').compare('1234', profile.pinHash), true);
+  assert.equal(profile.pin, undefined); assert.equal(profile.pinHash, undefined);
+  const credentials = [...f.documents].find(([path]) => path.includes('/childCredentials/'))[1];
+  assert.match(credentials.pinHash, /^\$2b\$12\$/);
+  assert.equal(await require('bcrypt').compare('1234', credentials.pinHash), true);
   assert.ok(f.documents.has(`leaderboard/${result.familyId}`));
 });
 test('concurrent bootstrap and retries retain one family', async () => {
@@ -71,8 +73,10 @@ test('parent PIN reset replaces demo hashes, clears lockouts and records session
   f.documents.set('families/f/childProfiles/c', { pinHash: 'demo', failedPinAttempts: 3, lockedUntil: 'locked', starBalance: 10 });
   await f.resetChildPin({ auth, data: { familyId: 'f', childId: 'c', pin: '5678' } });
   const profile = f.documents.get('families/f/childProfiles/c');
-  assert.equal(await require('bcrypt').compare('5678', profile.pinHash), true);
-  assert.equal(profile.failedPinAttempts, 0); assert.equal(profile.lockedUntil, null);
+  const credentials = f.documents.get('families/f/childCredentials/c');
+  assert.equal(await require('bcrypt').compare('5678', credentials.pinHash), true);
+  assert.equal(credentials.failedPinAttempts, 0); assert.equal(credentials.lockedUntil, null);
+  assert.equal(profile.pinHash, undefined);
   assert.equal(profile.sessionsRevokedAt, 'server-time'); assert.equal(profile.starBalance, 10);
   await assert.rejects(f.resetChildPin({ auth: { uid: 'other' }, data: { familyId: 'f', childId: 'c', pin: '1234' } }), { code: 'permission-denied' });
 });

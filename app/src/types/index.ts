@@ -83,7 +83,6 @@ export interface ChildProfile {
   nickname: string;
   avatarId: string;
   ageGroup: AgeGroup;
-  pinHash: string;
   starBalance: number;
   totalStarsEarned: number;
   totalStarsRedeemed: number;
@@ -97,8 +96,6 @@ export interface ChildProfile {
   streakThreshold: number;
   streakBonusStars: number;
   createdAt: Timestamp;
-  failedPinAttempts: number;
-  lockedUntil?: Timestamp;
 }
 
 export interface Task {

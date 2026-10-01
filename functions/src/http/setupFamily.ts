@@ -15,7 +15,7 @@ function integer(value: unknown, field: string, max = 10000): number {
   }
   return value as number;
 }
-export async function childData(input: Record<string, unknown>): Promise<Record<string, unknown>> {
+export async function childData(input: Record<string, unknown>): Promise<{ profile: Record<string, unknown>; credentials: Record<string, unknown> }> {
   const nickname = text(input.nickname, "nickname", 20);
   const avatarId = text(input.avatarId, "avatar", 40);
   if (!["3-5", "6-8", "9-11", "12-14", "15-17"].includes(String(input.ageGroup))) {
@@ -24,15 +24,15 @@ export async function childData(input: Record<string, unknown>): Promise<Record<
   if (typeof input.pin !== "string" || !/^\d{4}$/.test(input.pin)) {
     throw new HttpsError("invalid-argument", "PIN must contain four digits");
   }
-  return {
-    nickname, avatarId, ageGroup: input.ageGroup, pinHash: await bcrypt.hash(input.pin, 12),
+  return { credentials: { pinHash: await bcrypt.hash(input.pin, 12), failedPinAttempts: 0, lockedUntil: null }, profile: {
+    nickname, avatarId, ageGroup: input.ageGroup,
     starBalance: 0, totalStarsEarned: 0, totalStarsRedeemed: 0,
     weeklyTargetStars: integer(input.weeklyTargetStars ?? 20, "weekly target"),
     monthlyTargetStars: integer(input.monthlyTargetStars ?? 80, "monthly target"),
     progressDisplayStyle: "ProgressBar", currentStreakWeeks: 0, consecutiveMissWeeks: 0,
     monthlyConsecutiveMisses: 0, streakThreshold: 4, streakBonusStars: 10,
-    failedPinAttempts: 0, lockedUntil: null, createdAt: FieldValue.serverTimestamp(),
-  };
+    createdAt: FieldValue.serverTimestamp(),
+  } };
 }
 function rewards(input: unknown): Record<string, unknown>[] {
   if (input === undefined) return [];
@@ -70,7 +70,10 @@ export const setupFamily = onCall(async (request) => {
     transaction.create(family, { familyName, ownerUid: uid, memberIds: [uid], createdAt: now, timezone, isDeleted: false });
     transaction.create(family.collection("parentUsers").doc(uid), parent);
     transaction.create(mapping, parent);
-    if (child) transaction.create(childRef, { ...child, familyAccountId: family.id });
+    if (child) {
+      transaction.create(childRef, { ...child.profile, familyAccountId: family.id });
+      transaction.create(family.collection("childCredentials").doc(childRef.id), child.credentials);
+    }
     transaction.create(family.collection("settings").doc("config"), {
       leaderboardEnabled: true, weeklyRequestLimitPerChild: child ? { [childRef.id]: weeklyLimit } : {},
     });
@@ -98,7 +101,8 @@ export const createChildProfile = onCall(async (request) => {
     const familySnap = await transaction.get(family);
     const parentSnap = await transaction.get(parent.ref);
     if (!familySnap.exists || familySnap.data()?.isDeleted || !parentSnap.exists) throw new HttpsError("permission-denied", "Family unavailable");
-    transaction.create(child, { ...profile, familyAccountId: familyId });
+    transaction.create(child, { ...profile.profile, familyAccountId: familyId });
+    transaction.create(family.collection("childCredentials").doc(child.id), profile.credentials);
   });
   return { childId: child.id };
 });
@@ -121,7 +125,8 @@ export const resetChildPin = onCall(async (request) => {
     if (!parent.exists || !familySnap.exists || familySnap.data()?.isDeleted) throw new HttpsError("permission-denied", "Family unavailable");
     if (!child.exists) throw new HttpsError("not-found", "Profile not found");
     // Session consumers compare this timestamp to their creation time.
-    transaction.update(childRef, { pinHash, failedPinAttempts: 0, lockedUntil: null, sessionsRevokedAt: FieldValue.serverTimestamp() });
+    transaction.set(family.collection("childCredentials").doc(childId), { pinHash, failedPinAttempts: 0, lockedUntil: null });
+    transaction.update(childRef, { pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete(), sessionsRevokedAt: FieldValue.serverTimestamp() });
   });
   return { success: true };
 });

@@ -23,6 +23,9 @@ service cloud.firestore {
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['familyName', 'timezone']);
       allow delete: if false; // Soft delete only via Cloud Function
 
+      match /childCredentials/{childId} {
+        allow read, write: if false;
+      }
       // Profile creation, credentials, membership and balances are server-owned.
       match /childProfiles/{childId} {
         allow read: if isFamilyMember(familyId);

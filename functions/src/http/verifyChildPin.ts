@@ -1,4 +1,4 @@
-import { Timestamp } from "firebase-admin/firestore";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { onRequest } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
@@ -82,6 +82,7 @@ export const verifyChildPin = onRequest(async (req, res) => {
     const profileRef = db.doc(
       `families/${familyId}/childProfiles/${childProfileId}`
     );
+    const credentialsRef = db.doc(`families/${familyId}/childCredentials/${childProfileId}`);
     // Serialize failed attempts and successful sessions so parallel guesses cannot
     // bypass the lockout counter. Only the token hash is stored on the server.
     const token = crypto.randomBytes(32).toString("hex");
@@ -89,7 +90,9 @@ export const verifyChildPin = onRequest(async (req, res) => {
     const result = await db.runTransaction(async (transaction) => {
       const snapshot = await transaction.get(profileRef);
       if (!snapshot.exists) return { status: 404, body: { error: "Child profile not found" } };
-      const profile = snapshot.data() as ChildProfileData;
+      const credentials = await transaction.get(credentialsRef);
+      // Legacy profiles are migrated on verification; new hashes are never public.
+      const profile = (credentials.exists ? credentials.data() : snapshot.data()) as ChildProfileData;
       const now = Timestamp.now();
       if (profile.lockedUntil && profile.lockedUntil.toMillis() > now.toMillis()) {
         return { status: 403, body: { success: false, locked: true, lockedUntil: profile.lockedUntil.toDate().toISOString() } };
@@ -100,7 +103,8 @@ export const verifyChildPin = onRequest(async (req, res) => {
       }
       if (await bcrypt.compare(pin, profile.pinHash)) {
         const expiresAt = new Date(now.toMillis() + SESSION_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
-        transaction.update(profileRef, { failedPinAttempts: 0, lockedUntil: null });
+        transaction.set(credentialsRef, { pinHash: profile.pinHash, failedPinAttempts: 0, lockedUntil: null });
+        transaction.update(profileRef, { pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete() });
         transaction.set(db.doc(`families/${familyId}/childSessions/${tokenHash}`), {
           childProfileId, parentUid: callerUid,
           expiresAt: Timestamp.fromDate(expiresAt), createdAt: now,
@@ -111,10 +115,12 @@ export const verifyChildPin = onRequest(async (req, res) => {
       const attempts = (profile.lockedUntil ? 0 : Math.max(0, profile.failedPinAttempts || 0)) + 1;
       if (attempts >= MAX_FAILED_ATTEMPTS) {
         const lockedUntil = Timestamp.fromDate(new Date(now.toMillis() + LOCKOUT_MINUTES * 60 * 1000));
-        transaction.update(profileRef, { failedPinAttempts: attempts, lockedUntil });
+        transaction.set(credentialsRef, { pinHash: profile.pinHash, failedPinAttempts: attempts, lockedUntil });
+        transaction.update(profileRef, { pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete() });
         return { status: 403, body: { success: false, locked: true, lockedUntil: lockedUntil.toDate().toISOString() } };
       }
-      transaction.update(profileRef, { failedPinAttempts: attempts, lockedUntil: null });
+      transaction.set(credentialsRef, { pinHash: profile.pinHash, failedPinAttempts: attempts, lockedUntil: null });
+      transaction.update(profileRef, { pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete() });
       return { status: 401, body: { success: false, attemptsRemaining: MAX_FAILED_ATTEMPTS - attempts } };
     });
     res.status(result.status).json(result.body);

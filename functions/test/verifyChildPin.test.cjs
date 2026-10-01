@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const path = require('node:path');
 
 function fixture({ member = false, deleted = false, profile, correct = false } = {}) {
-  const writes = new Map(); let revision = 0;
+  const writes = new Map(); let revision = 0; const deletedField = Symbol('delete'); const credentials = { ...profile };
   const reads = [];
   const admin = {
     auth: () => ({ verifyIdToken: async () => ({ uid: 'caller' }) }),
@@ -20,13 +20,14 @@ function fixture({ member = false, deleted = false, profile, correct = false } =
         for (let attempt = 0; attempt < 10; attempt++) {
           const observed = revision; const pending = [];
           const result = await callback({
-            get: async () => ({ exists: !!profile, data: () => ({ ...profile }) }),
+            get: async (ref) => ({ exists: !!profile, data: () => ({ ...(ref.path.includes('/childCredentials/') ? credentials : profile) }) }),
             update: (ref, data) => pending.push([ref, data, true]),
             set: (ref, data) => pending.push([ref, data, false]),
           });
           if (revision !== observed) continue;
           for (const [ref, data, update] of pending) {
-            if (update) Object.assign(profile, data);
+            if (ref.path.includes('/childCredentials/')) Object.assign(credentials, data);
+            else if (update) { Object.assign(profile, data); for (const key of Object.keys(profile)) if (profile[key] === deletedField) delete profile[key]; }
             else writes.set(ref.path, data);
           }
           if (pending.length) revision++;
@@ -34,7 +35,7 @@ function fixture({ member = false, deleted = false, profile, correct = false } =
         }
         throw new Error('Transaction retry limit');
       },
-    }), { Timestamp: {
+    }), { FieldValue: { delete: () => deletedField }, Timestamp: {
       now: () => ({ toMillis: () => Date.now() }),
       fromDate: (date) => ({ toMillis: () => date.getTime(), toDate: () => date }),
     } }),
@@ -52,7 +53,7 @@ function fixture({ member = false, deleted = false, profile, correct = false } =
     },
   });
   const response = { statusCode: 200, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } };
-  return { handler: module.exports.verifyChildPin, response, reads, writes };
+  return { handler: module.exports.verifyChildPin, response, reads, writes, credentials };
 }
 const request = (body = { familyId: 'family', childProfileId: 'child', pin: '1234' }) => ({ method: 'POST', headers: { authorization: 'Bearer token' }, body });
 
@@ -81,8 +82,8 @@ test('parallel failed guesses share an atomic lockout counter', async () => {
   const f = fixture({ member: true, profile });
   const responses = Array.from({ length: 4 }, () => ({ ...f.response }));
   await Promise.all(responses.map((response) => f.handler(request(), response)));
-  assert.equal(profile.failedPinAttempts, 3);
-  assert.ok(profile.lockedUntil.toMillis() > Date.now());
+  assert.equal(f.credentials.failedPinAttempts, 3);
+  assert.ok(f.credentials.lockedUntil.toMillis() > Date.now());
   assert.equal(responses.filter((response) => response.statusCode === 403).length, 2);
 });
 test('successful verification records only a hashed token bound to parent and child', async () => {
@@ -94,7 +95,8 @@ test('successful verification records only a hashed token bound to parent and ch
   const hash = require('node:crypto').createHash('sha256').update(token).digest('hex');
   const session = f.writes.get(`families/family/childSessions/${hash}`);
   assert.equal(session.parentUid, 'caller'); assert.equal(session.childProfileId, 'child');
-  assert.equal(session.token, undefined); assert.equal(profile.failedPinAttempts, 0);
+  assert.equal(session.token, undefined); assert.equal(f.credentials.failedPinAttempts, 0);
+  assert.equal(profile.pinHash, undefined);
 });
 test('legacy demo hashes require a parent reset instead of pretending to verify', async () => {
   const f = fixture({ member: true, profile: { pinHash: 'demo-hash', failedPinAttempts: 0 } });

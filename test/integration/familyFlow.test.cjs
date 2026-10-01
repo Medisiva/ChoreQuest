@@ -18,6 +18,8 @@ test('real Firebase setup, PIN, quest review and trigger retry-safe star award',
     assert.equal((await getDoc(doc(db, 'parentProfiles', user.uid))).data().familyAccountId, family.familyId);
     const children = await getDocs(collection(db, 'families', family.familyId, 'childProfiles'));
     const childId = children.docs[0].id;
+    assert.equal(children.docs[0].data().pinHash, undefined);
+    await assert.rejects(getDoc(doc(db, 'families', family.familyId, 'childCredentials', childId)));
     const tasks = await getDocs(collection(db, 'families', family.familyId, 'tasks')); const taskId = tasks.docs[0].id;
     const token = await user.getIdToken();
     const verify = await fetch('http://127.0.0.1:5001/demo-chorequest/us-central1/verifyChildPin', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ familyId: family.familyId, childProfileId: childId, pin: '1234' }) });
