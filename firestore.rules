@@ -48,13 +48,15 @@ service cloud.firestore {
       // Tasks
       match /tasks/{taskId} {
         allow read: if isFamilyMember(familyId);
-        allow write: if isFamilyMember(familyId);
+        allow create: if isFamilyMember(familyId) && !request.resource.data.keys().hasAny(['activeClaimId']);
+        allow update: if isFamilyMember(familyId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['activeClaimId']);
+        allow delete: if false;
       }
 
-      // Task claims
+      // Child PIN/session and parent review validation live in backend transactions.
       match /taskClaims/{claimId} {
         allow read: if isFamilyMember(familyId);
-        allow write: if isFamilyMember(familyId);
+        allow write: if false;
       }
 
       // Star transactions (child)

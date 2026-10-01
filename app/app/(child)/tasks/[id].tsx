@@ -17,6 +17,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTaskStore } from '@/stores/taskStore';
 import { useChildSessionStore } from '@/stores/childSessionStore';
 import { claimTask, submitTaskCompletion, releaseTask } from '@/services/tasks';
+import { pickImageFromCamera, pickImageFromGallery, uploadTaskProof } from '@/services/storage';
 import { useFamilyStore } from '@/stores/familyStore';
 
 const CATEGORY_CONFIG: Record<string, { icon: string; deep: string; light: string; label: string }> = {
@@ -63,25 +64,35 @@ export default function TaskDetailScreen() {
     }
   }, [family, activeChildId, id]);
 
-  const handleSubmit = useCallback(async () => {
-    if (!family || !myClaim) return;
-    Alert.alert('Submit Quest', 'Are you done with this quest?', [
-      { text: 'Not yet', style: 'cancel' },
-      {
-        text: "Yes, I'm done!",
-        onPress: async () => {
-          setLoading(true);
-          try {
-            await submitTaskCompletion(family.id, myClaim.id);
-          } catch {
-            Alert.alert('Error', 'Could not submit. Try again.');
-          } finally {
-            setLoading(false);
-          }
-        },
-      },
-    ]);
-  }, [family, myClaim]);
+  const handleSubmit = useCallback(() => {
+    if (!family || !myClaim || !task) return;
+    const submit = async (source?: 'camera' | 'gallery') => {
+      setLoading(true);
+      try {
+        let photoProofUrl: string | undefined;
+        if (source) {
+          const uri = await (source === 'camera' ? pickImageFromCamera() : pickImageFromGallery());
+          if (!uri) return;
+          photoProofUrl = await uploadTaskProof(family.id, myClaim.id, uri);
+        }
+        await submitTaskCompletion(family.id, myClaim.id, photoProofUrl);
+      } catch (error) {
+        Alert.alert('Could not submit', error instanceof Error ? error.message : 'Please try again.');
+      } finally { setLoading(false); }
+    };
+    if (task.requiresPhoto) {
+      Alert.alert('Add your proof photo', 'Show your parent the completed quest.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Take photo', onPress: () => { void submit('camera'); } },
+        { text: 'Choose photo', onPress: () => { void submit('gallery'); } },
+      ]);
+    } else {
+      Alert.alert('Submit Quest', 'Are you done with this quest?', [
+        { text: 'Not yet', style: 'cancel' },
+        { text: "Yes, I'm done!", onPress: () => { void submit(); } },
+      ]);
+    }
+  }, [family, myClaim, task]);
 
   const handleRelease = useCallback(async () => {
     if (!family || !myClaim) return;

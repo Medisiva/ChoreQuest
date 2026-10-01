@@ -11,6 +11,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
@@ -181,6 +182,9 @@ export default function ApprovalQueueScreen() {
                 <Text style={styles.modalChild}>Submitted by {getChildName(selectedClaim.childProfileId)}</Text>
                 <Text style={styles.modalStars}>⭐ {getTaskStars(selectedClaim.taskId)} stars</Text>
 
+                {selectedClaim.photoProofUrl && (
+                  <Image source={{ uri: selectedClaim.photoProofUrl }} style={{ width: '100%', height: 140, borderRadius: 12, marginBottom: 16 }} resizeMode="contain" accessibilityLabel="Quest proof photo" />
+                )}
                 {/* Approve */}
                 <TouchableOpacity
                   style={styles.approveButton}

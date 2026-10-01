@@ -33,3 +33,4 @@ export { setupFamily, createChildProfile, resetChildPin } from "./http/setupFami
 export { onChildProfileChanged, onParentProfileChanged } from "./triggers/onProfileChanged";
 export { purgeDeletedFamilies } from "./scheduled/purgeDeletedFamilies";
 export { adjustChildStars, requestChildRedemption, reviewChildRedemption } from "./http/manageStars";
+export { claimChildQuest, updateChildQuest, reviewChildQuests } from "./http/manageQuests";

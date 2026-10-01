@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const path = require('node:path');
 
 function fixture(trigger, initial) {
-  const documents = new Map(Object.entries(initial));
+  const documents = new Map([['families/f', { isDeleted: false }], ...Object.entries(initial)]);
   const deleted = Symbol('delete');
   let writes = 0;
   const snapshot = (ref) => ({ exists: documents.has(ref.path), data: () => documents.get(ref.path) });
@@ -105,4 +105,9 @@ test('recurring source quests retain their completed lock until a fresh instance
   await f.handler(claimEvent());
   assert.equal(f.documents.get(taskPath).activeClaimId, 'q');
   assert.equal(f.documents.get(taskPath).isActive, true);
+});
+
+test('late approval events cannot recreate balances in a deleted family', async () => {
+  const f = taskFixture(); f.documents.get('families/f').isDeleted = true;
+  await f.handler(claimEvent()); assert.equal(f.writeCount(), 0);
 });

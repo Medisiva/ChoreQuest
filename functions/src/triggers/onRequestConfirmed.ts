@@ -24,6 +24,8 @@ export const onRequestConfirmed = onDocumentUpdated(
     const ledgerRef = db.doc(`families/${familyId}/parentStarTransactions/request-${requestId}`);
 
     await db.runTransaction(async (transaction) => {
+      const family = await transaction.get(db.doc(`families/${familyId}`));
+      if (!family.exists || family.data()?.isDeleted) return;
       const ledger = await transaction.get(ledgerRef);
       if (ledger.exists) return;
       const parent = await transaction.get(parentRef);

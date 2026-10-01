@@ -24,6 +24,8 @@ export const onTaskClaimApproved = onDocumentUpdated(
     const ledgerRef = db.doc(`families/${familyId}/starTransactions/claim-${claimId}-step-${step}`);
 
     await db.runTransaction(async (transaction) => {
+      const family = await transaction.get(db.doc(`families/${familyId}`));
+      if (!family.exists || family.data()?.isDeleted) return;
       const ledger = await transaction.get(ledgerRef);
       if (ledger.exists) return;
       const taskSnap = await transaction.get(taskRef);
@@ -44,6 +46,7 @@ export const onTaskClaimApproved = onDocumentUpdated(
       transaction.update(childRef, {
         starBalance: (child.starBalance ?? 0) + stars,
         totalStarsEarned: (child.totalStarsEarned ?? 0) + stars,
+        ...(complete && child.activeQuestId === claimId ? { activeQuestId: admin.firestore.FieldValue.delete() } : {}),
       });
       transaction.set(ledgerRef, {
         familyAccountId: familyId,
@@ -57,7 +60,7 @@ export const onTaskClaimApproved = onDocumentUpdated(
       });
       if (!complete) {
         // Keep the same claim open until the next step is submitted and reviewed.
-        transaction.update(claimRef, { status: "claimed" });
+        transaction.update(claimRef, { status: "claimed", currentMilestoneStep: step + 1 });
       } else if (!task.recurrenceType || task.recurrenceType === "none") {
         // A one-off quest must not award stars repeatedly after completion.
         transaction.update(taskRef, { isActive: false, activeClaimId: admin.firestore.FieldValue.delete() });
