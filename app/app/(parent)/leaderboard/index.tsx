@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useFamilyStore } from '../../../../src/stores/familyStore';
+import { useFamilyStore } from '@/stores/familyStore';
 import {
   colors,
   spacing,
@@ -20,7 +20,7 @@ import {
   typography,
   layout,
   shadows,
-} from '../../../../src/constants/tokens';
+} from '@/constants/tokens';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

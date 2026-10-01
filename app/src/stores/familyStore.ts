@@ -65,13 +65,6 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
 
         // Load parent profile
         try {
-          const parentRef = doc(
-            db,
-            'families',
-            familyId,
-            'parentUsers',
-            parentUid
-          );
           const parentSnap = await getDocs(
             collection(db, 'families', familyId, 'parentUsers')
           );

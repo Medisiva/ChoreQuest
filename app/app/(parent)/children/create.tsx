@@ -18,10 +18,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { useFamilyStore } from '../../../src/stores/familyStore';
-import { addChildProfile } from '../../../src/services/families';
-import AvatarPicker from '../../../src/components/shared/AvatarPicker';
-import type { AgeGroup } from '../../../src/types';
+import { useFamilyStore } from '@/stores/familyStore';
+import { addChildProfile } from '@/services/families';
+import AvatarPicker from '@/components/shared/AvatarPicker';
+import type { AgeGroup } from '@/types';
 
 interface CreateChildForm {
   nickname: string;

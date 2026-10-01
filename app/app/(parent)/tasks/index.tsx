@@ -13,10 +13,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { useTaskStore } from '../../../src/stores/taskStore';
-import { useFamilyStore } from '../../../src/stores/familyStore';
-import { deleteTask } from '../../../src/services/tasks';
-import type { Task, Category } from '../../../src/types';
+import { useTaskStore } from '@/stores/taskStore';
+import { useFamilyStore } from '@/stores/familyStore';
+import { deleteTask } from '@/services/tasks';
+import type { Task, Category } from '@/types';
 
 const FILTERS: { label: string; value: Category | 'All'; icon: string }[] = [
   { label: 'All', value: 'All', icon: '✨' },
@@ -130,7 +130,6 @@ export default function TaskPoolManager() {
         <FlashList
           data={filteredTasks}
           renderItem={renderTask}
-          estimatedItemSize={80}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
         />

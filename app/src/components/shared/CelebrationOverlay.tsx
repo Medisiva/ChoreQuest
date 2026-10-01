@@ -2,14 +2,13 @@
 // Used for task completions, badge unlocks, and other achievements.
 
 import { useEffect, useCallback } from 'react';
-import { StyleSheet, TouchableWithoutFeedback, View, Text } from 'react-native';
+import { StyleSheet, TouchableWithoutFeedback, Text } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   withTiming,
   withDelay,
-  runOnJS,
 } from 'react-native-reanimated';
 import { colors, spacing, typography, animation } from '../../constants/tokens';
 

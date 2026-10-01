@@ -12,7 +12,7 @@ import {
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing, radius, typography, shadows, layout } from '../../../../src/constants/tokens';
+import { colors, spacing, radius, typography, shadows, layout } from '@/constants/tokens';
 
 // ── Placeholder types until Zustand stores are wired ──────────────────────────
 
@@ -249,7 +249,7 @@ function ThirteenWeekGrid({ weeks }: { weeks: WeekLog[] }) {
       <Text style={styles.cardTitle}>13-Week Overview</Text>
       <View style={styles.gridRow}>
         {weeks.map((week) => {
-          let bgColor = colors.ink400; // grey = future
+          let bgColor: string = colors.ink400; // grey = future
           if (week.met === true) {
             bgColor = colors.success;
           } else if (week.met === false) {

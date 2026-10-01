@@ -2,7 +2,7 @@
 // Populated on child session start (not on auth).
 // Opens TWO onSnapshot listeners:
 //   1. tasks subcollection filtered by isActive=true
-//   2. taskClaims where status in ['claimed', 'submitted']
+//   2. taskClaims where status in ['claimed', 'submitted', 'rejected']
 // Components subscribe to Zustand only — never call Firestore directly.
 
 import { create } from 'zustand';
@@ -11,7 +11,6 @@ import {
   query,
   where,
   onSnapshot,
-  orderBy,
   Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../services/firebase';
@@ -61,7 +60,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     // Listener 2: Active claims (claimed or submitted)
     const claimsQuery = query(
       collection(db, 'families', familyId, 'taskClaims'),
-      where('status', 'in', ['claimed', 'submitted'])
+      where('status', 'in', ['claimed', 'submitted', 'rejected'])
     );
 
     const unsubClaims = onSnapshot(

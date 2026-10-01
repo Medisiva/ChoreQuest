@@ -4,7 +4,7 @@
 
 import { Tabs } from 'expo-router';
 import { Text, StyleSheet, View } from 'react-native';
-import { colors, layout, typography } from '../../../src/constants/tokens';
+import { colors, layout, typography } from '@/constants/tokens';
 
 type TabIconProps = {
   emoji: string;

@@ -15,12 +15,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
-import { useRouter } from 'expo-router';
-import { useRewardStore } from '../../../src/stores/rewardStore';
-import { useFamilyStore } from '../../../src/stores/familyStore';
-import { approveRedemption, declineRedemption } from '../../../src/services/stars';
-import { colors, spacing, radius, typography, shadows, layout } from '../../../src/constants/tokens';
-import type { Reward, ParentReward, Redemption, RewardType, RedemptionStatus } from '../../../src/types';
+import { useRewardStore } from '@/stores/rewardStore';
+import { useFamilyStore } from '@/stores/familyStore';
+import { approveRedemption, declineRedemption } from '@/services/stars';
+import { colors, spacing, radius, typography, shadows, layout } from '@/constants/tokens';
+import type { Reward, Redemption, RewardType, RedemptionStatus } from '@/types';
 
 const REWARD_TYPE_COLORS: Record<RewardType, string> = {
   ScreenTime: colors.navy500,
@@ -49,7 +48,6 @@ const STATUS_CONFIG: Record<RedemptionStatus, { label: string; bg: string; fg: s
 type GridItem = Reward | { id: 'add-new'; type: 'add' };
 
 export default function ParentRewardsScreen() {
-  const router = useRouter();
   const { childRewards, parentRewards, redemptions, loading } = useRewardStore();
   const { family, children, parentProfile } = useFamilyStore();
 
@@ -225,7 +223,6 @@ export default function ParentRewardsScreen() {
           <FlashList
             data={gridData}
             renderItem={renderGridItem}
-            estimatedItemSize={180}
             numColumns={2}
             keyExtractor={(item) => item.id}
             scrollEnabled={false}

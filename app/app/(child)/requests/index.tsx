@@ -6,9 +6,9 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { useRequestStore } from '../../../src/stores/requestStore';
-import { useChildSessionStore } from '../../../src/stores/childSessionStore';
-import type { FamilyRequest } from '../../../src/types';
+import { useRequestStore } from '@/stores/requestStore';
+import { useChildSessionStore } from '@/stores/childSessionStore';
+import type { FamilyRequest } from '@/types';
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
   pending: { label: 'Waiting', bg: '#FEF3C7', color: '#B45309' },
@@ -92,7 +92,6 @@ export default function RequestHistoryScreen() {
         <FlashList
           data={myRequests}
           renderItem={renderRequest}
-          estimatedItemSize={120}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
         />

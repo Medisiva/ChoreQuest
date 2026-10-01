@@ -14,16 +14,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
-import { useRequestStore } from '../../../src/stores/requestStore';
-import { useFamilyStore } from '../../../src/stores/familyStore';
-import { useAuthStore } from '../../../src/stores/authStore';
+import { useRequestStore } from '@/stores/requestStore';
+import { useFamilyStore } from '@/stores/familyStore';
+import { useAuthStore } from '@/stores/authStore';
 import {
   acceptRequest,
   declineRequest,
-  snoozeRequest,
   markRequestComplete,
-} from '../../../src/services/requests';
-import type { FamilyRequest, RequestStatus } from '../../../src/types';
+} from '@/services/requests';
+import type { FamilyRequest } from '@/types';
 
 type Tab = 'pending' | 'accepted' | 'history';
 
@@ -144,7 +143,7 @@ export default function RequestInboxScreen() {
       </View>
 
       {filteredRequests.length > 0 ? (
-        <FlashList data={filteredRequests} renderItem={renderRequest} estimatedItemSize={140} keyExtractor={(i) => i.id} contentContainerStyle={styles.listContent} />
+        <FlashList data={filteredRequests} renderItem={renderRequest} keyExtractor={(i) => i.id} contentContainerStyle={styles.listContent} />
       ) : (
         <View style={styles.emptyState}>
           <Text style={styles.emptyEmoji}>📭</Text>

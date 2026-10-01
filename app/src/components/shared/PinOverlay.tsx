@@ -15,13 +15,10 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withSequence,
   withTiming,
   SlideInDown,
 } from 'react-native-reanimated';
-import { httpsCallable, getFunctions } from 'firebase/functions';
-import { functions } from '../../services/firebase';
 import type { ChildProfile } from '../../types';
 
 interface PinOverlayProps {
@@ -38,7 +35,7 @@ export default function PinOverlay({
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [attemptsRemaining, setAttemptsRemaining] = useState(3);
+  const [, setAttemptsRemaining] = useState(3);
   const [locked, setLocked] = useState(false);
 
   const shakeX = useSharedValue(0);

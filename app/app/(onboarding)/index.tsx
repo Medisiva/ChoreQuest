@@ -24,11 +24,11 @@ import {
   writeBatch,
   Timestamp,
 } from 'firebase/firestore';
-import { db } from '../../src/services/firebase';
-import { useAuthStore } from '../../src/stores/authStore';
-import AvatarPicker from '../../src/components/shared/AvatarPicker';
-import { colors, spacing, radius, typography, shadows, categoryColors } from '../../src/constants/tokens';
-import type { AgeGroup, Category } from '../../src/types';
+import { db } from '@/services/firebase';
+import { useAuthStore } from '@/stores/authStore';
+import AvatarPicker from '@/components/shared/AvatarPicker';
+import { colors, spacing, radius, typography, shadows, categoryColors } from '@/constants/tokens';
+import type { AgeGroup, Category } from '@/types';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -122,7 +122,7 @@ export default function OnboardingWizard() {
   const [saving, setSaving] = useState(false);
   const [skippedSteps, setSkippedSteps] = useState<Set<number>>(new Set());
 
-  const { control, watch, setValue, getValues, handleSubmit, trigger } = useForm<OnboardingFormData>({
+  const { control, watch, setValue, getValues } = useForm<OnboardingFormData>({
     defaultValues: DEFAULT_VALUES,
     mode: 'onChange',
   });
@@ -257,10 +257,8 @@ export default function OnboardingWizard() {
       });
 
       // 4. Create child profile (if not skipped)
-      let childId: string | null = null;
       if (!skippedSteps.has(1) && data.childNickname.trim()) {
         const childRef = doc(collection(db, 'families', familyId, 'childProfiles'));
-        childId = childRef.id;
 
         batch.set(childRef, {
           familyAccountId: familyId,
@@ -708,7 +706,7 @@ export default function OnboardingWizard() {
       <View style={styles.stepContent}>
         <Text style={styles.heading}>{heading}</Text>
 
-        {rewards.map((reward, index) => (
+        {rewards.map((_reward, index) => (
           <View key={index} style={styles.rewardCard}>
             <Controller
               control={control}

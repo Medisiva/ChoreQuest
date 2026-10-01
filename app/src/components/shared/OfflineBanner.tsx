@@ -1,6 +1,6 @@
 // S10: Offline banner — shown when device loses connectivity
 
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   withTiming,

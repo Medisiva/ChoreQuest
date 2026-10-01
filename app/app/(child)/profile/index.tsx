@@ -11,9 +11,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useChildSessionStore } from '../../../src/stores/childSessionStore';
-import { useFamilyStore } from '../../../src/stores/familyStore';
-import type { ProgressDisplayStyle } from '../../../src/types';
+import { useChildSessionStore } from '@/stores/childSessionStore';
+import { useFamilyStore } from '@/stores/familyStore';
+import type { ProgressDisplayStyle } from '@/types';
 
 const PROGRESS_OPTIONS: { value: ProgressDisplayStyle; label: string; emoji: string }[] = [
   { value: 'ProgressBar', label: 'Progress Bar', emoji: '📊' },

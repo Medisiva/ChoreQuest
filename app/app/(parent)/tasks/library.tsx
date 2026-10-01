@@ -17,11 +17,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../../src/services/firebase';
-import { createTask } from '../../../src/services/tasks';
-import { useFamilyStore } from '../../../src/stores/familyStore';
-import { useAuthStore } from '../../../src/stores/authStore';
-import type { TaskLibraryItem, Category, AgeGroup } from '../../../src/types';
+import { db } from '@/services/firebase';
+import { createTask } from '@/services/tasks';
+import { useFamilyStore } from '@/stores/familyStore';
+import { useAuthStore } from '@/stores/authStore';
+import type { TaskLibraryItem, Category, AgeGroup } from '@/types';
 
 const CATEGORIES: { label: string; value: Category | 'All'; icon: string; deep: string; light: string }[] = [
   { label: 'All', value: 'All', icon: '✨', deep: '#1A3E6E', light: '#E8F2FB' },
@@ -176,7 +176,6 @@ export default function TaskLibraryBrowser() {
         <FlashList
           data={filtered}
           renderItem={renderItem}
-          estimatedItemSize={160}
           numColumns={2}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.gridContent}

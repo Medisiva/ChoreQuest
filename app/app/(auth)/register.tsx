@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { router } from 'expo-router';
-import { signUp, signInWithGoogle, signInWithApple } from '@/services/auth';
+import { signUp } from '@/services/auth';
 
 // Brand colors
 const navy900 = '#1A3E6E';
@@ -56,7 +56,6 @@ function getPasswordStrength(password: string): {
 
 export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
-  const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -82,39 +81,16 @@ export default function RegisterScreen() {
     setIsLoading(true);
     setError(null);
     try {
-      await signUp(data.email, data.password);
-      // TODO: Navigate to onboarding
-      console.log('Navigate to /(onboarding)/family');
-    } catch (err: any) {
-      setError(err.message || 'Failed to create account. Please try again.');
+      const result = await signUp(data.email.trim(), data.password);
+      if (!result.success) {
+        setError(result.message);
+        return;
+      }
+      router.replace('/(onboarding)');
+    } catch (err: unknown) {
+      setError((err instanceof Error ? err.message : null) || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsSocialLoading('google');
-    setError(null);
-    try {
-      await signInWithGoogle();
-      console.log('Navigate to /(onboarding)/family');
-    } catch (err: any) {
-      setError(err.message || 'Google sign-in failed. Please try again.');
-    } finally {
-      setIsSocialLoading(null);
-    }
-  };
-
-  const handleAppleSignIn = async () => {
-    setIsSocialLoading('apple');
-    setError(null);
-    try {
-      await signInWithApple();
-      console.log('Navigate to /(onboarding)/family');
-    } catch (err: any) {
-      setError(err.message || 'Apple sign-in failed. Please try again.');
-    } finally {
-      setIsSocialLoading(null);
     }
   };
 
@@ -133,41 +109,6 @@ export default function RegisterScreen() {
             <Text style={styles.heading}>Create your family account</Text>
           </View>
 
-          {/* Social Login */}
-          <View style={styles.socialSection}>
-            <TouchableOpacity
-              style={styles.socialButton}
-              onPress={handleGoogleSignIn}
-              disabled={isLoading || isSocialLoading !== null}
-            >
-              {isSocialLoading === 'google' ? (
-                <ActivityIndicator color={ink950} />
-              ) : (
-                <Text style={styles.socialButtonText}>Continue with Google</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.socialButton, styles.appleButton]}
-              onPress={handleAppleSignIn}
-              disabled={isLoading || isSocialLoading !== null}
-            >
-              {isSocialLoading === 'apple' ? (
-                <ActivityIndicator color={white} />
-              ) : (
-                <Text style={[styles.socialButtonText, styles.appleButtonText]}>
-                  Continue with Apple
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or sign up with email</Text>
-            <View style={styles.dividerLine} />
-          </View>
 
           {/* Form */}
           <View style={styles.form}>
@@ -325,7 +266,7 @@ export default function RegisterScreen() {
             <TouchableOpacity
               style={[styles.primaryButton, isLoading && styles.primaryButtonDisabled]}
               onPress={handleSubmit(onSubmit)}
-              disabled={isLoading || isSocialLoading !== null}
+              disabled={isLoading}
             >
               {isLoading ? (
                 <ActivityIndicator color={white} />

@@ -9,10 +9,15 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'expo-router';
+import { Timestamp } from 'firebase/firestore';
+import { createTask } from '@/services/tasks';
+import { useAuthStore } from '@/stores/authStore';
+import { useFamilyStore } from '@/stores/familyStore';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,6 +40,7 @@ interface TaskFormData {
   recurrenceType: Recurrence;
   requiresPhoto: boolean;
   hasDeadline: boolean;
+  deadlineDate: string;
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -68,9 +74,11 @@ const TOTAL_STEPS = 4;
 
 export default function CreateTaskScreen() {
   const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  const family = useFamilyStore((state) => state.family);
   const [currentStep, setCurrentStep] = useState(1);
 
-  const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<TaskFormData>({
+  const { control, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<TaskFormData>({
     defaultValues: {
       title: '',
       description: '',
@@ -85,6 +93,7 @@ export default function CreateTaskScreen() {
       recurrenceType: 'none',
       requiresPhoto: false,
       hasDeadline: false,
+      deadlineDate: '',
     },
   });
 
@@ -113,10 +122,43 @@ export default function CreateTaskScreen() {
     }
   };
 
-  const onSubmit = (data: TaskFormData) => {
-    // TODO: call createTask from services/tasks
-    console.log('Task created:', data);
-    router.back();
+  const onSubmit = async (data: TaskFormData) => {
+    if (!family || !user) {
+      Alert.alert('Unable to post quest', 'Please sign in and reload your family.');
+      return;
+    }
+    let deadline: Timestamp | undefined;
+    if (data.hasDeadline) {
+      const date = new Date(`${data.deadlineDate}T23:59:59`);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(data.deadlineDate) || !Number.isFinite(date.getTime()) || date < new Date()) {
+        Alert.alert('Choose a valid deadline', 'Enter a future date as YYYY-MM-DD.');
+        return;
+      }
+      deadline = Timestamp.fromDate(date);
+    }
+    if (data.isMilestone && (!Number.isInteger(data.milestoneSteps) || data.milestoneSteps < 1 || data.starsPerStep < 1)) {
+      Alert.alert('Check milestone details', 'Choose at least one step and one star per step.');
+      return;
+    }
+    try {
+      await createTask(family.id, {
+        title: data.title.trim(),
+        description: data.description.trim(),
+        category: data.category,
+        ageGroupSuggestion: data.ageGroup,
+        starValue: data.starValue,
+        difficulty: data.difficulty,
+        requiresPhoto: data.requiresPhoto,
+        isMilestone: data.isMilestone,
+        ...(data.isMilestone ? { milestoneSteps: data.milestoneSteps, starsPerStep: data.starsPerStep, milestoneBonus: data.milestoneBonus } : {}),
+        recurrenceType: data.recurrenceType,
+        ...(deadline ? { deadline } : {}),
+        createdByParentId: user.uid,
+      });
+      router.back();
+    } catch {
+      Alert.alert('Quest was not saved', 'Check your connection and try again. Your details are still here.');
+    }
   };
 
   // ── Step Dots ────────────────────────────────────────────────────────────
@@ -439,9 +481,9 @@ export default function CreateTaskScreen() {
 
       {watchAll.hasDeadline && (
         <View style={styles.deadlinePlaceholder}>
-          <Text style={styles.deadlinePlaceholderText}>
-            Date picker will be added here
-          </Text>
+          <Controller control={control} name="deadlineDate" render={({ field: { value, onChange } }) => (
+            <TextInput accessibilityLabel="Quest deadline, YYYY-MM-DD" style={styles.textInput} value={value} onChangeText={onChange} placeholder="YYYY-MM-DD" maxLength={10} />
+          )} />
         </View>
       )}
     </View>
@@ -514,7 +556,7 @@ export default function CreateTaskScreen() {
 
           {watchAll.hasDeadline && (
             <View style={styles.reviewDeadlineNote}>
-              <Text style={styles.reviewDeadlineText}>Deadline: To be set</Text>
+              <Text style={styles.reviewDeadlineText}>Deadline: {watchAll.deadlineDate}</Text>
             </View>
           )}
         </View>
@@ -584,9 +626,11 @@ export default function CreateTaskScreen() {
             <TouchableOpacity
               style={styles.postButton}
               onPress={handleSubmit(onSubmit)}
+              disabled={isSubmitting}
+              accessibilityState={{ busy: isSubmitting }}
               activeOpacity={0.7}
             >
-              <Text style={styles.postButtonText}>Post Quest</Text>
+              <Text style={styles.postButtonText}>{isSubmitting ? 'Saving quest…' : 'Post Quest'}</Text>
             </TouchableOpacity>
           )}
         </View>

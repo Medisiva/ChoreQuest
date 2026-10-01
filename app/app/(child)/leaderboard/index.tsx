@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useChildSessionStore } from '../../../../src/stores/childSessionStore';
+import { useChildSessionStore } from '@/stores/childSessionStore';
 import {
   colors,
   spacing,
@@ -21,7 +21,7 @@ import {
   typography,
   layout,
   shadows,
-} from '../../../../src/constants/tokens';
+} from '@/constants/tokens';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

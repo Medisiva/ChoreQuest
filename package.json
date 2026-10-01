@@ -14,7 +14,9 @@
     "functions:build": "cd functions && npm run build",
     "functions:serve": "cd functions && npm run serve",
     "emulators": "firebase emulators:start --only auth,firestore,functions,storage",
-    "dev": "concurrently \"npm run app:start\" \"npm run emulators\""
+    "dev": "concurrently \"npm run app:start\" \"npm run emulators\"",
+    "app:typecheck": "tsc --noEmit -p app/tsconfig.json",
+    "test": "node --test app/test/*.test.cjs && npm run test --workspace=chorequest-functions"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

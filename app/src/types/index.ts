@@ -102,6 +102,7 @@ export interface ChildProfile {
 }
 
 export interface Task {
+  activeClaimId?: string;
   id: string;
   familyAccountId: string;
   title: string;

@@ -56,8 +56,10 @@ export const verifyChildPin = onRequest(async (req, res) => {
     }
 
     const idToken = authHeader.split("Bearer ")[1];
+    let callerUid: string;
     try {
-      await admin.auth().verifyIdToken(idToken);
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      callerUid = decodedToken.uid;
     } catch {
       res.status(401).json({ error: "Invalid or expired auth token" });
       return;
@@ -67,7 +69,11 @@ export const verifyChildPin = onRequest(async (req, res) => {
     const { familyId, childProfileId, pin } =
       req.body as Partial<VerifyChildPinRequest>;
 
-    if (!familyId || !childProfileId || !pin) {
+    if (
+      typeof familyId !== "string" || !familyId || familyId.includes("/") ||
+      typeof childProfileId !== "string" || !childProfileId || childProfileId.includes("/") ||
+      typeof pin !== "string" || !/^\d{4}$/.test(pin)
+    ) {
       res
         .status(400)
         .json({ error: "Missing required fields: familyId, childProfileId, pin" });
@@ -76,6 +82,12 @@ export const verifyChildPin = onRequest(async (req, res) => {
 
     // ── Fetch child profile ──────────────────────────────────────────────────
     const db = admin.firestore();
+    const parentSnap = await db.doc(`families/${familyId}/parentUsers/${callerUid}`).get();
+    const familySnap = await db.doc(`families/${familyId}`).get();
+    if (!parentSnap.exists || !familySnap.exists || familySnap.data()?.isDeleted) {
+      res.status(403).json({ error: "Not authorized for this family" });
+      return;
+    }
     const profileRef = db.doc(
       `families/${familyId}/childProfiles/${childProfileId}`
     );

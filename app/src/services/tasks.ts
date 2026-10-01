@@ -11,12 +11,10 @@ import {
   where,
   getDocs,
   updateDoc,
-  deleteDoc,
-  setDoc,
-  orderBy,
+  deleteField,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { tasksRef, taskDocRef, taskClaimsRef, taskClaimDocRef } from './firestore';
+import { taskDocRef, taskClaimsRef, taskClaimDocRef } from './firestore';
 import type {
   Task,
   TaskClaim,
@@ -83,7 +81,8 @@ export async function createTask(
     createdAt: Timestamp.now(),
   };
 
-  batch.set(newTaskRef, data);
+  const definedData = Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined));
+  batch.set(newTaskRef, definedData);
   await batch.commit();
 
   return taskId;
@@ -126,11 +125,17 @@ export async function claimTask(
   childProfileId: string
 ): Promise<string> {
   const claimId = await runTransaction(db, async (transaction) => {
-    // Check for existing active claims on this task
+    const taskRef = taskDocRef(familyId, taskId);
+    const taskSnapshot = await transaction.get(taskRef);
+    if (!taskSnapshot.exists() || !taskSnapshot.data().isActive) {
+      throw new Error('This quest is no longer available.');
+    }
+    if (taskSnapshot.data().activeClaimId) throw { code: 'ALREADY_CLAIMED' };
+    // Check pre-existing claims created before task locking was introduced.
     const claimsQuery = query(
       taskClaimsRef(familyId),
       where('taskId', '==', taskId),
-      where('status', 'in', ['claimed', 'submitted'] as ClaimStatus[])
+      where('status', 'in', ['claimed', 'submitted', 'rejected'] as ClaimStatus[])
     );
 
     const existingClaims = await getDocs(claimsQuery);
@@ -151,6 +156,7 @@ export async function claimTask(
     };
 
     transaction.set(newClaimRef, claimData);
+    transaction.update(taskRef, { activeClaimId: newClaimRef.id });
 
     return newClaimRef.id;
   });
@@ -165,8 +171,19 @@ export async function releaseTask(
   familyId: string,
   claimId: string
 ): Promise<void> {
-  const ref = taskClaimDocRef(familyId, claimId);
-  await updateDoc(ref, { status: 'released' as ClaimStatus });
+  const claimRef = taskClaimDocRef(familyId, claimId);
+  await runTransaction(db, async (transaction) => {
+    const claim = await transaction.get(claimRef);
+    if (!claim.exists() || !['claimed', 'rejected'].includes(claim.data().status)) {
+      throw new Error('Only an unfinished quest can be released.');
+    }
+    const taskRef = taskDocRef(familyId, claim.data().taskId);
+    const task = await transaction.get(taskRef);
+    transaction.update(claimRef, { status: 'released' });
+    if (task.exists() && task.data().activeClaimId === claimId) {
+      transaction.update(taskRef, { activeClaimId: deleteField() });
+    }
+  });
 }
 
 /**
@@ -190,4 +207,30 @@ export async function submitTaskCompletion(
   }
 
   await updateDoc(ref, updates);
+}
+
+/** Reviews submitted claims atomically, including the approve-all flow. */
+export async function reviewTaskClaims(
+  familyId: string,
+  claimIds: string[],
+  decision: 'approved' | 'rejected',
+  reason?: string
+): Promise<void> {
+  if (!claimIds.length) return;
+  if (claimIds.length > 100) throw new Error('Review at most 100 quests at a time.');
+  if (decision === 'rejected' && !reason?.trim()) throw new Error('A reason is required.');
+  await runTransaction(db, async (transaction) => {
+    const refs = [...new Set(claimIds)].map((id) => taskClaimDocRef(familyId, id));
+    const snapshots = await Promise.all(refs.map((ref) => transaction.get(ref)));
+    for (const snapshot of snapshots) {
+      if (!snapshot.exists() || snapshot.data().status !== 'submitted') {
+        throw new Error('The review queue changed. Refresh and try again.');
+      }
+    }
+    for (const ref of refs) {
+      transaction.update(ref, decision === 'approved'
+        ? { status: 'approved', approvedAt: Timestamp.now() }
+        : { status: 'rejected', rejectedAt: Timestamp.now(), rejectionReason: reason!.trim() });
+    }
+  });
 }

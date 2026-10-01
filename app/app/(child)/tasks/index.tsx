@@ -13,9 +13,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { useTaskStore } from '../../../src/stores/taskStore';
-import { useChildSessionStore } from '../../../src/stores/childSessionStore';
-import type { Task, TaskClaim, Category } from '../../../src/types';
+import { useTaskStore } from '@/stores/taskStore';
+import { useChildSessionStore } from '@/stores/childSessionStore';
+import type { Task, TaskClaim, Category } from '@/types';
 
 const CATEGORIES: { label: string; value: Category | 'All'; icon: string; deep: string; light: string }[] = [
   { label: 'All', value: 'All', icon: '✨', deep: '#1A3E6E', light: '#E8F2FB' },
@@ -125,7 +125,6 @@ export default function TaskFeedScreen() {
         <FlashList
           data={filteredTasks}
           renderItem={renderTaskCard}
-          estimatedItemSize={90}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
         />

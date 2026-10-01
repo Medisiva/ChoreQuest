@@ -11,13 +11,18 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { Nunito_600SemiBold, Nunito_700Bold, Nunito_800ExtraBold } from '@expo-google-fonts/nunito';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useAuthStore } from '../src/stores/authStore';
-import { initializeFirebase } from '../src/services/firebase';
+import { useAuthStore } from '@/stores/authStore';
+import { initializeFirebase } from '@/services/firebase';
+import { useFamilyStore } from '@/stores/familyStore';
+import { useTaskStore } from '@/stores/taskStore';
+import { useRequestStore } from '@/stores/requestStore';
+import { useRewardStore } from '@/stores/rewardStore';
+import { useChildSessionStore } from '@/stores/childSessionStore';
 
 function RootLayoutNav() {
   const router = useRouter();
   const segments = useSegments();
-  const { user, loading, initialize } = useAuthStore();
+  const { user, parentProfile, loading, initialize } = useAuthStore();
 
   // Initialize Firebase ONCE
   useEffect(() => {
@@ -30,6 +35,26 @@ function RootLayoutNav() {
     return unsubscribe;
   }, [initialize]);
 
+  useEffect(() => {
+    if (!user || !parentProfile) return;
+    const familyId = parentProfile.familyAccountId;
+    const unsubscribeFamily = useFamilyStore.getState().subscribeToFamily(familyId, user.uid);
+    const unsubscribeTasks = useTaskStore.getState().subscribeToTasks(familyId);
+    const unsubscribeRequests = useRequestStore.getState().subscribeToRequests(familyId);
+    return () => {
+      unsubscribeFamily();
+      unsubscribeTasks();
+      unsubscribeRequests();
+      useFamilyStore.getState().clearFamily();
+      useTaskStore.getState().clearTasks();
+      useRequestStore.getState().clearRequests();
+      useRewardStore.getState().clearRewards();
+      useChildSessionStore.getState().endSession();
+    };
+  }, [user?.uid, parentProfile?.familyAccountId]);
+
+  useEffect(() => useChildSessionStore.getState().setupBackgroundListener(), []);
+
   // Auth-gated routing
   useEffect(() => {
     if (loading) return;
@@ -40,11 +65,12 @@ function RootLayoutNav() {
     if (!user && !inAuthGroup) {
       // Not authenticated — redirect to login
       router.replace('/(auth)/login');
-    } else if (user && inAuthGroup) {
-      // Authenticated — redirect to profile selector
+    } else if (user && !parentProfile && !inOnboardingGroup) {
+      router.replace('/(onboarding)');
+    } else if (user && parentProfile && (inAuthGroup || inOnboardingGroup)) {
       router.replace('/profiles');
     }
-  }, [user, loading, segments, router]);
+  }, [user, parentProfile, loading, segments, router]);
 
   // Show splash while loading auth state or fonts
   if (loading) {

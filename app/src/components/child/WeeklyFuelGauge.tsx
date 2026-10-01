@@ -15,7 +15,7 @@ type GaugeTheme = 'rocket' | 'potion' | 'treasure';
 interface WeeklyFuelGaugeProps {
   current: number;
   target: number;
-  theme: GaugeTheme;
+  theme?: GaugeTheme;
 }
 
 const THEME_CONFIG: Record<GaugeTheme, { emoji: string; label: string; fillColor: string; trackColor: string }> = {
@@ -39,7 +39,7 @@ const THEME_CONFIG: Record<GaugeTheme, { emoji: string; label: string; fillColor
   },
 };
 
-export default function WeeklyFuelGauge({ current, target, theme }: WeeklyFuelGaugeProps) {
+export default function WeeklyFuelGauge({ current, target, theme = 'rocket' }: WeeklyFuelGaugeProps) {
   const safeTarget = Math.max(target, 1);
   const progress = Math.min(current / safeTarget, 1);
   const met = current >= safeTarget;

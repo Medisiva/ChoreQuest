@@ -45,3 +45,6 @@ coverage/
 
 # EAS
 .eas/
+
+# Local verification scratch files
+work/

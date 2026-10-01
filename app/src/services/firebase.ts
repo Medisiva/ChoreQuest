@@ -5,6 +5,7 @@
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { Platform } from 'react-native';
 import {
   getFirestore,
   connectFirestoreEmulator,
@@ -32,21 +33,23 @@ const storage = getStorage(app);
 const functions = getFunctions(app);
 
 // Connect to emulators in development
-const isDev = process.env.EXPO_PUBLIC_ENV === 'development' || __DEV__;
+const isDev = __DEV__;
+const useEmulators = __DEV__ && process.env.EXPO_PUBLIC_USE_EMULATORS === 'true';
+const emulatorHost = process.env.EXPO_PUBLIC_EMULATOR_HOST || (Platform.OS === 'android' ? '10.0.2.2' : 'localhost');
 
 let emulatorsConnected = false;
 
 function connectEmulators(): void {
   if (emulatorsConnected) return;
 
-  if (isDev) {
+  if (useEmulators) {
     try {
-      connectAuthEmulator(auth, 'http://localhost:9099', {
+      connectAuthEmulator(auth, `http://${emulatorHost}:9099`, {
         disableWarnings: true,
       });
-      connectFirestoreEmulator(db, 'localhost', 8080);
-      connectStorageEmulator(storage, 'localhost', 9199);
-      connectFunctionsEmulator(functions, 'localhost', 5001);
+      connectFirestoreEmulator(db, emulatorHost, 8080);
+      connectStorageEmulator(storage, emulatorHost, 9199);
+      connectFunctionsEmulator(functions, emulatorHost, 5001);
       console.log('[Firebase] Connected to emulators');
     } catch (error) {
       console.warn('[Firebase] Emulator connection failed:', error);
@@ -58,6 +61,7 @@ function connectEmulators(): void {
 
 // Enable Firestore offline persistence (reduces reads by serving cached data)
 async function enableOfflinePersistence(): Promise<void> {
+  if (Platform.OS !== 'web') return;
   try {
     await enableMultiTabIndexedDbPersistence(db);
     console.log('[Firebase] Offline persistence enabled');
@@ -66,6 +70,8 @@ async function enableOfflinePersistence(): Promise<void> {
     console.warn('[Firebase] Offline persistence not available:', error);
   }
 }
+
+connectEmulators();
 
 // Initialize everything - call this ONCE from _layout.tsx
 export async function initializeFirebase(): Promise<void> {

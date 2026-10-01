@@ -9,12 +9,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useTaskStore } from '../../../../src/stores/taskStore';
-import { useFamilyStore } from '../../../../src/stores/familyStore';
-import { useAuthStore } from '../../../../src/stores/authStore';
-import { useRequestStore } from '../../../../src/stores/requestStore';
-import { colors, typography, spacing, radius, layout, shadows } from '../../../../src/constants/tokens';
-import type { TaskClaim, ChildProfile, FamilyRequest } from '../../../../src/types';
+import { useTaskStore } from '@/stores/taskStore';
+import { useFamilyStore } from '@/stores/familyStore';
+import { useAuthStore } from '@/stores/authStore';
+import { useRequestStore } from '@/stores/requestStore';
+import { colors, typography, spacing, radius, layout, shadows } from '@/constants/tokens';
+import type { TaskClaim, ChildProfile, FamilyRequest } from '@/types';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

@@ -15,16 +15,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useFamilyStore } from '../src/stores/familyStore';
-import { useAuthStore } from '../src/stores/authStore';
-import { useChildSessionStore } from '../src/stores/childSessionStore';
-import PinOverlay from '../src/components/shared/PinOverlay';
-import type { ChildProfile } from '../src/types';
+import { useFamilyStore } from '@/stores/familyStore';
+import { useChildSessionStore } from '@/stores/childSessionStore';
+import PinOverlay from '@/components/shared/PinOverlay';
+import type { ChildProfile } from '@/types';
 
 export default function ProfileSelector() {
   const router = useRouter();
   const { family, children, parentProfile, loading } = useFamilyStore();
-  const { user } = useAuthStore();
   const { startSession } = useChildSessionStore();
 
   const [selectedChild, setSelectedChild] = useState<ChildProfile | null>(null);

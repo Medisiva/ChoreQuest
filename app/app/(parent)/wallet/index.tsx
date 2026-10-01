@@ -13,12 +13,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { collection, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 import { useState } from 'react';
-import { db } from '../../../src/services/firebase';
-import { useFamilyStore } from '../../../src/stores/familyStore';
-import { colors, spacing, radius, typography, shadows, layout } from '../../../src/constants/tokens';
-import type { StarTransaction, TransactionType } from '../../../src/types';
+import { db } from '@/services/firebase';
+import { useFamilyStore } from '@/stores/familyStore';
+import { colors, spacing, radius, typography, shadows, layout } from '@/constants/tokens';
+import type { StarTransaction, TransactionType } from '@/types';
 
 const TXN_TYPE_LABELS: Record<TransactionType, string> = {
   taskApproval: 'Task completed',
@@ -45,7 +45,6 @@ export default function ParentWalletScreen() {
 
   const starBalance = parentProfile?.starBalance ?? 0;
   const totalEarned = parentProfile?.totalStarsEarned ?? 0;
-  const totalRedeemed = parentProfile?.totalStarsRedeemed ?? 0;
 
   // Subscribe to star transactions for the family
   useEffect(() => {
@@ -195,7 +194,6 @@ export default function ParentWalletScreen() {
           <FlashList
             data={transactions}
             renderItem={renderTransaction}
-            estimatedItemSize={70}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.txnList}
           />

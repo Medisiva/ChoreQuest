@@ -14,9 +14,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
-import { useTaskStore } from '../../../src/stores/taskStore';
-import { useFamilyStore } from '../../../src/stores/familyStore';
-import type { TaskClaim } from '../../../src/types';
+import { useTaskStore } from '@/stores/taskStore';
+import { useFamilyStore } from '@/stores/familyStore';
+import { reviewTaskClaims } from '@/services/tasks';
+import type { TaskClaim } from '@/types';
 
 export default function ApprovalQueueScreen() {
   const { tasks, claims } = useTaskStore();
@@ -53,17 +54,16 @@ export default function ApprovalQueueScreen() {
   const handleApprove = useCallback(async (claim: TaskClaim) => {
     setLoading(true);
     try {
-      // In Sprint 2, approval triggers onTaskClaimApproved Cloud Function
-      // For now, update the claim status directly
-      console.log('[Approval] Approved claim:', claim.id);
-      Alert.alert('Approved!', `Stars awarded to ${getChildName(claim.childProfileId)}`);
+      if (!family) throw new Error('Family not loaded');
+      await reviewTaskClaims(family.id, [claim.id], 'approved');
+      Alert.alert('Approved!', `Quest approved for ${getChildName(claim.childProfileId)}. Stars will update shortly.`);
       setSelectedClaim(null);
     } catch {
       Alert.alert('Error', 'Could not approve. Try again.');
     } finally {
       setLoading(false);
     }
-  }, [getChildName]);
+  }, [family, getChildName]);
 
   const handleReject = useCallback(async () => {
     if (!selectedClaim) return;
@@ -73,8 +73,9 @@ export default function ApprovalQueueScreen() {
     }
     setLoading(true);
     try {
-      console.log('[Approval] Rejected claim:', selectedClaim.id, 'Reason:', rejectReason);
-      Alert.alert('Sent back', `${getChildName(selectedClaim.childProfileId)} will be notified.`);
+      if (!family) throw new Error('Family not loaded');
+      await reviewTaskClaims(family.id, [selectedClaim.id], 'rejected', rejectReason);
+      Alert.alert('Sent back', `${getChildName(selectedClaim.childProfileId)} can review your feedback.`);
       setSelectedClaim(null);
       setRejectReason('');
     } catch {
@@ -82,7 +83,7 @@ export default function ApprovalQueueScreen() {
     } finally {
       setLoading(false);
     }
-  }, [selectedClaim, rejectReason, getChildName]);
+  }, [family, selectedClaim, rejectReason, getChildName]);
 
   const handleBatchApprove = useCallback(() => {
     Alert.alert(
@@ -92,14 +93,22 @@ export default function ApprovalQueueScreen() {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Approve All',
-          onPress: () => {
-            console.log('[Approval] Batch approved:', pendingClaims.length);
-            Alert.alert('Done!', 'All tasks approved.');
+          onPress: async () => {
+            if (!family) return;
+            setLoading(true);
+            try {
+              await reviewTaskClaims(family.id, pendingClaims.map((claim) => claim.id), 'approved');
+              Alert.alert('Done!', 'All submitted quests approved. Stars will update shortly.');
+            } catch {
+              Alert.alert('Review failed', 'The queue may have changed. Refresh and try again.');
+            } finally {
+              setLoading(false);
+            }
           },
         },
       ]
     );
-  }, [pendingClaims]);
+  }, [family, pendingClaims]);
 
   const CATEGORY_DEEP: Record<string, string> = {
     Household: '#1B6CA8', Learning: '#7B2D8B', LifeSkills: '#0D7377', Hobbies: '#B85C00',
@@ -151,7 +160,6 @@ export default function ApprovalQueueScreen() {
         <FlashList
           data={pendingClaims}
           renderItem={renderClaim}
-          estimatedItemSize={90}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
         />

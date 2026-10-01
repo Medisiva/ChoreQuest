@@ -3,7 +3,7 @@
 // unaffordable show "Need X more stars". Confirmation bottom sheet before redeeming.
 // "My Requests" section shows pending/approved/declined redemptions.
 
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,12 +22,12 @@ import Animated, {
   withSequence,
   Easing,
 } from 'react-native-reanimated';
-import { useRewardStore } from '../../../src/stores/rewardStore';
-import { useChildSessionStore } from '../../../src/stores/childSessionStore';
-import { useFamilyStore } from '../../../src/stores/familyStore';
-import { redeemReward } from '../../../src/services/stars';
-import { colors, spacing, radius, typography, shadows, layout } from '../../../src/constants/tokens';
-import type { Reward, Redemption, RewardType, RedemptionStatus } from '../../../src/types';
+import { useRewardStore } from '@/stores/rewardStore';
+import { useChildSessionStore } from '@/stores/childSessionStore';
+import { useFamilyStore } from '@/stores/familyStore';
+import { redeemReward } from '@/services/stars';
+import { colors, spacing, radius, typography, shadows, layout } from '@/constants/tokens';
+import type { Reward, Redemption, RewardType, RedemptionStatus } from '@/types';
 
 // ── Reward type color mapping ───────────────────────────────────────────────
 
@@ -244,7 +244,6 @@ export default function ChildRewardsScreen() {
         <FlashList
           data={childRewards}
           renderItem={renderRewardCard}
-          estimatedItemSize={200}
           numColumns={2}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}

@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useChildSessionStore } from '../../../../src/stores/childSessionStore';
-import { useFamilyStore } from '../../../../src/stores/familyStore';
-import { useTaskStore } from '../../../../src/stores/taskStore';
+import { useChildSessionStore } from '@/stores/childSessionStore';
+import { useFamilyStore } from '@/stores/familyStore';
+import { useTaskStore } from '@/stores/taskStore';
 import {
   colors,
   spacing,
@@ -22,12 +22,12 @@ import {
   typography,
   layout,
   shadows,
-} from '../../../../src/constants/tokens';
-import WeeklyProgressBar from '../../../../src/components/child/WeeklyProgressBar';
-import WeeklyCountdown from '../../../../src/components/child/WeeklyCountdown';
-import WeeklyFuelGauge from '../../../../src/components/child/WeeklyFuelGauge';
-import ConsequenceCard from '../../../../src/components/child/ConsequenceCard';
-import type { ProgressDisplayStyle } from '../../../../src/types';
+} from '@/constants/tokens';
+import WeeklyProgressBar from '@/components/child/WeeklyProgressBar';
+import WeeklyCountdown from '@/components/child/WeeklyCountdown';
+import WeeklyFuelGauge from '@/components/child/WeeklyFuelGauge';
+import ConsequenceCard from '@/components/child/ConsequenceCard';
+import type { ProgressDisplayStyle } from '@/types';
 
 // ── Mock data (until stores are fully wired) ────────────────────────────────
 

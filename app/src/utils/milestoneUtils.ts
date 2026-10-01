@@ -2,7 +2,7 @@
 // State machine: claimed -> step_in_progress -> step_pending_approval -> (repeat) -> completed
 // Uses runTransaction for atomic step increments (never sequential read-then-write).
 
-import { runTransaction, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import { runTransaction, doc, Timestamp } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import type { Task, TaskClaim, ClaimStatus } from '../types';
 
@@ -59,8 +59,10 @@ export async function completeMilestoneStep(
       );
     }
 
+    if (!Number.isInteger(totalSteps) || totalSteps < 1 || currentStep >= totalSteps) {
+      throw new Error('All milestone steps have already been submitted.');
+    }
     const nextStep = currentStep + 1;
-    const isLastStep = nextStep >= totalSteps;
 
     const updates: Record<string, unknown> = {
       currentMilestoneStep: nextStep,

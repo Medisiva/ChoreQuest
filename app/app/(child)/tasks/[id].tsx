@@ -14,10 +14,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useTaskStore } from '../../../src/stores/taskStore';
-import { useChildSessionStore } from '../../../src/stores/childSessionStore';
-import { claimTask, submitTaskCompletion, releaseTask } from '../../../src/services/tasks';
-import { useFamilyStore } from '../../../src/stores/familyStore';
+import { useTaskStore } from '@/stores/taskStore';
+import { useChildSessionStore } from '@/stores/childSessionStore';
+import { claimTask, submitTaskCompletion, releaseTask } from '@/services/tasks';
+import { useFamilyStore } from '@/stores/familyStore';
 
 const CATEGORY_CONFIG: Record<string, { icon: string; deep: string; light: string; label: string }> = {
   Household: { icon: '🏠', deep: '#1B6CA8', light: '#DBEAFE', label: 'Household' },

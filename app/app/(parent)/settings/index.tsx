@@ -14,10 +14,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useAuthStore } from '../../../src/stores/authStore';
-import { useFamilyStore } from '../../../src/stores/familyStore';
-import { signOut } from '../../../src/services/auth';
-import { auth } from '../../../src/services/firebase';
+import { useAuthStore } from '@/stores/authStore';
+import { useFamilyStore } from '@/stores/familyStore';
+import { signOut } from '@/services/auth';
+import { auth } from '@/services/firebase';
 
 export default function SettingsScreen() {
   const router = useRouter();

@@ -5,7 +5,7 @@
 
 import { Tabs } from 'expo-router';
 import { Text, StyleSheet, View } from 'react-native';
-import { colors, layout } from '../../../src/constants/tokens';
+import { colors, layout } from '@/constants/tokens';
 
 const TAB_COLORS = {
   home: colors.starGold,

@@ -14,21 +14,21 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useTaskStore } from '../../../../src/stores/taskStore';
-import { useChildSessionStore } from '../../../../src/stores/childSessionStore';
-import { useFamilyStore } from '../../../../src/stores/familyStore';
+import { useTaskStore } from '@/stores/taskStore';
+import { useChildSessionStore } from '@/stores/childSessionStore';
+import { useFamilyStore } from '@/stores/familyStore';
 import {
   completeMilestoneStep,
   getMilestoneProgress,
-} from '../../../../src/utils/milestoneUtils';
+} from '@/utils/milestoneUtils';
 import {
   colors,
   spacing,
   radius,
   typography,
   categoryColors,
-} from '../../../../src/constants/tokens';
-import type { Category } from '../../../../src/types';
+} from '@/constants/tokens';
+import type { Category } from '@/types';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

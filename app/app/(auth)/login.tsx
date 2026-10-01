@@ -13,12 +13,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { router } from 'expo-router';
-import { signIn, signInWithGoogle, signInWithApple } from '@/services/auth';
+import { signIn } from '@/services/auth';
 
 // Brand colors
 const navy900 = '#1A3E6E';
 const blue500 = '#4A90D9';
-const coral = '#FF6B6B';
 const ink950 = '#1A1A2E';
 const ink600 = '#555555';
 const ink400 = '#9CA3AF';
@@ -34,7 +33,6 @@ type LoginFormData = {
 
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
-  const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -54,35 +52,15 @@ export default function LoginScreen() {
     setIsLoading(true);
     setError(null);
     try {
-      await signIn(data.email, data.password);
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign in. Please try again.');
+      const result = await signIn(data.email.trim(), data.password);
+      if (!result.success) {
+        setError(result.message);
+        return;
+      }
+    } catch (err: unknown) {
+      setError((err instanceof Error ? err.message : null) || 'Failed to sign in. Please try again.');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsSocialLoading('google');
-    setError(null);
-    try {
-      await signInWithGoogle();
-    } catch (err: any) {
-      setError(err.message || 'Google sign-in failed. Please try again.');
-    } finally {
-      setIsSocialLoading(null);
-    }
-  };
-
-  const handleAppleSignIn = async () => {
-    setIsSocialLoading('apple');
-    setError(null);
-    try {
-      await signInWithApple();
-    } catch (err: any) {
-      setError(err.message || 'Apple sign-in failed. Please try again.');
-    } finally {
-      setIsSocialLoading(null);
     }
   };
 
@@ -102,41 +80,6 @@ export default function LoginScreen() {
             <Text style={styles.heading}>Welcome back</Text>
           </View>
 
-          {/* Social Login */}
-          <View style={styles.socialSection}>
-            <TouchableOpacity
-              style={styles.socialButton}
-              onPress={handleGoogleSignIn}
-              disabled={isLoading || isSocialLoading !== null}
-            >
-              {isSocialLoading === 'google' ? (
-                <ActivityIndicator color={ink950} />
-              ) : (
-                <Text style={styles.socialButtonText}>Continue with Google</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.socialButton, styles.appleButton]}
-              onPress={handleAppleSignIn}
-              disabled={isLoading || isSocialLoading !== null}
-            >
-              {isSocialLoading === 'apple' ? (
-                <ActivityIndicator color={white} />
-              ) : (
-                <Text style={[styles.socialButtonText, styles.appleButtonText]}>
-                  Continue with Apple
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or sign in with email</Text>
-            <View style={styles.dividerLine} />
-          </View>
 
           {/* Form */}
           <View style={styles.form}>
@@ -225,7 +168,7 @@ export default function LoginScreen() {
             <TouchableOpacity
               style={[styles.primaryButton, isLoading && styles.primaryButtonDisabled]}
               onPress={handleSubmit(onSubmit)}
-              disabled={isLoading || isSocialLoading !== null}
+              disabled={isLoading}
             >
               {isLoading ? (
                 <ActivityIndicator color={white} />

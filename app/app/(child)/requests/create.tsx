@@ -15,10 +15,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { createRequest, getWeeklyRequestCount } from '../../../src/services/requests';
-import { useFamilyStore } from '../../../src/stores/familyStore';
-import { useChildSessionStore } from '../../../src/stores/childSessionStore';
-import type { Category } from '../../../src/types';
+import { createRequest, getWeeklyRequestCount } from '@/services/requests';
+import { useFamilyStore } from '@/stores/familyStore';
+import { useChildSessionStore } from '@/stores/childSessionStore';
+import type { Category } from '@/types';
 
 const CATEGORIES: { value: Category; icon: string; label: string; deep: string; light: string }[] = [
   { value: 'Household', icon: '🏠', label: 'Household', deep: '#1B6CA8', light: '#DBEAFE' },
@@ -46,7 +46,7 @@ export default function RequestWizard() {
   const [starValue, setStarValue] = useState(10);
   const [loading, setLoading] = useState(false);
   const [weeklyCount, setWeeklyCount] = useState(0);
-  const [weeklyLimit, setWeeklyLimit] = useState(3);
+  const [weeklyLimit] = useState(3);
 
   useEffect(() => {
     if (!family || !activeChildId) return;

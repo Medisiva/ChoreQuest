@@ -55,10 +55,15 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/notification-icon.png",
           "color": "#1A3E6E"
         }
       ]
-    ]
+    ],
+    "owner": "medisivateam",
+    "extra": {
+      "eas": {
+        "projectId": "a130f2f3-ac0b-47e1-97cd-09a324ccdff8"
+      }
+    }
   }
 }

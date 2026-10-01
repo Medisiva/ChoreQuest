@@ -70,7 +70,6 @@ export default function AvatarPicker({
       <FlashList
         data={AVATARS}
         renderItem={renderItem}
-        estimatedItemSize={80}
         numColumns={4}
         keyExtractor={(item) => item.id}
         scrollEnabled={false}
