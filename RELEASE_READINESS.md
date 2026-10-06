@@ -1,6 +1,6 @@
 # ChoreQuest Android release work
 
-Status: in development. The parent/child server boundary is implemented and emulator-validated locally; it is not deployed. No signed APK/AAB, deployed backend, store listing, or store submission has been produced. iOS follows the Android release.
+Status: internal Android APK preparation. Firebase backend/rules are deployed and the live parent/child quest flow passes. The signed Expo build is queued; no completed APK/AAB, store listing or submission is available yet. iOS follows Android.
 
 ## Verified baseline
 
@@ -142,3 +142,5 @@ Validation: npm test passes 7 app tests and 58 backend tests. npm run app:typech
 - User explicitly approved the restricted signing grant. Created custom role projects/chorequest-prod/roles/ChoreQuestChildTokenSigner containing only iam.serviceAccounts.signBlob and bound it only on service account 984867039287-compute@developer.gserviceaccount.com, to that same account. Existing policy bindings were preserved; no project-wide Token Creator role was granted.
 - After normal permission propagation, the live smoke test passes email/password login, canonical onboarding, parent-to-child Firebase identity replacement, denial of child parent operations, child quest claim/submission, parent approval and the asynchronous five-star award. Test credentials remain in ignored work; they are never included in the APK or user outputs.
 - APK a5216820-434a-4869-a29e-827853eb4e76 remains IN_QUEUE on Expo at the latest check. Continue monitoring this existing build; do not start duplicates or upgrade queue priority without permission. Download/inspect it once finished and give the user the actual APK link.
+
+- The existing background heartbeat now checks the selected APK build every five minutes, stays quiet on unchanged queue/build status, diagnoses failures and delivers the actual APK on completion. It should pause after delivery and offer the user next-step choices. Expo’s latest build-page estimate was about 45 minutes remaining before build start; this is an estimate, not a promised delivery time.
