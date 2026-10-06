@@ -5,6 +5,10 @@
 //   - http/       : HTTP callable functions (verifyPin, exportData, etc.)
 
 import * as admin from "firebase-admin";
+import { setGlobalOptions } from "firebase-functions/v2";
+
+// Internal testing: bound scale and avoid warm-instance charges.
+setGlobalOptions({ maxInstances: 2, minInstances: 0 });
 
 // Initialize Firebase Admin SDK (must happen before any function imports)
 admin.initializeApp();
