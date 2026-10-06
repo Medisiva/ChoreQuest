@@ -15,7 +15,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.chorequest.app",
-      "deploymentTarget": "16.0",
       "infoPlist": {
         "NSCameraUsageDescription": "ChoreQuest needs camera access to take photo proof of completed tasks.",
         "NSPhotoLibraryUsageDescription": "ChoreQuest needs photo library access to attach proof of completed tasks."

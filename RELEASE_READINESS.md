@@ -1,6 +1,6 @@
 # ChoreQuest Android release work
 
-Status: internal Android APK preparation. Firebase backend/rules are deployed and the live parent/child quest flow passes. The signed Expo build is queued; no completed APK/AAB, store listing or submission is available yet. iOS follows Android.
+Status: internal Android APK preparation. Firebase backend/rules are deployed and the live parent/child quest flow passes. The first signed Expo build failed on an incompatible Worklets dependency; the fixed APK retry is being prepared. No completed APK/AAB, store listing or submission is available yet. iOS follows Android.
 
 ## Verified baseline
 
@@ -144,3 +144,11 @@ Validation: npm test passes 7 app tests and 58 backend tests. npm run app:typech
 - APK a5216820-434a-4869-a29e-827853eb4e76 remains IN_QUEUE on Expo at the latest check. Continue monitoring this existing build; do not start duplicates or upgrade queue priority without permission. Download/inspect it once finished and give the user the actual APK link.
 
 - The existing background heartbeat now checks the selected APK build every five minutes, stays quiet on unchanged queue/build status, diagnoses failures and delivers the actual APK on completion. It should pause after delivery and offer the user next-step choices. Expo’s latest build-page estimate was about 45 minutes remaining before build start; this is an estimate, not a promised delivery time.
+
+## APK native-build failure and repair — October 6
+
+- Build a5216820-434a-4869-a29e-827853eb4e76 failed in Gradle assertWorkletsVersionTask: auto-resolved react-native-worklets 0.8.1 is incompatible with Reanimated 4.2.1. It produced no APK.
+- Added explicit Expo SDK 55 Worklets 0.7.4 and aligned native peer dependencies across the npm workspace. React/React DOM, SVG, Expo Router and LogBox now resolve to one compatible version. Removed the invalid ios.deploymentTarget app.json field; the eventual iOS minimum version will need valid build-properties configuration. Unrelated dependency updates from a broad dedupe were discarded; the lockfile repair retains unrelated locked dependencies.
+- A clean npm ci succeeds. Expo Doctor passes all 20 checks, Reanimated’s own Worklets compatibility validator passes, all 65 unit/transport tests pass, app typechecking and Functions compilation pass, and Android Metro/Hermes export succeeds. Native Gradle success and device behavior remain unverified until the replacement cloud build completes. The seven previously passing emulator tests were not rerun for this dependency-only repair.
+- Current npm audit reports 6 critical, 41 high, 44 moderate and 145 low findings including propagated findings in development tools. This supersedes older audit counts; it needs a scoped advisory review before a store release. No unrestricted audit fix or major SDK upgrade was applied during the APK repair. Raw report is retained only in ignored work/apk-retry-audit.json.
+- Next: start one replacement signed preview build under the existing free queue and signing credentials, record its ID in the guide/monitor, and download/inspect the actual APK when complete. No user action is needed for this repair.
