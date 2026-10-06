@@ -15,9 +15,22 @@ service cloud.firestore {
         get(/databases/$(database)/documents/families/$(familyId)).data.isDeleted == false;
     }
 
+    function isChild(familyId) {
+      let claims = request.auth.token;
+      let session = get(/databases/$(database)/documents/families/$(familyId)/childSessions/$(claims.sessionHash)).data;
+      let child = get(/databases/$(database)/documents/families/$(familyId)/childProfiles/$(claims.childProfileId)).data;
+      return request.auth != null && claims.role == 'child' && claims.familyId == familyId &&
+        session.childAuthUid == request.auth.uid && session.childProfileId == claims.childProfileId &&
+        session.expiresAt > request.time &&
+        (!('sessionsRevokedAt' in child) || session.createdAt > child.sessionsRevokedAt) &&
+        exists(/databases/$(database)/documents/families/$(familyId)/parentUsers/$(session.parentUid)) &&
+        get(/databases/$(database)/documents/families/$(familyId)).data.isDeleted == false;
+    }
+    function canReadFamily(familyId) { return isFamilyMember(familyId) || isChild(familyId); }
+
     // Family documents - only family members can read/write
     match /families/{familyId} {
-      allow read: if isFamilyMember(familyId);
+      allow read: if canReadFamily(familyId);
       allow create: if false; // Authenticated setupFamily owns atomic bootstrap
       allow update: if isFamilyMember(familyId) &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['familyName', 'timezone']);
@@ -28,7 +41,8 @@ service cloud.firestore {
       }
       // Profile creation, credentials, membership and balances are server-owned.
       match /childProfiles/{childId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if isFamilyMember(familyId) || (isChild(familyId) &&
+          !('pinHash' in resource.data) && !('failedPinAttempts' in resource.data) && !('lockedUntil' in resource.data));
         allow create, delete: if false;
         allow update: if isFamilyMember(familyId) &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -37,20 +51,20 @@ service cloud.firestore {
           ]);
       }
       match /parentUsers/{parentId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow create, delete: if false;
         allow update: if isFamilyMember(familyId) && request.auth.uid == parentId &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'avatarId']);
       }
 
       match /settings/{settingsId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow write: if isFamilyMember(familyId) && settingsId == 'config';
       }
 
       // Tasks
       match /tasks/{taskId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow create: if isFamilyMember(familyId) && !request.resource.data.keys().hasAny(['activeClaimId']);
         allow update: if isFamilyMember(familyId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['activeClaimId']) &&
           (!resource.data.keys().hasAny(['activeClaimId']) || !request.resource.data.diff(resource.data).affectedKeys().hasAny([
@@ -61,13 +75,13 @@ service cloud.firestore {
 
       // Child PIN/session and parent review validation live in backend transactions.
       match /taskClaims/{claimId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow write: if false;
       }
 
       // Star transactions (child)
       match /starTransactions/{txId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow create: if false; // Only Cloud Functions write transactions
         allow update: if false;
         allow delete: if false;
@@ -75,7 +89,7 @@ service cloud.firestore {
 
       // Parent star transactions
       match /parentStarTransactions/{txId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow create: if false;
         allow update: if false;
         allow delete: if false;
@@ -83,42 +97,42 @@ service cloud.firestore {
 
       // Rewards (child)
       match /rewards/{rewardId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow write: if isFamilyMember(familyId);
       }
 
       // Parent rewards
       match /parentRewards/{rewardId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow write: if isFamilyMember(familyId);
       }
 
       // Child redemption requests/reviews are validated by backend transactions.
       match /redemptions/{redemptionId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow write: if false;
       }
 
       // Parent redemptions
       match /parentRedemptions/{redemptionId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow write: if isFamilyMember(familyId);
       }
 
       match /familyRequests/{requestId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow write: if false; // Server enforces sessions, quotas and transitions.
       }
 
       // Accountability logs - ONLY Cloud Functions can write
       match /accountabilityLogs/{logId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow write: if false;
       }
 
       // Active consequences
       match /activeConsequences/{consequenceId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow update: if false; // Server records authorized clearing only.
         allow create: if false; // Only Cloud Functions create
         allow delete: if false;
@@ -126,13 +140,13 @@ service cloud.firestore {
 
       // Consequence definitions
       match /consequenceDefinitions/{defId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow write: if isFamilyMember(familyId);
       }
 
       // Achievements / badges
       match /achievements/{achievementId} {
-        allow read: if isFamilyMember(familyId);
+        allow read: if canReadFamily(familyId);
         allow write: if false; // Only Cloud Functions
       }
     }
@@ -145,7 +159,7 @@ service cloud.firestore {
 
     // Leaderboard summary documents
     match /leaderboard/{familyId} {
-      allow read: if isFamilyMember(familyId);
+      allow read: if canReadFamily(familyId);
       allow write: if false; // Only Cloud Functions
     }
 

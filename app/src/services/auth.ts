@@ -3,6 +3,7 @@
 
 import {
   signInWithEmailAndPassword,
+  signInWithCustomToken,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
@@ -136,9 +137,29 @@ export async function signInWithApple(
 
 export async function unlockParentMode(password: string): Promise<void> {
   const user = auth.currentUser;
-  if (!user?.email) throw new Error('Sign in with your parent account again.');
+  const email = user?.email ?? useChildSessionStore.getState().parentEmail;
+  if (!email) throw new Error('Sign in with your parent account again.');
   try {
-    await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
+    if (user?.email) await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
+    else await signInWithEmailAndPassword(auth, email, password);
     useChildSessionStore.getState().unlockParent();
   } catch (error) { throw new Error(handleAuthError(error).message); }
+}
+
+export async function enterChildMode(childId: string, sessionToken: string, customToken: string): Promise<void> {
+  const session = useChildSessionStore.getState();
+  if (!auth.currentUser?.email) throw new Error('Unlock your parent account before selecting a child.');
+  session.rememberParent(auth.currentUser.email);
+  session.setSwitching(true);
+  session.lockParent();
+  try {
+    // Replace the principal; no parent credential is retained in another Auth instance.
+    await firebaseSignOut(auth);
+    await signInWithCustomToken(auth, customToken);
+    session.startSession(childId, sessionToken);
+  } catch (error) {
+    await firebaseSignOut(auth);
+    session.endSession();
+    throw error;
+  } finally { session.setSwitching(false); }
 }

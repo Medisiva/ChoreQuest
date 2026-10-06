@@ -49,3 +49,12 @@ test('nonmembers and deleted families cannot mutate stars or request rewards', a
   await assert.rejects(f.requestChildRedemption({ auth, data: redemption(f) }), { code: 'permission-denied' });
   assert.equal(f.docs.get('families/f/childProfiles/c').starBalance, 30);
 });
+test('restricted child identity requests rewards but cannot adjust balances or approve redemptions', async () => {
+  const f = fixture();
+  for (const [path, data] of f.docs) if (path.includes('/childSessions/')) data.childAuthUid = 'child-c';
+  const childAuth = { uid: 'child-c' };
+  await f.requestChildRedemption({ auth: childAuth, data: redemption(f) });
+  await assert.rejects(f.adjustChildStars({ auth: childAuth, data: adjustment }), { code: 'permission-denied' });
+  await assert.rejects(f.reviewChildRedemption({ auth: childAuth, data: { familyId: 'f', redemptionId: 'red', status: 'approved' } }), { code: 'permission-denied' });
+  await assert.rejects(f.requestChildRedemption({ auth: { uid: 'child-sibling' }, data: redemption(f, 'other') }), { code: 'unauthenticated' });
+});

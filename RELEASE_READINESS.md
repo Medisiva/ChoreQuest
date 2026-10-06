@@ -1,6 +1,6 @@
 # ChoreQuest Android release work
 
-Status: in development. No signed APK/AAB, deployed backend, store listing, or store submission has been produced. iOS follows the Android release.
+Status: in development. The parent/child server boundary is implemented and emulator-validated locally; it is not deployed. No signed APK/AAB, deployed backend, store listing, or store submission has been produced. iOS follows the Android release.
 
 ## Verified baseline
 
@@ -38,7 +38,7 @@ Status: in development. No signed APK/AAB, deployed backend, store listing, or s
 - PIN verification rejects callers from other families, deleted families, and invalid input before accessing child profiles.
 - Local app is linked to Expo medisivateam/chorequest. EAS configuration lives in app/eas.json, with APK preview and AAB production profiles.
 
-Validation: npm test passes 6 app tests and 56 backend tests. npm run app:typecheck and functions compilation pass. Tests use transactional fakes and mocked trigger envelopes; Firebase emulator integration and device tests are still required. Android Metro/Hermes export is checked separately; it does not validate native compilation or runtime behavior.
+Validation: npm test passes 7 app tests and 58 backend tests. npm run app:typecheck and functions compilation pass. Tests use transactional fakes and mocked trigger envelopes; Firebase emulator integration and device tests are still required. Android Metro/Hermes export is checked separately; it does not validate native compilation or runtime behavior.
 
 ## Firebase integration and dependency validation
 
@@ -51,7 +51,7 @@ Validation: npm test passes 6 app tests and 56 backend tests. npm run app:typech
 
 ## Next implementation work
 
-1. Resolve the remaining server boundary between parent and child mode. UI routes now require parent password reauthentication and child mutation endpoints validate PIN sessions, but existing parent Firebase credentials still grant parent privileges in child mode. PIN hashing, reset, request authentication, and atomic lockout handling are repaired.
+1. Deploy and validate the implemented parent/child server boundary in an internal environment. UI routes now require parent password reauthentication and child mutation endpoints validate PIN sessions, but existing parent Firebase credentials still grant parent privileges in child mode. PIN hashing, reset, request authentication, and atomic lockout handling are repaired.
 2. Extend Firebase emulator integration coverage beyond the validated bootstrap/rules/quest flow to rewards, family requests, PIN resets, photo proof, export/deletion and scheduled jobs. Server bootstrap and canonical paths are repaired. Child star adjustments and redemptions now use server-owned ledgers. Parent rewards/redemptions and any remaining balance mutations still need auditing. Java 21 and Firebase CLI/emulator tooling are installed; npm run test:integration runs against demo-chorequest.
 3. Validate recurring tasks in Firebase emulators and on device, including template editing/cancellation and scheduled weekly/monthly boundaries. The schema, duplicate generation, recursive copying, and timezone period bugs are repaired.
 4. Replace mock accountability data, connect consequence clearing, extend task editing, and validate profile balance refresh after awards. Reject/resubmit, single-active-quest locks, milestone progression and photo proof need full emulator/device integration tests.
@@ -96,3 +96,14 @@ Validation: npm test passes 6 app tests and 56 backend tests. npm run app:typech
 - Notification registration creates the Android channel before requesting permission, supplies the linked EAS project ID explicitly and no longer logs device push tokens. This follows Expo documentation: https://docs.expo.dev/push-notifications/push-notifications-setup/ and https://docs.expo.dev/versions/latest/sdk/imagepicker/ .
 - App TypeScript checking and Expo public configuration evaluation pass. No native manifest, FCM credential, push delivery or signed-build validation is claimed. Registration is currently not called by app screens and pushTokens persistence has no matching rules; end-to-end notifications remain unfinished.
 - The previously tested accountability changes are committed as b408e1a. Repository/output permissions were granted for this turn only; scheduled runs may require access again.
+
+## Parent/child security fix — October 6
+
+- Successful PIN verification now issues a separate deterministic child Auth identity with signed family/child/session claims. The server stores the child UID with its hashed session; session expiry is 30 minutes and PIN reset revokes reads and child actions.
+- Entering child mode explicitly signs out the parent and signs in with the custom token using the same Auth instance. No parent token/password is retained in a second client. Only the parent email is remembered in memory for password sign-in on return. Child identity cannot bootstrap a family or enter parent routes.
+- Parent callables refuse child identities. Child quest/request/redemption actions authorize the correct child UID and stored session without requiring parent credentials. Family reads require a live, nonrevoked session and a still-valid sponsoring parent. Client writes remain parent-only; Storage proof uploads are bound to the child’s own claimed/rejected quest.
+- Operator library seeding now requires an authenticated admin claim; unrestricted seeding could otherwise be called from child mode. Family purge removes deterministic child Auth identities before removing family data, retaining retryability.
+- Validation: all 65 unit/transport tests and seven real Firebase emulator tests pass (72 total). Emulator tests exchange the actual custom token for a child login, successfully claim/submit, deny setupFamily/star adjustment/PIN reset/approval, then sign in as the parent to approve. Rules tests deny parent writes and sibling photos and block revoked/expired sessions. Client tests prove identity replacement and password-required return. TypeScript/backend compilation and Android Metro/Hermes export pass.
+- Not deployed to chorequest-prod; no real child Auth accounts were created. Production custom-token signing may require the runtime service account’s IAM signing permission (Firebase docs: https://firebase.google.com/docs/auth/admin/create-custom-tokens). No private key is added to the app or repository. Production deployment, physical Android switching tests, visual inspection and signed APK remain required. Earlier milestone notes describing shared parent credentials are superseded by this section.
+
+- Legacy profiles still containing public PIN/lockout fields are denied to child readers, rather than leaking those fields. Such families need a server migration/PIN reset before child profile collection reads succeed. New setup creates private credentials, and verification/reset removes legacy fields on the selected profile.

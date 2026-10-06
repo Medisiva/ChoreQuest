@@ -22,5 +22,5 @@ export async function callBackend<T>(name: string, body: Record<string, unknown>
 }
 
 export type PinVerification =
-  | { success: true; sessionToken: { token: string; expiresAt: string } }
+  | { success: true; customToken: string; sessionToken: { token: string; expiresAt: string } }
   | { success: false; locked?: boolean; lockedUntil?: string; attemptsRemaining?: number };

@@ -12,7 +12,6 @@ export const createFamilyRequest = onCall(async (request) => {
       !["Household", "Learning", "LifeSkills", "Hobbies"].includes(input.category) || !Number.isSafeInteger(input.suggestedStars) || input.suggestedStars < 0 || input.suggestedStars > 1000) throw new HttpsError("invalid-argument", "Check the request details");
   const db = admin.firestore(); const ref = db.doc(`families/${familyId}/familyRequests/${operationId}`);
   await db.runTransaction(async (transaction) => {
-    await requireParent(transaction, familyId, request.auth!.uid);
     const child = await requireChildSession(transaction, familyId, childId, request.auth!.uid, input.sessionToken);
     const existing = await transaction.get(ref); const family = await transaction.get(db.doc(`families/${familyId}`));
     const settings = await transaction.get(db.doc(`families/${familyId}/settings/config`));
@@ -37,7 +36,7 @@ export const updateFamilyRequest = onCall(async (request) => {
   if (!["accepted", "declined", "snoozed", "completed", "confirmed"].includes(input.status)) throw new HttpsError("invalid-argument", "Invalid request action");
   const db = admin.firestore(); const ref = db.doc(`families/${familyId}/familyRequests/${requestId}`);
   await db.runTransaction(async (transaction) => {
-    await requireParent(transaction, familyId, request.auth!.uid);
+    if (input.status !== "confirmed") await requireParent(transaction, familyId, request.auth!.uid);
     const snapshot = await transaction.get(ref);
     if (!snapshot.exists) throw new HttpsError("not-found", "Request not found");
     const data = snapshot.data()!;
@@ -73,7 +72,6 @@ export const getChildRequestCount = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Sign in first");
   const input = request.data; const familyId = documentId(input?.familyId); const childId = documentId(input?.childId);
   return admin.firestore().runTransaction(async (transaction) => {
-    await requireParent(transaction, familyId, request.auth!.uid);
     const child = await requireChildSession(transaction, familyId, childId, request.auth!.uid, input.sessionToken);
     const family = await transaction.get(admin.firestore().doc(`families/${familyId}`));
     const period = getPeriodKey("weekly", new Date(), family.data()?.timezone || "UTC");

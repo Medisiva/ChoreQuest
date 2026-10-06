@@ -8,7 +8,7 @@ function fixture({ member = false, deleted = false, profile, correct = false } =
   const writes = new Map(); let revision = 0; const deletedField = Symbol('delete'); const credentials = { ...profile };
   const reads = [];
   const admin = {
-    auth: () => ({ verifyIdToken: async () => ({ uid: 'caller' }) }),
+    auth: () => ({ verifyIdToken: async () => ({ uid: 'caller' }), createCustomToken: async () => 'custom-token' }),
     firestore: Object.assign(() => ({
       doc: (ref) => ({ path: ref, get: async () => {
         reads.push(ref);

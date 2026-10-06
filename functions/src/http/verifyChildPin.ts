@@ -24,7 +24,7 @@ interface ChildProfileData {
 
 const MAX_FAILED_ATTEMPTS = 3;
 const LOCKOUT_MINUTES = 15;
-const SESSION_TOKEN_EXPIRY_HOURS = 4;
+const SESSION_TOKEN_EXPIRY_MINUTES = 30;
 
 // ── Cloud Function ─────────────────────────────────────────────────────────────
 
@@ -86,6 +86,7 @@ export const verifyChildPin = onRequest(async (req, res) => {
     // Serialize failed attempts and successful sessions so parallel guesses cannot
     // bypass the lockout counter. Only the token hash is stored on the server.
     const token = crypto.randomBytes(32).toString("hex");
+    const childAuthUid = `child-${crypto.createHash("sha256").update(`${familyId}/${childProfileId}`).digest("hex")}`;
     const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const result = await db.runTransaction(async (transaction) => {
       const snapshot = await transaction.get(profileRef);
@@ -102,11 +103,11 @@ export const verifyChildPin = onRequest(async (req, res) => {
         return { status: 409, body: { error: "Ask a parent to reset this profile's PIN." } };
       }
       if (await bcrypt.compare(pin, profile.pinHash)) {
-        const expiresAt = new Date(now.toMillis() + SESSION_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
+        const expiresAt = new Date(now.toMillis() + SESSION_TOKEN_EXPIRY_MINUTES * 60 * 1000);
         transaction.set(credentialsRef, { pinHash: profile.pinHash, failedPinAttempts: 0, lockedUntil: null });
         transaction.update(profileRef, { pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete() });
         transaction.set(db.doc(`families/${familyId}/childSessions/${tokenHash}`), {
-          childProfileId, parentUid: callerUid,
+          childProfileId, parentUid: callerUid, childAuthUid,
           expiresAt: Timestamp.fromDate(expiresAt), createdAt: now,
         });
         return { status: 200, body: { success: true, sessionToken: { token, expiresAt: expiresAt.toISOString() } } };
@@ -123,7 +124,10 @@ export const verifyChildPin = onRequest(async (req, res) => {
       transaction.update(profileRef, { pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete() });
       return { status: 401, body: { success: false, attemptsRemaining: MAX_FAILED_ATTEMPTS - attempts } };
     });
-    res.status(result.status).json(result.body);
+    if (result.status === 200 && result.body.success) {
+      const customToken = await admin.auth().createCustomToken(childAuthUid, { role: 'child', familyId, childProfileId, sessionHash: tokenHash });
+      res.status(200).json({ ...result.body, customToken });
+    } else res.status(result.status).json(result.body);
     logger.info("verifyChildPin END", { executionId, status: result.status });
   } catch (error: unknown) {
     logger.error("verifyChildPin ERROR", { executionId, error });

@@ -1,6 +1,6 @@
 const test = require('node:test'); const assert = require('node:assert/strict');
 const { initializeApp, deleteApp } = require('firebase/app');
-const { getAuth, connectAuthEmulator, createUserWithEmailAndPassword } = require('firebase/auth');
+const { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, signInWithCustomToken, signInWithEmailAndPassword, signOut } = require('firebase/auth');
 const { getFirestore, connectFirestoreEmulator, collection, getDocs, doc, getDoc } = require('firebase/firestore');
 const { getFunctions, connectFunctionsEmulator, httpsCallable } = require('firebase/functions');
 
@@ -24,10 +24,19 @@ test('real Firebase setup, PIN, quest review and trigger retry-safe star award',
     const token = await user.getIdToken();
     const verify = await fetch('http://127.0.0.1:5001/demo-chorequest/us-central1/verifyChildPin', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ familyId: family.familyId, childProfileId: childId, pin: '1234' }) });
     const result = await verify.json(); assert.equal(verify.status, 200, JSON.stringify(result));
+    const parentEmail = user.email;
+    await signOut(auth);
+    await signInWithCustomToken(auth, result.customToken);
+    assert.notEqual(auth.currentUser.uid, user.uid);
+    await assert.rejects(call('setupFamily', setup));
+    await assert.rejects(call('adjustChildStars', { familyId: family.familyId, childId, amount: 999, reason: 'Attack', type: 'bonusStar', operationId: 'attack' }));
+    await assert.rejects(call('resetChildPin', { familyId: family.familyId, childId, pin: '9999' }));
     const context = { familyId: family.familyId, childId, sessionToken: result.sessionToken.token };
     await assert.rejects(call('claimChildQuest', { ...context, sessionToken: '', taskId, operationId: 'invalid' }));
     const claim = await call('claimChildQuest', { ...context, taskId, operationId: 'integration-claim' });
     await call('updateChildQuest', { ...context, claimId: claim.claimId, status: 'submitted' });
+    await assert.rejects(call('reviewChildQuests', { familyId: family.familyId, claimIds: [claim.claimId], decision: 'approved' }));
+    await signInWithEmailAndPassword(auth, parentEmail, 'Test-only-password-123');
     await call('reviewChildQuests', { familyId: family.familyId, claimIds: [claim.claimId], decision: 'approved' });
     const profileRef = doc(db, 'families', family.familyId, 'childProfiles', childId);
     let profile;

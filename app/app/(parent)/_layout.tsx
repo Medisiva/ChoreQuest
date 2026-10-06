@@ -2,6 +2,7 @@
 // 5 tabs: Dashboard, Tasks, Accountability, Requests, Profile
 // Uses Expo Router Tabs with design tokens from DS-001
 
+import { useAuthStore } from '@/stores/authStore';
 import { Tabs, Redirect } from 'expo-router';
 import { Text, StyleSheet, View } from 'react-native';
 import { useChildSessionStore } from '@/stores/childSessionStore';
@@ -22,7 +23,8 @@ function TabIcon({ emoji, focused }: TabIconProps) {
 
 export default function ParentLayout() {
   const parentLocked = useChildSessionStore((state) => state.parentLocked);
-  if (parentLocked) return <Redirect href="/parent-unlock" />;
+  const role = useAuthStore((state) => state.role);
+  if (parentLocked || role !== 'parent') return <Redirect href="/parent-unlock" />;
   return (
     <Tabs
       screenOptions={{

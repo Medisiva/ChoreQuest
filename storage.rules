@@ -7,17 +7,29 @@ service firebase.storage {
         firestore.exists(/databases/(default)/documents/families/$(familyId)/parentUsers/$(request.auth.uid)) &&
         firestore.get(/databases/(default)/documents/families/$(familyId)).data.isDeleted == false;
     }
+    function isChild(familyId) {
+      let claims = request.auth.token;
+      let session = firestore.get(/databases/(default)/documents/families/$(familyId)/childSessions/$(claims.sessionHash)).data;
+      let child = firestore.get(/databases/(default)/documents/families/$(familyId)/childProfiles/$(claims.childProfileId)).data;
+      return request.auth != null && claims.role == 'child' && claims.familyId == familyId &&
+        session.childAuthUid == request.auth.uid && session.childProfileId == claims.childProfileId &&
+        session.expiresAt > request.time &&
+        firestore.exists(/databases/(default)/documents/families/$(familyId)/parentUsers/$(session.parentUid)) && (!('sessionsRevokedAt' in child) || session.createdAt > child.sessionsRevokedAt) &&
+        firestore.get(/databases/(default)/documents/families/$(familyId)).data.isDeleted == false;
+    }
     // Task proof photos - only family members can read/write
-    match /families/{familyId}/taskProofs/{allPaths=**} {
-      allow read: if isFamilyMember(familyId);
-      allow write: if isFamilyMember(familyId)
+    match /families/{familyId}/taskProofs/{claimId}/{filename} {
+      allow read: if isFamilyMember(familyId) || isChild(familyId);
+      allow write: if (isFamilyMember(familyId) || (isChild(familyId) && filename == 'proof.jpg' &&
+        firestore.get(/databases/(default)/documents/families/$(familyId)/taskClaims/$(claimId)).data.childProfileId == request.auth.token.childProfileId &&
+        firestore.get(/databases/(default)/documents/families/$(familyId)/taskClaims/$(claimId)).data.status in ['claimed', 'rejected']))
         && request.resource.size < 5 * 1024 * 1024  // Max 5MB
         && request.resource.contentType.matches('image/.*');
     }
 
     // Avatar images
     match /families/{familyId}/avatars/{allPaths=**} {
-      allow read: if isFamilyMember(familyId);
+      allow read: if isFamilyMember(familyId) || isChild(familyId);
       allow write: if isFamilyMember(familyId)
         && request.resource.size < 2 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');

@@ -10,6 +10,8 @@ import { auth, db } from '../services/firebase';
 import type { ParentUser } from '../types';
 
 interface AuthState {
+  role: 'parent' | 'child' | null;
+  familyId: string | null;
   user: User | null;
   parentProfile: ParentUser | null;
   loading: boolean;
@@ -22,6 +24,8 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
+  familyId: null,
+  role: null,
   user: null,
   parentProfile: null,
   loading: true,
@@ -29,13 +33,26 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   initialize: () => {
     let unsubscribeProfile: Unsubscribe | undefined;
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    let generation = 0;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      const current = ++generation;
       unsubscribeProfile?.();
       unsubscribeProfile = undefined;
-      set({ user, parentProfile: null, loading: Boolean(user), error: null });
+      set({ user, familyId: null, role: null, parentProfile: null, loading: Boolean(user), error: null });
       if (!user) return;
+      try {
+        const { claims } = await user.getIdTokenResult();
+        if (current !== generation) return;
+        if (claims.role === 'child' && typeof claims.familyId === 'string') {
+          set({ role: 'child', familyId: claims.familyId, parentProfile: null, loading: false });
+          return;
+        }
+        set({ role: 'parent' });
+      } catch { if (current === generation) set({ loading: false, error: 'Please sign in again.' }); return; }
       unsubscribeProfile = onSnapshot(doc(db, 'parentProfiles', user.uid), (snapshot) => {
+        if (current !== generation) return;
         set({
+          familyId: snapshot.exists() ? snapshot.data().familyAccountId : null,
           parentProfile: snapshot.exists()
             ? { ...snapshot.data(), id: user.uid, firebaseUid: user.uid } as ParentUser
             : null,
@@ -45,7 +62,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       }, () => set({ loading: false, error: 'Failed to load profile. Please try again.' }));
     });
 
-    return () => { unsubscribe(); unsubscribeProfile?.(); };
+    return () => { generation++; unsubscribe(); unsubscribeProfile?.(); };
   },
 
   setError: (error) => set({ error }),
@@ -53,6 +70,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   clearAuth: () =>
     set({
       user: null,
+      familyId: null,
+      role: null,
       parentProfile: null,
       loading: false,
       error: null,

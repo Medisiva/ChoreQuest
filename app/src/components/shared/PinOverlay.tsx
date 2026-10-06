@@ -24,7 +24,7 @@ import type { ChildProfile } from '../../types';
 
 interface PinOverlayProps {
   child: ChildProfile;
-  onSuccess: (sessionToken: string) => void;
+  onSuccess: (sessionToken: string, customToken: string) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -72,7 +72,7 @@ export default function PinOverlay({
           });
 
           if (result.success) {
-            onSuccess(result.sessionToken.token);
+            await onSuccess(result.sessionToken.token, result.customToken);
           } else if (result.locked) {
             setLocked(true);
             setError('Too many attempts. Try again in 15 minutes.');

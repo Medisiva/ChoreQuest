@@ -4,6 +4,7 @@
 // PIN overlay slides up on child tile tap.
 // Correct routing: parent tap → dashboard, successful PIN → child home.
 
+import { enterChildMode } from '@/services/auth';
 import { useState, useCallback } from 'react';
 import {
   View,
@@ -23,7 +24,7 @@ import type { ChildProfile } from '@/types';
 export default function ProfileSelector() {
   const router = useRouter();
   const { family, children, parentProfile, loading } = useFamilyStore();
-  const { startSession, parentLocked } = useChildSessionStore();
+  const { parentLocked } = useChildSessionStore();
 
   const [selectedChild, setSelectedChild] = useState<ChildProfile | null>(null);
   const [showPin, setShowPin] = useState(false);
@@ -33,20 +34,21 @@ export default function ProfileSelector() {
   }, [router, parentLocked]);
 
   const handleChildTap = useCallback((child: ChildProfile) => {
+    if (parentLocked) { router.push('/parent-unlock'); return; }
     setSelectedChild(child);
     setShowPin(true);
-  }, []);
+  }, [parentLocked, router]);
 
   const handlePinSuccess = useCallback(
-    (sessionToken: string) => {
+    async (sessionToken: string, customToken: string) => {
       if (selectedChild) {
-        startSession(selectedChild.id, sessionToken);
+        await enterChildMode(selectedChild.id, sessionToken, customToken);
         setShowPin(false);
         setSelectedChild(null);
         router.push('/(child)/home');
       }
     },
-    [selectedChild, startSession, router]
+    [selectedChild, router]
   );
 
   const handlePinCancel = useCallback(() => {
@@ -78,7 +80,6 @@ export default function ProfileSelector() {
         {/* Parent Tiles */}
         <Text style={styles.sectionLabel}>Parents</Text>
         <View style={styles.tilesRow}>
-          {parentProfile && (
             <TouchableOpacity
               style={styles.tile}
               onPress={handleParentTap}
@@ -88,14 +89,13 @@ export default function ProfileSelector() {
                 <Text style={styles.avatarEmoji}>👤</Text>
               </View>
               <Text style={styles.tileName}>
-                {parentProfile.displayName}
+                {parentProfile?.displayName ?? 'Parent access'}
               </Text>
               <Text style={styles.tileLabel}>Parent</Text>
               <Text style={styles.tileStars}>
-                ⭐ {parentProfile.starBalance}
+                ⭐ {parentProfile?.starBalance ?? 0}
               </Text>
             </TouchableOpacity>
-          )}
         </View>
 
         {/* Child Tiles */}

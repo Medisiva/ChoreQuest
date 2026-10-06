@@ -7,6 +7,10 @@ import { create } from 'zustand';
 import { AppState, AppStateStatus } from 'react-native';
 
 interface ChildSessionState {
+  parentEmail: string | null;
+  switching: boolean;
+  setSwitching: (switching: boolean) => void;
+  rememberParent: (email: string) => void;
   parentLocked: boolean;
   unlockParent: () => void;
   lockParent: () => void;
@@ -25,6 +29,10 @@ const SESSION_DURATION_MS = 30 * 60 * 1000; // 30 minutes
 const BACKGROUND_TIMEOUT_MS = 30 * 1000; // 30 seconds in background → clear
 
 export const useChildSessionStore = create<ChildSessionState>((set, get) => ({
+  parentEmail: null,
+  switching: false,
+  setSwitching: (switching) => set({ switching }),
+  rememberParent: (parentEmail) => set({ parentEmail }),
   parentLocked: true,
   unlockParent: () => set({ parentLocked: false, activeChildId: null, sessionToken: null, sessionExpiry: null }),
   lockParent: () => set({ parentLocked: true }),

@@ -14,3 +14,8 @@ test('anonymous, unrelated parents and deleted families cannot clear consequence
   f.docs.set('families/f', { isDeleted: true });
   await assert.rejects(f.clearConsequence({ auth: { uid: 'p' }, data }), { code: 'permission-denied' });
 });
+
+test('restricted child principal cannot clear consequences even with a valid child session', async () => {
+  const f = fixture();
+  await assert.rejects(f.clearConsequence({ auth: { uid: 'child-c' }, data: { familyId: 'f', consequenceId: 'cons' } }), { code: 'permission-denied' });
+});

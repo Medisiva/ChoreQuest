@@ -41,6 +41,12 @@ function titleToDocId(title: string): string {
  * - Returns count of newly seeded items
  */
 export const seedTaskLibrary = onRequest(async (req, res) => {
+  // Library maintenance is an operator action, never a family/child capability.
+  const bearer = req.headers.authorization;
+  try {
+    const token = bearer?.startsWith('Bearer ') ? await admin.auth().verifyIdToken(bearer.slice(7), true) : null;
+    if (!token || token.admin !== true || token.role === 'child') { res.status(403).json({ error: 'Operator access required' }); return; }
+  } catch { res.status(401).json({ error: 'Invalid authentication' }); return; }
   logger.info("seedTaskLibrary: execution started");
 
   const db = admin.firestore();

@@ -22,8 +22,9 @@ import { useChildSessionStore } from '@/stores/childSessionStore';
 function RootLayoutNav() {
   const router = useRouter();
   const segments = useSegments();
-  const { user, parentProfile, loading, initialize } = useAuthStore();
+  const { user, role, familyId, parentProfile, loading, initialize } = useAuthStore();
 
+  const switching = useChildSessionStore((state) => state.switching);
   // Initialize Firebase ONCE
   useEffect(() => {
     initializeFirebase();
@@ -36,8 +37,7 @@ function RootLayoutNav() {
   }, [initialize]);
 
   useEffect(() => {
-    if (!user || !parentProfile) return;
-    const familyId = parentProfile.familyAccountId;
+    if (!user || !familyId) return;
     const unsubscribeFamily = useFamilyStore.getState().subscribeToFamily(familyId, user.uid);
     const unsubscribeTasks = useTaskStore.getState().subscribeToTasks(familyId);
     const unsubscribeRequests = useRequestStore.getState().subscribeToRequests(familyId);
@@ -49,15 +49,19 @@ function RootLayoutNav() {
       useTaskStore.getState().clearTasks();
       useRequestStore.getState().clearRequests();
       useRewardStore.getState().clearRewards();
-      useChildSessionStore.getState().endSession();
+
     };
-  }, [user?.uid, parentProfile?.familyAccountId]);
+  }, [user?.uid, familyId]);
 
   useEffect(() => useChildSessionStore.getState().setupBackgroundListener(), []);
 
   // Auth-gated routing
   useEffect(() => {
-    if (loading) return;
+    if (loading || switching) return;
+    if (role === 'child') {
+      if (segments[0] === '(parent)' || segments[0] === '(onboarding)' || segments[0] === '(auth)') router.replace('/parent-unlock');
+      return;
+    }
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
@@ -70,10 +74,10 @@ function RootLayoutNav() {
     } else if (user && parentProfile && (inAuthGroup || inOnboardingGroup)) {
       router.replace('/profiles');
     }
-  }, [user, parentProfile, loading, segments, router]);
+  }, [user, role, familyId, parentProfile, loading, switching, segments, router]);
 
   // Show splash while loading auth state or fonts
-  if (loading) {
+  if (loading || switching) {
     return (
       <View style={styles.splash}>
         <ActivityIndicator size="large" color="#FFFFFF" />

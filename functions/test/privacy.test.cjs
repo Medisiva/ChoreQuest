@@ -20,6 +20,7 @@ function fixture({ uid = 'p', authTime = Date.now() / 1000, failStorage = false 
       if (name === 'firebase-functions') return { logger: { error() {}, info() {} } };
       if (name === 'firebase-admin/firestore') return admin.firestore;
       if (name === 'firebase-admin') return admin;
+      if (name === 'crypto') return require('node:crypto');
       throw new Error(name);
     } }); return module.exports;
   };
@@ -60,7 +61,7 @@ test('deletion queues once, blocks access immediately and purges all persisted f
   assert.equal(f.deletedAuth.length, 0);
   f.docs.get('familyDeletionQueue/f').purgeAfter = { toMillis: () => 0 };
   await f.purgeDeletedFamilies(); await f.purgeDeletedFamilies();
-  assert.equal(f.docs.size, 0); assert.deepEqual(f.deletedAuth, ['p']); assert.equal(f.storageCalls, 1);
+  assert.equal(f.docs.size, 0); assert.equal(f.deletedAuth.at(-1), 'p'); assert.match(f.deletedAuth[0], /^child-/); assert.equal(f.storageCalls, 1);
 });
 test('storage cleanup failure retains the retry marker and all family data', async () => {
   const f = fixture({ failStorage: true }); await f.deleteFamilyAccount(request(), response());

@@ -8,7 +8,6 @@ export const claimChildQuest = onCall(async (request) => {
   const input = request.data; const familyId = documentId(input?.familyId); const childId = documentId(input?.childId); const taskId = documentId(input?.taskId); const operationId = documentId(input?.operationId);
   const db = admin.firestore(); const task = db.doc(`families/${familyId}/tasks/${taskId}`); const claim = db.doc(`families/${familyId}/taskClaims/${operationId}`);
   await db.runTransaction(async (transaction) => {
-    await requireParent(transaction, familyId, request.auth!.uid);
     const child = await requireChildSession(transaction, familyId, childId, request.auth!.uid, input.sessionToken);
     const existing = await transaction.get(claim); const snapshot = await transaction.get(task);
     if (existing.exists) {
@@ -34,7 +33,6 @@ export const updateChildQuest = onCall(async (request) => {
   if (!["submitted", "released"].includes(input.status)) throw new HttpsError("invalid-argument", "Invalid quest action");
   const db = admin.firestore(); const claimRef = db.doc(`families/${familyId}/taskClaims/${claimId}`);
   await db.runTransaction(async (transaction) => {
-    await requireParent(transaction, familyId, request.auth!.uid);
     const child = await requireChildSession(transaction, familyId, childId, request.auth!.uid, input.sessionToken);
     const claim = await transaction.get(claimRef);
     if (!claim.exists || claim.data()?.childProfileId !== childId) throw new HttpsError("permission-denied", "Not your quest");

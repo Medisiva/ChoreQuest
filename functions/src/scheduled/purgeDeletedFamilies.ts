@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import { Timestamp } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
@@ -19,6 +20,12 @@ export const purgeDeletedFamilies = onSchedule("every 24 hours", async () => {
     // Resolve mappings on every retry, even when the family has already been removed.
     const mappings = await db.collection("parentProfiles").where("familyAccountId", "==", familyId).get();
     await admin.storage().bucket().deleteFiles({ prefix: `families/${familyId}/`, force: true });
+    const children = await family.collection('childProfiles').get();
+    for (const child of children.docs) {
+      const childUid = `child-${createHash('sha256').update(`${familyId}/${child.id}`).digest('hex')}`;
+      try { await admin.auth().deleteUser(childUid); }
+      catch (error) { if ((error as { code?: string }).code !== 'auth/user-not-found') throw error; }
+    }
     await db.recursiveDelete(family);
     await db.doc(`leaderboard/${familyId}`).delete();
     for (const mapping of mappings.docs) {

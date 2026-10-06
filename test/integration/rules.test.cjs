@@ -1,6 +1,6 @@
 const test = require('node:test'); const assert = require('node:assert/strict'); const fs = require('node:fs');
 const { initializeTestEnvironment, assertSucceeds, assertFails } = require('@firebase/rules-unit-testing');
-const { doc, setDoc, updateDoc, getDoc } = require('firebase/firestore');
+const { doc, setDoc, updateDoc, getDoc, Timestamp } = require('firebase/firestore');
 const { ref, uploadBytes, getBytes } = require('firebase/storage');
 let env;
 test.before(async () => {
@@ -65,4 +65,30 @@ test('soft deletion blocks existing authenticated family access in Firestore and
   await assertFails(updateDoc(doc(context.firestore(), 'families/f/childProfiles/c'), { nickname: 'Other' }));
   await assertFails(uploadBytes(ref(context.storage(), 'families/f/taskProofs/claim/proof.jpg'), new Uint8Array([1]), { contentType: 'image/jpeg' }));
   assert.ok(true);
+});
+
+test('restricted child session can read family but cannot perform parent writes; expiry/reset block reads', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'families/f/childSessions/hash'), { childAuthUid: 'child-c', childProfileId: 'c', parentUid: 'p', createdAt: Timestamp.fromMillis(Date.now() - 1000), expiresAt: Timestamp.fromMillis(Date.now() + 60000) });
+    await setDoc(doc(db, 'families/f/taskClaims/own'), { childProfileId: 'c', status: 'claimed' });
+    await setDoc(doc(db, 'families/f/taskClaims/sibling'), { childProfileId: 'other', status: 'claimed' });
+  });
+  const child = env.authenticatedContext('child-c', { role: 'child', familyId: 'f', childProfileId: 'c', sessionHash: 'hash' });
+  const db = child.firestore();
+  await assertSucceeds(getDoc(doc(db, 'families/f')));
+  for (const [path, payload] of [['tasks/t', { title: 'Attack' }], ['childProfiles/c', { weeklyTargetStars: 1 }], ['parentUsers/p', { displayName: 'Attack' }], ['rewards/r', { starCost: 1 }], ['activeConsequences/cons', { clearedByParentAt: Timestamp.now() }]]) await assertFails(setDoc(doc(db, `families/f/${path}`), payload, { merge: true }));
+  await assertFails(getDoc(doc(db, 'families/f/childCredentials/c')));
+  await assertFails(getDoc(doc(db, 'families/f/childProfiles/c'))); // Legacy public PIN hash is never readable in child mode.
+  await assertFails(getDoc(doc(db, 'families/other')));
+  await assertSucceeds(uploadBytes(ref(child.storage(), 'families/f/taskProofs/own/proof.jpg'), new Uint8Array([1]), { contentType: 'image/jpeg' }));
+  await assertFails(uploadBytes(ref(child.storage(), 'families/f/taskProofs/sibling/proof.jpg'), new Uint8Array([1]), { contentType: 'image/jpeg' }));
+  await env.withSecurityRulesDisabled(async (context) => updateDoc(doc(context.firestore(), 'families/f/childProfiles/c'), { sessionsRevokedAt: Timestamp.now() }));
+  await assertFails(getDoc(doc(db, 'families/f')));
+  await assertFails(uploadBytes(ref(child.storage(), 'families/f/taskProofs/own/proof.jpg'), new Uint8Array([1]), { contentType: 'image/jpeg' }));
+  await env.withSecurityRulesDisabled(async (context) => {
+    await updateDoc(doc(context.firestore(), 'families/f/childProfiles/c'), { sessionsRevokedAt: Timestamp.fromMillis(0) });
+    await updateDoc(doc(context.firestore(), 'families/f/childSessions/hash'), { expiresAt: Timestamp.fromMillis(1) });
+  });
+  await assertFails(getDoc(doc(db, 'families/f')));
 });

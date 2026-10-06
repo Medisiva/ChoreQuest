@@ -43,6 +43,7 @@ function rewards(input: unknown): Record<string, unknown>[] {
 /** Server-owned bootstrap avoids circular membership rules and untrusted PIN hashes. */
 export const setupFamily = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Sign in first");
+  if (request.auth.token?.role === 'child' || request.auth.uid.startsWith('child-')) throw new HttpsError('permission-denied', 'Parent sign-in required');
   const uid = request.auth.uid;
   const input = request.data as Record<string, unknown>;
   if (!input || typeof input !== "object") throw new HttpsError("invalid-argument", "Invalid setup");

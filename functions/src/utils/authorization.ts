@@ -11,6 +11,7 @@ export function positiveStars(value: unknown): number {
   return value as number;
 }
 export async function requireParent(transaction: admin.firestore.Transaction, familyId: string, uid: string): Promise<void> {
+  if (uid.startsWith("child-")) throw new HttpsError("permission-denied", "Parent sign-in required");
   const db = admin.firestore();
   const family = await transaction.get(db.doc(`families/${familyId}`));
   const parent = await transaction.get(db.doc(`families/${familyId}/parentUsers/${uid}`));
@@ -22,7 +23,10 @@ export async function requireChildSession(transaction: admin.firestore.Transacti
   const session = await transaction.get(db.doc(`families/${familyId}/childSessions/${hash}`));
   const child = await transaction.get(db.doc(`families/${familyId}/childProfiles/${childId}`));
   const data = session.data();
-  if (!child.exists || !session.exists || data?.parentUid !== uid || data?.childProfileId !== childId ||
+  const family = await transaction.get(db.doc(`families/${familyId}`));
+  const parent = data?.parentUid ? await transaction.get(db.doc(`families/${familyId}/parentUsers/${data.parentUid}`)) : null;
+  if (!family.exists || family.data()?.isDeleted || !parent?.exists) throw new HttpsError("permission-denied", "Family unavailable");
+  if (!child.exists || !session.exists || (data?.childAuthUid !== uid && data?.parentUid !== uid) || !family.exists || family.data()?.isDeleted || !parent?.exists || data?.childProfileId !== childId ||
       !data.expiresAt || data.expiresAt.toMillis() <= Date.now() ||
       (child.data()?.sessionsRevokedAt && (!data.createdAt || data.createdAt.toMillis() <= child.data()!.sessionsRevokedAt.toMillis()))) {
     throw new HttpsError("unauthenticated", "Enter your PIN again");

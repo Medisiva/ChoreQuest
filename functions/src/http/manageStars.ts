@@ -35,7 +35,6 @@ export const requestChildRedemption = onCall(async (request) => {
   const input = request.data; const familyId = documentId(input?.familyId); const childId = documentId(input?.childId); const rewardId = documentId(input?.rewardId); const operationId = documentId(input?.operationId);
   const db = admin.firestore(); const ref = db.doc(`families/${familyId}/redemptions/${operationId}`);
   await db.runTransaction(async (transaction) => {
-    await requireParent(transaction, familyId, request.auth!.uid);
     const child = await requireChildSession(transaction, familyId, childId, request.auth!.uid, input.sessionToken);
     const reward = await transaction.get(db.doc(`families/${familyId}/rewards/${rewardId}`));
     const existing = await transaction.get(ref);
