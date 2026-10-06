@@ -2,7 +2,7 @@
 // Child selector tabs, weekly/monthly progress, streak tracking,
 // active consequences, 13-week grid, and consequence history.
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,14 @@ import {
   ScrollView,
   TouchableOpacity,
   Pressable,
+  RefreshControl,
+  Alert,
 } from 'react-native';
+import { useFamilyStore } from '@/stores/familyStore';
+import { useLeaderboard } from '@/utils/useLeaderboard';
+import { periodKey } from '@/utils/leaderboard';
+import { loadAccountability, clearConsequence } from '@/services/accountability';
+import type { AccountabilityLog, ActiveConsequence as SavedConsequence } from '@/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, radius, typography, shadows, layout } from '@/constants/tokens';
 
@@ -48,61 +55,6 @@ interface ConsequenceHistory {
   periodStart: string;
   missLevel: number;
 }
-
-// ── Mock data (replace with Zustand store subscriptions) ──────────────────────
-
-const MOCK_CHILDREN: Child[] = [
-  {
-    childId: 'c1',
-    displayName: 'Emma',
-    avatarEmoji: '🦄',
-    weeklyTargetStars: 20,
-    monthlyTargetStars: 80,
-    currentStreakWeeks: 3,
-    consecutiveMissWeeks: 0,
-  },
-  {
-    childId: 'c2',
-    displayName: 'Liam',
-    avatarEmoji: '🐉',
-    weeklyTargetStars: 15,
-    monthlyTargetStars: 60,
-    currentStreakWeeks: 0,
-    consecutiveMissWeeks: 1,
-  },
-];
-
-const MOCK_WEEKLY_STARS: Record<string, number> = { c1: 14, c2: 8 };
-const MOCK_MONTHLY_STARS: Record<string, number> = { c1: 52, c2: 30 };
-
-const MOCK_CONSEQUENCES: ActiveConsequence[] = [
-  {
-    consequenceId: 'cons1',
-    childId: 'c2',
-    name: 'No screen time Wednesday',
-    description: 'Missed weekly target — screen time paused for Wednesday.',
-    missLevel: 1,
-    periodType: 'weekly',
-    status: 'active',
-  },
-];
-
-function buildMockGrid(): WeekLog[] {
-  const grid: WeekLog[] = [];
-  for (let i = 0; i < 13; i++) {
-    if (i < 10) {
-      grid.push({ weekIndex: i, met: Math.random() > 0.3, missLevel: Math.random() > 0.7 ? 1 : null });
-    } else {
-      grid.push({ weekIndex: i, met: null, missLevel: null });
-    }
-  }
-  return grid;
-}
-
-const MOCK_HISTORY: ConsequenceHistory[] = [
-  { consequenceId: 'h1', name: 'No screen time Wednesday', periodStart: '2026-03-09', missLevel: 1 },
-  { consequenceId: 'h2', name: 'Extra chore Saturday', periodStart: '2026-02-23', missLevel: 2 },
-];
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -268,7 +220,7 @@ function ThirteenWeekGrid({ weeks }: { weeks: WeekLog[] }) {
         <LegendDot color={colors.success} label="Met" />
         <LegendDot color={colors.danger} label="Missed" />
         <LegendDot color={colors.warning} label="Warning" />
-        <LegendDot color={colors.ink400} label="Future" />
+        <LegendDot color={colors.ink400} label="No record" />
       </View>
     </View>
   );
@@ -322,27 +274,51 @@ function ConsequenceHistorySection({ history }: { history: ConsequenceHistory[] 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function Accountability() {
-  const [selectedChildId, setSelectedChildId] = useState(MOCK_CHILDREN[0]?.childId ?? '');
-  const selectedChild = MOCK_CHILDREN.find((c) => c.childId === selectedChildId) ?? MOCK_CHILDREN[0];
-
-  const weeklyStars = MOCK_WEEKLY_STARS[selectedChildId] ?? 0;
-  const monthlyStars = MOCK_MONTHLY_STARS[selectedChildId] ?? 0;
-  const childConsequences = MOCK_CONSEQUENCES.filter(
-    (c) => c.childId === selectedChildId && c.status === 'active',
-  );
-  const weekGrid = buildMockGrid();
-
-  const handleMarkDone = useCallback((consequenceId: string) => {
-    // TODO: Wire to Firestore via service layer
-    console.log('Mark consequence done:', consequenceId);
-  }, []);
+  const family = useFamilyStore((state) => state.family);
+  const profiles = useFamilyStore((state) => state.children);
+  const familyLoading = useFamilyStore((state) => state.loading);
+  const children: Child[] = profiles.map((profile) => ({ childId: profile.id, displayName: profile.nickname, avatarEmoji: '🧒', weeklyTargetStars: profile.weeklyTargetStars, monthlyTargetStars: profile.monthlyTargetStars, currentStreakWeeks: profile.currentStreakWeeks, consecutiveMissWeeks: profile.consecutiveMissWeeks }));
+  const [selectedId, setSelectedChildId] = useState('');
+  const selectedChild = children.find((child) => child.childId === selectedId) ?? children[0];
+  const selectedChildId = selectedChild?.childId ?? '';
+  const weekly = useLeaderboard('weekly', true);
+  const monthly = useLeaderboard('monthly', true);
+  const [saved, setSaved] = useState<{ consequences: SavedConsequence[]; logs: AccountabilityLog[] }>({ consequences: [], logs: [] });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    let stopped = false;
+    setSaved({ consequences: [], logs: [] }); setError(null);
+    if (!family) return;
+    setLoading(true);
+    loadAccountability(family.id).then((result) => { if (!stopped) setSaved(result); }).catch(() => { if (!stopped) setError('Could not load accountability records. Pull down to retry.'); }).finally(() => { if (!stopped) setLoading(false); });
+    return () => { stopped = true; };
+  }, [family, revision]);
+  const levelNumber = (level: string) => level === 'Red' ? 3 : level === 'Orange' ? 2 : 1;
+  const weeklyStars = weekly.entries.find((entry) => entry.id === selectedChildId)?.stars ?? 0;
+  const monthlyStars = monthly.entries.find((entry) => entry.id === selectedChildId)?.stars ?? 0;
+  const childConsequences: ActiveConsequence[] = saved.consequences.filter((item) => item.childProfileId === selectedChildId && !item.clearedByParentAt).map((item) => ({ consequenceId: item.id, childId: item.childProfileId, name: item.name, description: item.description, missLevel: levelNumber(item.level), periodType: 'weekly', status: 'active' }));
+  const currentWeek = new Date(`${periodKey(new Date(), family?.timezone || 'UTC', 'weekly')}T00:00:00Z`);
+  const weekGrid: WeekLog[] = Array.from({ length: 13 }, (_, index) => {
+    const date = new Date(currentWeek); date.setUTCDate(date.getUTCDate() - (13 - index) * 7);
+    const key = date.toISOString().slice(0, 10);
+    const log = saved.logs.find((item) => item.childProfileId === selectedChildId && item.periodType === 'weekly' && periodKey(item.periodStart.toDate(), family?.timezone || 'UTC', 'weekly') === key);
+    return { weekIndex: index, met: log?.met ?? null, missLevel: log?.missLevel ? levelNumber(log.missLevel) : null };
+  });
+  const history: ConsequenceHistory[] = saved.consequences.filter((item) => item.childProfileId === selectedChildId && item.clearedByParentAt).sort((a, b) => b.activatedAt.toMillis() - a.activatedAt.toMillis()).map((item) => ({ consequenceId: item.id, name: item.name, periodStart: item.activatedAt.toDate().toLocaleDateString(), missLevel: levelNumber(item.level) }));
+  const handleMarkDone = useCallback(async (consequenceId: string) => {
+    if (!family) return;
+    try { await clearConsequence(family.id, consequenceId); setRevision((value) => value + 1); }
+    catch { Alert.alert('Could not clear consequence', 'Please try again.'); }
+  }, [family]);
 
   if (!selectedChild) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.emptyContainer}>
           <Text style={styles.heading}>Accountability</Text>
-          <Text style={styles.emptyText}>No children in this family yet.</Text>
+          <Text style={styles.emptyText}>{familyLoading ? 'Loading family…' : 'No children in this family yet.'}</Text>
         </View>
       </SafeAreaView>
     );
@@ -354,12 +330,14 @@ export default function Accountability() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={loading || weekly.loading || monthly.loading} onRefresh={() => { setRevision((value) => value + 1); weekly.reload(); monthly.reload(); }} />}
       >
         <Text style={styles.heading}>Accountability</Text>
+        {(error || weekly.error || monthly.error) && <Text accessibilityRole="alert" style={styles.emptyText}>{error || weekly.error || monthly.error}</Text>}
 
         {/* Child selector tabs */}
         <ChildTabs
-          children={MOCK_CHILDREN}
+          children={children}
           selectedId={selectedChildId}
           onSelect={setSelectedChildId}
         />
@@ -386,7 +364,7 @@ export default function Accountability() {
         <ThirteenWeekGrid weeks={weekGrid} />
 
         {/* Consequence history (collapsible) */}
-        <ConsequenceHistorySection history={MOCK_HISTORY} />
+        <ConsequenceHistorySection history={history} />
       </ScrollView>
     </SafeAreaView>
   );

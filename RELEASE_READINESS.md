@@ -38,7 +38,7 @@ Status: in development. No signed APK/AAB, deployed backend, store listing, or s
 - PIN verification rejects callers from other families, deleted families, and invalid input before accessing child profiles.
 - Local app is linked to Expo medisivateam/chorequest. EAS configuration lives in app/eas.json, with APK preview and AAB production profiles.
 
-Validation: npm test passes 6 app tests and 54 backend tests. npm run app:typecheck and functions compilation pass. Tests use transactional fakes and mocked trigger envelopes; Firebase emulator integration and device tests are still required. Android Metro/Hermes export is checked separately; it does not validate native compilation or runtime behavior.
+Validation: npm test passes 6 app tests and 56 backend tests. npm run app:typecheck and functions compilation pass. Tests use transactional fakes and mocked trigger envelopes; Firebase emulator integration and device tests are still required. Android Metro/Hermes export is checked separately; it does not validate native compilation or runtime behavior.
 
 ## Firebase integration and dependency validation
 
@@ -81,3 +81,11 @@ Validation: npm test passes 6 app tests and 54 backend tests. npm run app:typech
 - A single Firestore transaction checks the deterministic period log and updates counters, balance/lifetime earnings, bonus ledger, consequence and log together. Deleted families are refused inside the transaction. Repeated runs skip completed logs.
 - Five added tests cover DST, month/year rollover, configured streaks, disabled targets and simulated commit failure/retry without duplicate bonuses or logs. All 60 unit/transport tests, backend compilation and app TypeScript checks pass. Firebase scheduler integration remains pending; no production deployment occurred.
 - Remaining limits: prolonged scheduler downtime needs an explicit multi-period backfill strategy; changing a target during a period currently uses its value at evaluation. Large-family transaction query volume needs load testing. Android bundle was last validated at the preceding leaderboard milestone; this change only affects backend jobs. Parent/child server authorization, native/device testing, visual QA and signed build remain unfinished.
+
+## Latest milestone: live accountability and consequence clearing
+
+- Removed fictional children, scores, consequences and random history from the parent accountability screen. It now reads canonical profiles, recent evaluation logs and consequences through services. The grid shows the previous 13 family-local weeks; missing evaluations are labeled “No record.” Cleared consequences form the history. Pull-to-refresh and load errors are supported.
+- Goal progress excludes streak bonuses, matching the evaluation jobs; leaderboard rankings still include earned bonuses.
+- Added an authenticated, transactional clearConsequence endpoint. It records the clearing parent/timestamp, preserves the original consequence and safely handles concurrent retries. Firestore rules deny direct consequence updates. Two tests verify retry behavior and anonymous/cross-family/deleted-family denial.
+- All 62 unit/transport tests, app TypeScript checks and Android Metro/Hermes export pass. Latest rule changes still require emulator verification; no device/visual validation, production deployment or signed build is claimed. Parent/child Firebase authorization separation remains the primary release blocker.
+- This session changed to read-only after interruption; the user granted turn-scoped repository/output write access to resume. Metro’s first export could not write the system temp cache; the rerun uses an ignored workspace temp directory.

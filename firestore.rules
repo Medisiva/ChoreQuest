@@ -119,7 +119,7 @@ service cloud.firestore {
       // Active consequences
       match /activeConsequences/{consequenceId} {
         allow read: if isFamilyMember(familyId);
-        allow update: if isFamilyMember(familyId); // Parent can clear
+        allow update: if false; // Server records authorized clearing only.
         allow create: if false; // Only Cloud Functions create
         allow delete: if false;
       }

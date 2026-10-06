@@ -35,3 +35,4 @@ export { purgeDeletedFamilies } from "./scheduled/purgeDeletedFamilies";
 export { adjustChildStars, requestChildRedemption, reviewChildRedemption } from "./http/manageStars";
 export { claimChildQuest, updateChildQuest, reviewChildQuests } from "./http/manageQuests";
 export { createFamilyRequest, updateFamilyRequest, getChildRequestCount } from "./http/manageRequests";
+export { clearConsequence } from './http/manageAccountability';

@@ -35,6 +35,6 @@ function fixture() {
     } }); return module.exports;
   }
   authorization = load('../lib/utils/authorization');
-  return { docs, token, ...load('../lib/http/manageStars'), ...load('../lib/http/manageQuests'), ...load('../lib/http/manageRequests') };
+  return { docs, token, ...load('../lib/http/manageStars'), ...load('../lib/http/manageQuests'), ...load('../lib/http/manageRequests'), ...load('../lib/http/manageAccountability') };
 }
 module.exports = { fixture };
