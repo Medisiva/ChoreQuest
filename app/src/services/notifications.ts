@@ -2,6 +2,7 @@
 // Handles permission requests, push token registration, and local notification scheduling.
 
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from './firebase';
@@ -25,6 +26,16 @@ export async function registerForPushNotifications(
   familyId: string,
   uid: string
 ): Promise<string | null> {
+  // Android requires a notification channel
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'ChoreQuest',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#1A3E6E',
+    });
+  }
+
   // Request permission
   const { status: existingStatus } =
     await Notifications.getPermissionsAsync();
@@ -40,18 +51,8 @@ export async function registerForPushNotifications(
     return null;
   }
 
-  // Android requires a notification channel
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', {
-      name: 'ChoreQuest',
-      importance: Notifications.AndroidImportance.HIGH,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#1A3E6E',
-    });
-  }
-
   // Get the Expo push token
-  const tokenData = await Notifications.getExpoPushTokenAsync();
+  const tokenData = await Notifications.getExpoPushTokenAsync({ projectId: Constants.easConfig?.projectId ?? Constants.expoConfig?.extra?.eas?.projectId });
   const pushToken = tokenData.data;
 
   // Save token to Firestore
@@ -62,7 +63,6 @@ export async function registerForPushNotifications(
     updatedAt: new Date().toISOString(),
   });
 
-  console.log('[Notifications] Push token registered:', pushToken);
   return pushToken;
 }
 

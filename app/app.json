@@ -32,6 +32,9 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -43,13 +46,16 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "ChoreQuest needs camera access to take photo proof of completed tasks."
+          "cameraPermission": "ChoreQuest needs camera access to take photo proof of completed tasks.",
+          "recordAudioAndroid": false,
+          "microphonePermission": false
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "ChoreQuest needs photo library access to attach proof of completed tasks."
+          "photosPermission": "ChoreQuest needs photo library access to attach proof of completed tasks.",
+          "microphonePermission": false
         }
       ],
       [

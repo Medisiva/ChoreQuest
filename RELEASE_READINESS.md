@@ -89,3 +89,10 @@ Validation: npm test passes 6 app tests and 56 backend tests. npm run app:typech
 - Added an authenticated, transactional clearConsequence endpoint. It records the clearing parent/timestamp, preserves the original consequence and safely handles concurrent retries. Firestore rules deny direct consequence updates. Two tests verify retry behavior and anonymous/cross-family/deleted-family denial.
 - All 62 unit/transport tests, app TypeScript checks and Android Metro/Hermes export pass. Latest rule changes still require emulator verification; no device/visual validation, production deployment or signed build is claimed. Parent/child Firebase authorization separation remains the primary release blocker.
 - This session changed to read-only after interruption; the user granted turn-scoped repository/output write access to resume. Metro’s first export could not write the system temp cache; the rerun uses an ignored workspace temp directory.
+
+## Android permissions and notification configuration
+
+- Disabled microphone permissions in the camera/image-picker plugins and blocked Android RECORD_AUDIO; proof capture only uses still images. Photo-storage access remains pending an audit of the picker flow and generated native manifest.
+- Notification registration creates the Android channel before requesting permission, supplies the linked EAS project ID explicitly and no longer logs device push tokens. This follows Expo documentation: https://docs.expo.dev/push-notifications/push-notifications-setup/ and https://docs.expo.dev/versions/latest/sdk/imagepicker/ .
+- App TypeScript checking and Expo public configuration evaluation pass. No native manifest, FCM credential, push delivery or signed-build validation is claimed. Registration is currently not called by app screens and pushTokens persistence has no matching rules; end-to-end notifications remain unfinished.
+- The previously tested accountability changes are committed as b408e1a. Repository/output permissions were granted for this turn only; scheduled runs may require access again.
