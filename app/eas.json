@@ -21,12 +21,34 @@
       },
       "android": {
         "buildType": "apk"
+      },
+      "environment": "preview",
+      "env": {
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyCLM6zi3wXKTKTrbo8xdbJLORDk6tPzPGA",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "chorequest-prod.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "chorequest-prod",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "chorequest-prod.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "984867039287",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:984867039287:web:4d40a926a62de2a77037b2",
+        "EXPO_PUBLIC_USE_EMULATORS": "false",
+        "EXPO_PUBLIC_ENV": "preview"
       }
     },
     "production": {
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
+      },
+      "environment": "production",
+      "env": {
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyCLM6zi3wXKTKTrbo8xdbJLORDk6tPzPGA",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "chorequest-prod.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "chorequest-prod",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "chorequest-prod.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "984867039287",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:984867039287:web:4d40a926a62de2a77037b2",
+        "EXPO_PUBLIC_USE_EMULATORS": "false",
+        "EXPO_PUBLIC_ENV": "production"
       }
     }
   },

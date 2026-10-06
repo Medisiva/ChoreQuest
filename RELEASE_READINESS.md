@@ -107,3 +107,13 @@ Validation: npm test passes 7 app tests and 58 backend tests. npm run app:typech
 - Not deployed to chorequest-prod; no real child Auth accounts were created. Production custom-token signing may require the runtime service account’s IAM signing permission (Firebase docs: https://firebase.google.com/docs/auth/admin/create-custom-tokens). No private key is added to the app or repository. Production deployment, physical Android switching tests, visual inspection and signed APK remain required. Earlier milestone notes describing shared parent credentials are superseded by this section.
 
 - Legacy profiles still containing public PIN/lockout fields are denied to child readers, rather than leaking those fields. Such families need a server migration/PIN reset before child profile collection reads succeed. New setup creates private credentials, and verification/reset removes legacy fields on the selected profile.
+
+## Selected deliverable: signed internal APK
+
+- User selected option 1: deliver a downloadable signed Android APK. Continue this selection through completion, rather than asking for the same choice again.
+- Preview/production EAS profiles explicitly use the registered public chorequest-prod client identifiers with emulator mode disabled. The ignored local development configuration is preserved. .easignore preserves the repository ignore rules and excludes Git metadata, local configuration, scratch outputs and signing credentials from upload.
+- Generated a native Android project in ignored work/native-check/app; Expo prebuild succeeds. Its manifest excludes RECORD_AUDIO. This is native project generation, not Gradle compilation or an APK.
+- EAS whoami reports not logged in. Archive inspection stops at required Expo login; no archive upload or cloud build has started. The device login request is awaiting the matching number shown to the user. Do not extract auth secrets from the browser.
+- Firebase CLI also has no authenticated account. A localhost OAuth login is waiting for the user to approve it. CLI credentials are configured under ignored work/firebase-config; subsequent Firebase commands must use the same XDG_CONFIG_HOME.
+- Concrete blocker: user must finish both account approvals (Expo matching number, Firebase browser consent). Once approved, verify account/project permissions and billing status, deploy the tested backend/rules when permitted, validate custom-token signing, then request the signed preview APK. Stop before any unapproved paid upgrade, legal acceptance or sensitive IAM access grant.
+- No APK download link exists yet. Account login links/session IDs are ephemeral and should be regenerated if expired.
