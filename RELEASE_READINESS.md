@@ -1,6 +1,6 @@
 # ChoreQuest Android release work
 
-Status: internal Android APK preparation. Firebase backend/rules are deployed and the live parent/child quest flow passes. The first signed Expo build failed on an incompatible Worklets dependency; the fixed APK retry is being prepared. No completed APK/AAB, store listing or submission is available yet. iOS follows Android.
+Status: internal Android APK preparation. Firebase backend/rules are deployed and the live parent/child quest flow passes. The first signed Expo build failed on an incompatible Worklets dependency; replacement signed APK build 14b34ebf-6bbd-4d88-8694-a09bfbbedf35 is submitted. No completed APK/AAB, store listing or submission is available yet. iOS follows Android.
 
 ## Verified baseline
 
@@ -152,3 +152,5 @@ Validation: npm test passes 7 app tests and 58 backend tests. npm run app:typech
 - A clean npm ci succeeds. Expo Doctor passes all 20 checks, Reanimated’s own Worklets compatibility validator passes, all 65 unit/transport tests pass, app typechecking and Functions compilation pass, and Android Metro/Hermes export succeeds. Native Gradle success and device behavior remain unverified until the replacement cloud build completes. The seven previously passing emulator tests were not rerun for this dependency-only repair.
 - Current npm audit reports 6 critical, 41 high, 44 moderate and 145 low findings including propagated findings in development tools. This supersedes older audit counts; it needs a scoped advisory review before a store release. No unrestricted audit fix or major SDK upgrade was applied during the APK repair. Raw report is retained only in ignored work/apk-retry-audit.json.
 - Next: start one replacement signed preview build under the existing free queue and signing credentials, record its ID in the guide/monitor, and download/inspect the actual APK when complete. No user action is needed for this repair.
+
+- Replacement build submitted successfully: https://expo.dev/accounts/medisivateam/projects/chorequest/builds/14b34ebf-6bbd-4d88-8694-a09bfbbedf35 . EAS returned NEW at 2026-10-06T16:21:30Z, using the existing remote Android keystore, preview profile and repaired source commit 929b5c9. No APK artifact is available yet. Monitor this replacement only; the previous build is ERRORED.
