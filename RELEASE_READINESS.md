@@ -1,6 +1,6 @@
 # ChoreQuest Android release work
 
-Status: internal Android APK preparation. Firebase backend/rules are deployed and the live parent/child quest flow passes. The first signed Expo build failed on an incompatible Worklets dependency; replacement signed APK build 14b34ebf-6bbd-4d88-8694-a09bfbbedf35 is submitted. No completed APK/AAB, store listing or submission is available yet. iOS follows Android.
+Status: signed internal Android test APK is built, downloaded and verified. Firebase backend/rules are deployed and the live parent/child quest flow passes. Physical-device testing, design/release work and Google Play publication remain outstanding. iOS follows Android.
 
 ## Verified baseline
 
@@ -154,3 +154,12 @@ Validation: npm test passes 7 app tests and 58 backend tests. npm run app:typech
 - Next: start one replacement signed preview build under the existing free queue and signing credentials, record its ID in the guide/monitor, and download/inspect the actual APK when complete. No user action is needed for this repair.
 
 - Replacement build submitted successfully: https://expo.dev/accounts/medisivateam/projects/chorequest/builds/14b34ebf-6bbd-4d88-8694-a09bfbbedf35 . EAS returned NEW at 2026-10-06T16:21:30Z, using the existing remote Android keystore, preview profile and repaired source commit 929b5c9. No APK artifact is available yet. Monitor this replacement only; the previous build is ERRORED.
+
+## Signed Android test APK delivered — October 9
+
+- Replacement Expo build 14b34ebf-6bbd-4d88-8694-a09bfbbedf35 is FINISHED. Expo records completion on October 6 at 19:31:12Z; completion was confirmed and the artifact downloaded on October 9. Source commit is 929b5c9.
+- Actual APK download: https://expo.dev/artifacts/eas/Guw2Ve18s4ZsXEBfHLV5vcW_GesnFLLB2vy6vS24PBU.apk . Local copy: ../outputs/ChoreQuest-1.0.0-android-test.apk (approximately 118 MiB). EAS build expiration is October 20; retain the local copy.
+- ZIP integrity passes. Binary AndroidManifest confirms package com.chorequest.app, versionName 1.0.0, versionCode 1, minSdkVersion 24 (Android 7), and targetSdkVersion 36. RECORD_AUDIO is absent. SYSTEM_ALERT_WINDOW and legacy storage permissions remain in the native manifest and need a scoped production permission review.
+- Signature cryptographically verifies with Google Android apksig 8.13.2 (https://android.googlesource.com/platform/tools/apksig/+/refs/heads/main/README.md): verified=true, v2=true, v1=false, v3=false. Certificate SHA-256: bf147dbdbdcfae56782fdeadc470765ca5141d9a15a646ca041197501803fd9e. APK SHA-256: 1fe10b10afd219da2ecddafb1d995b0d66f297bab22c9f2ee975053b6b102e39.
+- Evidence: ignored work/apk-manifest-evidence.json, work/apk-signature-evidence.txt and the downloaded APK. The APK test guide contains installation and family/security checks. No physical-device launch, camera test, full visual QA or store submission is claimed. Dependency advisories and broader release limitations above remain.
+- Selected downloadable APK deliverable is complete. Pause the build monitor and await the user’s next selection: physical-phone testing/fixes (recommended), or design/store preparation. Do not start another implementation direction automatically.
