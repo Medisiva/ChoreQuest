@@ -163,3 +163,12 @@ Validation: npm test passes 7 app tests and 58 backend tests. npm run app:typech
 - Signature cryptographically verifies with Google Android apksig 8.13.2 (https://android.googlesource.com/platform/tools/apksig/+/refs/heads/main/README.md): verified=true, v2=true, v1=false, v3=false. Certificate SHA-256: bf147dbdbdcfae56782fdeadc470765ca5141d9a15a646ca041197501803fd9e. APK SHA-256: 1fe10b10afd219da2ecddafb1d995b0d66f297bab22c9f2ee975053b6b102e39.
 - Evidence: ignored work/apk-manifest-evidence.json, work/apk-signature-evidence.txt and the downloaded APK. The APK test guide contains installation and family/security checks. No physical-device launch, camera test, full visual QA or store submission is claimed. Dependency advisories and broader release limitations above remain.
 - Selected downloadable APK deliverable is complete. Pause the build monitor and await the user’s next selection: physical-phone testing/fixes (recommended), or design/store preparation. Do not start another implementation direction automatically.
+
+## Local browser testing preview — October 9
+
+- Added Expo-compatible React DOM, React Native Web and Metro runtime dependencies following https://docs.expo.dev/workflow/web/ . The existing Android APK remains unchanged.
+- Browser preview runs at http://localhost:8081 through npm run app:preview. The launcher uses the same public Firebase preview configuration as the APK and disables ignored local emulator overrides. It binds localhost and remains local to this computer. Signing credentials and test passwords are not included.
+- Verified actual browser rendering of login and registration navigation in a 390 × 844 phone-sized viewport. Browser console has no observed errors; Firestore emits a persistence deprecation warning. No signed-in family workflow, native camera behavior, push notifications or Android device testing is implied. The user should sign in or register personally; test changes use the live chorequest-prod backend.
+- Running server session 38286; start command is npm run app:preview if it stops. CI preview mode disables hot reload; restart after code changes. Browser tab is kept as a deliverable. Browser screenshot could be displayed but saving PNG via the browser runtime is denied (EPERM).
+
+- Browser-preview dependency validation: app TypeScript checking and all 20 Expo Doctor checks pass. Changes are committed separately from the APK source; no new Android build was started.
