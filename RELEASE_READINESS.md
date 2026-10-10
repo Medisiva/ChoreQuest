@@ -228,3 +228,10 @@ The child home no longer displays invented weekly earnings or earned badges: it 
 - Main preview is http://localhost:8081 using the public chorequest-prod client config. It was responsive at handoff; it requires this computer and a running local server. Temporary demo preview is not a user deliverable.
 
 Next user choices: (1) finish persistence/parent-child checks and build a new signed Android test APK (recommended); (2) review and refine the bright screens together in the browser before building.
+
+
+## Browser sign-in preview fix — October 10, 2026
+
+The user's network-error screenshot was traced to an actual browser startup log showing emulator mode. Expo 55's development virtual environment module merges .env.local over process env even when EXPO_NO_DOTENV=1, so the launcher's explicit preview config alone was insufficient. Added app/metro.config.js with a conditional dotenv-file block list enabled only by CHOREQUEST_LIVE_PREVIEW=1 in the live preview launcher. Normal emulator development and ignored settings are preserved. Launcher also clears Metro cache.
+
+Verified the actual HTTP-served web bundle returns 200, contains chorequest-prod and emulator false, contains no .env.local module or emulator true override. Reloaded the user's tab: new startup has no emulator connection log and login renders normally. User needs to re-enter email/password and retry sign-in; successful account login is not yet claimed. No password was read, revealed or submitted by the agent. Browser screenshot could not be saved because its filesystem context returned EPERM; verification was through live DOM/logs and bundle inspection. Main preview process session 89728 remains running at localhost:8081.

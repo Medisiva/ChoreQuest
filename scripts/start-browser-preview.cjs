@@ -11,13 +11,14 @@ for (const dir of ['work/metro-tmp', 'work/expo-cache']) {
 // Use the APK's public Firebase configuration instead of local emulator settings.
 const child = spawn(process.execPath, [
   require.resolve('expo/bin/cli'),
-  'start', '--web', '--localhost', '--port', '8081',
+  'start', '--clear', '--web', '--localhost', '--port', '8081',
 ], {
   cwd: path.join(root, 'app'),
   env: {
     ...process.env,
     ...config,
     EXPO_NO_DOTENV: '1',
+    CHOREQUEST_LIVE_PREVIEW: '1',
     EXPO_OFFLINE: '1',
     CI: '1',
     TMPDIR: path.join(root, 'work/metro-tmp'),
