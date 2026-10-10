@@ -33,7 +33,8 @@ export const useRewardStore = create<RewardState>((set) => ({
   error: null,
 
   subscribeToRewards: (familyId: string) => {
-    set({ loading: true, error: null });
+    let active = true;
+    set({ childRewards: [], parentRewards: [], redemptions: [], loading: true, error: null });
 
     // Listener 1: Active child rewards
     const rewardsQuery = query(
@@ -44,12 +45,14 @@ export const useRewardStore = create<RewardState>((set) => ({
     const unsubRewards = onSnapshot(
       rewardsQuery,
       (snapshot) => {
+        if (!active) return;
         const childRewards = snapshot.docs.map(
           (doc) => ({ id: doc.id, ...doc.data() }) as Reward
         );
         set({ childRewards, loading: false, error: null });
       },
       (error) => {
+        if (!active) return;
         console.error('[rewardStore] Rewards snapshot error:', error);
         set({ loading: false, error: 'Failed to load rewards.' });
       }
@@ -64,12 +67,14 @@ export const useRewardStore = create<RewardState>((set) => ({
     const unsubParentRewards = onSnapshot(
       parentRewardsQuery,
       (snapshot) => {
+        if (!active) return;
         const parentRewards = snapshot.docs.map(
           (doc) => ({ id: doc.id, ...doc.data() }) as ParentReward
         );
         set({ parentRewards });
       },
       (error) => {
+        if (!active) return;
         console.error('[rewardStore] Parent rewards snapshot error:', error);
         set({ error: 'Failed to load parent rewards.' });
       }
@@ -83,12 +88,14 @@ export const useRewardStore = create<RewardState>((set) => ({
     const unsubRedemptions = onSnapshot(
       redemptionsQuery,
       (snapshot) => {
+        if (!active) return;
         const redemptions = snapshot.docs.map(
           (doc) => ({ id: doc.id, ...doc.data() }) as Redemption
         );
         set({ redemptions });
       },
       (error) => {
+        if (!active) return;
         console.error('[rewardStore] Redemptions snapshot error:', error);
         set({ error: 'Failed to load redemptions.' });
       }
@@ -96,6 +103,7 @@ export const useRewardStore = create<RewardState>((set) => ({
 
     // Return combined unsubscribe
     return () => {
+      active = false;
       unsubRewards();
       unsubParentRewards();
       unsubRedemptions();

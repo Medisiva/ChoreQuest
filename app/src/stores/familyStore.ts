@@ -1,112 +1,35 @@
-// S1-10: familyStore (Zustand)
-// On auth, opens ONE onSnapshot listener on families/{familyId}.
-// Loads all childProfiles via single getDocs() call.
-// Exposes: family, children[], parentProfile.
-// Backend profile-change triggers refresh the family document after profile edits/awards.
-
 import { create } from 'zustand';
-import {
-  doc,
-  onSnapshot,
-  collection,
-  getDocs,
-  getDoc,
-  Unsubscribe,
-} from 'firebase/firestore';
+import { doc, collection, query, where, onSnapshot, type Unsubscribe } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import type { FamilyAccount, ChildProfile, ParentUser } from '../types';
-
 interface FamilyState {
-  family: FamilyAccount | null;
-  children: ChildProfile[];
-  parentProfile: ParentUser | null;
-  loading: boolean;
-  error: string | null;
-
-  // Actions
-  subscribeToFamily: (
-    familyId: string,
-    parentUid: string
-  ) => Unsubscribe;
-  clearFamily: () => void;
+ family: FamilyAccount | null; children: ChildProfile[]; parentProfile: ParentUser | null; loading: boolean; error: string | null;
+ subscribeToFamily: (familyId: string, parentUid: string, childMode?: boolean) => Unsubscribe;
+ clearFamily: () => void;
 }
-
-export const useFamilyStore = create<FamilyState>((set) => ({
-  family: null,
-  children: [],
-  parentProfile: null,
-  loading: true,
-  error: null,
-
-  subscribeToFamily: (familyId, parentUid) => {
-    set({ loading: true });
-
-    // Single onSnapshot listener on the family document
-    const familyRef = doc(db, 'families', familyId);
-    let generation = 0;
-    let stopped = false;
-
-    const unsubscribe = onSnapshot(
-      familyRef,
-      async (snapshot) => {
-        if (!snapshot.exists()) {
-          set({
-            family: null,
-            children: [],
-            parentProfile: null,
-            loading: false,
-            error: 'Family not found.',
-          });
-          return;
-        }
-
-        const familyData = {
-          id: snapshot.id,
-          ...snapshot.data(),
-        } as FamilyAccount;
-
-        const currentGeneration = ++generation;
-        try {
-          const [parentSnap, childrenSnap] = await Promise.all([
-            getDoc(doc(db, 'families', familyId, 'parentUsers', parentUid)),
-            getDocs(collection(db, 'families', familyId, 'childProfiles')),
-          ]);
-          if (stopped || currentGeneration !== generation) return;
-          const parentProfile = parentSnap.exists() ? { id: parentSnap.id, ...parentSnap.data() } as ParentUser : null;
-          const children = childrenSnap.docs.map((snapshot) => ({ id: snapshot.id, ...snapshot.data() }) as ChildProfile);
-
-          set({
-            family: familyData,
-            children,
-            parentProfile,
-            loading: false,
-            error: null,
-          });
-        } catch (error) {
-          if (stopped || currentGeneration !== generation) return;
-          console.error('[familyStore] Failed to load family data:', error);
-          set({
-            family: familyData,
-            loading: false,
-            error: 'Failed to load family data.',
-          });
-        }
-      },
-      (error) => {
-        console.error('[familyStore] Snapshot error:', error);
-        set({ loading: false, error: 'Lost connection to family data.' });
-      }
-    );
-
-    return () => { stopped = true; generation++; unsubscribe(); };
-  },
-
-  clearFamily: () =>
-    set({
-      family: null,
-      children: [],
-      parentProfile: null,
-      loading: true,
-      error: null,
-    }),
+export const useFamilyStore = create<FamilyState>(set => ({
+ family: null, children: [], parentProfile: null, loading: true, error: null,
+ subscribeToFamily: (familyId, parentUid, childMode = false) => {
+  set({ family: null, children: [], parentProfile: null, loading: true, error: null });
+  let active = true; const ready = new Set<string>(); const errors = new Map<string, string>();
+  const update = (key: string, patch: Partial<FamilyState>) => { if (!active) return; ready.add(key); errors.delete(key); set({ ...patch, loading: ready.size < 3, error: [...errors.values()][0] ?? null }); };
+  const failure = (key: string) => { if (!active) return; ready.add(key); errors.set(key, 'Could not load your family. Reconnect and reopen the app.'); set({ loading: false, error: [...errors.values()][0] }); };
+  const timer = setTimeout(() => { if (active && ready.size < 3) set({ loading: false, error: 'Could not confirm your family data. Check your connection and reopen the app.' }); }, 10000);
+  const family = onSnapshot(doc(db, 'families', familyId), { includeMetadataChanges: true }, snapshot => {
+   if (!snapshot.exists()) { if (!snapshot.metadata.fromCache) { update('family', { family: null }); failure('family'); } return; }
+   update('family', { family: { ...snapshot.data(), id: snapshot.id } as FamilyAccount });
+  }, () => failure('family'));
+  const childrenRef = collection(db, 'families', familyId, 'childProfiles');
+  const children = onSnapshot(childMode ? query(childrenRef, where('credentialsPrivate', '==', true)) : childrenRef, { includeMetadataChanges: true }, snapshot => {
+   if (snapshot.empty && snapshot.metadata.fromCache) return;
+   update('children', { children: snapshot.docs.map(snapshot => ({ ...snapshot.data(), id: snapshot.id }) as ChildProfile) });
+  }, () => failure('children'));
+  if (childMode) update('parent', {parentProfile:null});
+  const parent = childMode ? () => {} : onSnapshot(doc(db, 'families', familyId, 'parentUsers', parentUid), { includeMetadataChanges: true }, snapshot => {
+   if (!snapshot.exists() && snapshot.metadata.fromCache) return;
+   update('parent', { parentProfile: snapshot.exists() ? { ...snapshot.data(), id: snapshot.id } as ParentUser : null });
+  }, () => failure('parent'));
+  return () => { active = false; clearTimeout(timer); family(); children(); parent(); };
+ },
+ clearFamily: () => set({ family: null, children: [], parentProfile: null, loading: true, error: null }),
 }));

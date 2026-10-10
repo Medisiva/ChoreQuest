@@ -8,8 +8,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
-} from 'react-native';
+  } from 'react-native';
+import Alert from '@/services/dialogs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';

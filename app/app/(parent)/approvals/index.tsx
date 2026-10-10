@@ -9,10 +9,10 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
-  Alert,
   ActivityIndicator,
   Image,
 } from 'react-native';
+import Alert from '@/services/dialogs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useTaskStore } from '@/stores/taskStore';

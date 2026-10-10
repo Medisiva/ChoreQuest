@@ -52,6 +52,7 @@ export const requestChildRedemption = onCall(async (request) => {
 
 export const reviewChildRedemption = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Sign in first");
+  if (request.data?.kind === "parent") return redeemParentReward(request.auth.uid, request.data);
   const input = request.data; const familyId = documentId(input?.familyId); const redemptionId = documentId(input?.redemptionId);
   if (!["approved", "declined"].includes(input.status)) throw new HttpsError("invalid-argument", "Invalid review");
   const db = admin.firestore(); const ref = db.doc(`families/${familyId}/redemptions/${redemptionId}`);
@@ -76,3 +77,23 @@ export const reviewChildRedemption = onCall(async (request) => {
   });
   return { success: true };
 });
+
+/** Existing parent review endpoint also handles the parent's own reward wallet. */
+async function redeemParentReward(uid: string, input: Record<string, unknown>): Promise<{ redemptionId: string }> {
+  const familyId = documentId(input.familyId); const rewardId = documentId(input.rewardId); const operationId = documentId(input.operationId);
+  const db = admin.firestore(); const redemption = db.doc(`families/${familyId}/parentRedemptions/${uid}-${operationId}`);
+  await db.runTransaction(async transaction => {
+    await requireParent(transaction, familyId, uid);
+    const parent = await transaction.get(db.doc(`families/${familyId}/parentUsers/${uid}`));
+    const reward = await transaction.get(db.doc(`families/${familyId}/parentRewards/${rewardId}`));
+    const existing = await transaction.get(redemption);
+    if (existing.exists) { if (existing.data()?.parentUserId !== uid || existing.data()?.rewardId !== rewardId) throw new HttpsError('already-exists', 'Redemption ID already used'); return; }
+    if (!reward.exists || !reward.data()?.isActive || !reward.data()?.approvedByParent) throw new HttpsError('not-found', 'Reward unavailable');
+    const cost = positiveStars(reward.data()!.starCost); const profile = parent.data()!;
+    if (!Number.isSafeInteger(profile.starBalance) || profile.starBalance < cost) throw new HttpsError('failed-precondition', 'Not enough stars');
+    transaction.update(parent.ref, { starBalance: profile.starBalance - cost, totalStarsRedeemed: (profile.totalStarsRedeemed || 0) + cost });
+    transaction.create(redemption, { familyAccountId: familyId, parentUserId: uid, rewardId, rewardName: reward.data()!.name, starCost: cost, status: 'redeemed', createdAt: FieldValue.serverTimestamp() });
+    transaction.create(db.doc(`families/${familyId}/parentStarTransactions/redemption-${redemption.id}`), { familyAccountId: familyId, parentUserId: uid, deltaStars: -cost, source: 'redemption', rewardRedemptionId: redemption.id, createdAt: FieldValue.serverTimestamp() });
+  });
+  return { redemptionId: redemption.id };
+}

@@ -1,7 +1,10 @@
-import { getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { db } from './firebase';
+import { getDocs, getDoc, doc, query, where, Timestamp } from 'firebase/firestore';
 import { childProfilesRef, parentUsersRef, starTransactionsRef, parentStarTransactionsRef } from './firestore';
 import { earnedInPeriod, type LeaderboardEntry, type LeaderboardPeriod } from '../utils/leaderboard';
 export async function loadLeaderboard(familyId: string, timezone: string, period: LeaderboardPeriod, targetProgress = false): Promise<LeaderboardEntry[]> {
+  const settings = await getDoc(doc(db, 'families', familyId, 'settings', 'config'));
+  if (settings.data()?.leaderboardEnabled === false) return [];
   const now = new Date();
   // A civil month is at most 31 days; padding covers timezone offsets and DST.
   const since = Timestamp.fromMillis(now.getTime() - 33 * 86400000);

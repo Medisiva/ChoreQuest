@@ -1,3 +1,4 @@
+import { earnedInPeriod } from '@/utils/leaderboard';
 // S5: Parent Wallet (P-09)
 // Large star balance hero, weekly/monthly/all-time earnings breakdown,
 // chronological transaction list, and "Browse your reward store" CTA.
@@ -13,12 +14,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { collection, query, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
 import { useState } from 'react';
 import { db } from '@/services/firebase';
 import { useFamilyStore } from '@/stores/familyStore';
 import { colors, spacing, radius, typography, shadows, layout } from '@/constants/tokens';
-import type { StarTransaction, TransactionType } from '@/types';
+import type { ParentStarTransaction, TransactionType } from '@/types';
 
 const TXN_TYPE_LABELS: Record<TransactionType, string> = {
   taskApproval: 'Task completed',
@@ -38,9 +39,9 @@ const TXN_TYPE_ICONS: Record<TransactionType, string> = {
 
 export default function ParentWalletScreen() {
   const router = useRouter();
-  const { family, parentProfile, children } = useFamilyStore();
+  const { family, parentProfile } = useFamilyStore();
 
-  const [transactions, setTransactions] = useState<StarTransaction[]>([]);
+  const [transactions, setTransactions] = useState<ParentStarTransaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   const starBalance = parentProfile?.starBalance ?? 0;
@@ -51,15 +52,15 @@ export default function ParentWalletScreen() {
     if (!family?.id) return;
 
     const txnQuery = query(
-      collection(db, 'families', family.id, 'starTransactions'),
-      orderBy('createdAt', 'desc')
+      collection(db, 'families', family.id, 'parentStarTransactions'),
+      where('parentUserId', '==', parentProfile?.id ?? '')
     );
 
     const unsub = onSnapshot(
       txnQuery,
       (snapshot) => {
         const txns = snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...doc.data() }) as StarTransaction
+          (doc) => ({ id: doc.id, ...doc.data() }) as ParentStarTransaction
         );
         setTransactions(txns);
         setLoading(false);
@@ -71,34 +72,13 @@ export default function ParentWalletScreen() {
     );
 
     return unsub;
-  }, [family?.id]);
+  }, [family?.id, parentProfile?.id]);
 
   // Compute time-based earnings
   const { weeklyEarnings, monthlyEarnings } = useMemo(() => {
-    const now = Date.now();
-    const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
-    const oneMonthAgo = now - 30 * 24 * 60 * 60 * 1000;
-
-    let weekly = 0;
-    let monthly = 0;
-
-    for (const txn of transactions) {
-      if (txn.deltaStars <= 0) continue;
-      const txnMs = txn.createdAt.toMillis();
-      if (txnMs >= oneWeekAgo) weekly += txn.deltaStars;
-      if (txnMs >= oneMonthAgo) monthly += txn.deltaStars;
-    }
-
-    return { weeklyEarnings: weekly, monthlyEarnings: monthly };
-  }, [transactions]);
-
-  const getChildName = useCallback(
-    (childId: string): string => {
-      const child = children.find((c) => c.id === childId);
-      return child?.nickname ?? 'Unknown';
-    },
-    [children]
-  );
+    const records = transactions.filter(record => record.createdAt);
+    return { weeklyEarnings: earnedInPeriod(records, family?.timezone || 'UTC', 'weekly', new Date()), monthlyEarnings: earnedInPeriod(records, family?.timezone || 'UTC', 'monthly', new Date()) };
+  }, [transactions, family?.timezone]);
 
   const formatDate = useCallback((timestamp: Timestamp): string => {
     const date = timestamp.toDate();
@@ -114,14 +94,12 @@ export default function ParentWalletScreen() {
   }, []);
 
   const renderTransaction = useCallback(
-    ({ item }: { item: StarTransaction }) => {
-      const icon = TXN_TYPE_ICONS[item.transactionType] ?? '⭐';
-      const label = TXN_TYPE_LABELS[item.transactionType] ?? item.transactionType;
+    ({ item }: { item: ParentStarTransaction }) => {
+      const icon = TXN_TYPE_ICONS.taskApproval;
+      const label = TXN_TYPE_LABELS.taskApproval;
       const isPositive = item.deltaStars > 0;
-      const childName = getChildName(item.childProfileId);
-      const description = item.reason
-        ? `${label} - ${item.reason}`
-        : `${label} (${childName})`;
+      const description = item.source === 'requestCompletion' ? 'Family request completed' : item.source === 'redemption' ? 'Parent reward redeemed' : label;
+
 
       return (
         <View style={styles.txnRow}>
@@ -145,7 +123,7 @@ export default function ParentWalletScreen() {
         </View>
       );
     },
-    [getChildName, formatDate]
+    [formatDate]
   );
 
   if (loading) {
@@ -160,6 +138,11 @@ export default function ParentWalletScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around' }}>
+        <TouchableOpacity onPress={() => router.push('/(parent)/settings')}><Text style={{ padding: 16, color: colors.navy900 }}>Family settings</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/(parent)/leaderboard')}><Text style={{ padding: 16, color: colors.navy900 }}>Leaderboard</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => router.replace('/profiles')}><Text style={{ padding: 16, color: colors.navy900 }}>Switch profiles</Text></TouchableOpacity>
+      </View>
       {/* Star Balance Hero */}
       <View style={styles.heroSection}>
         <View style={styles.heroCard}>
@@ -192,7 +175,7 @@ export default function ParentWalletScreen() {
         <View style={styles.txnSection}>
           <Text style={styles.txnSectionTitle}>Transaction History</Text>
           <FlashList
-            data={transactions}
+            data={[...transactions].sort((a,b) => (b.createdAt?.toMillis() ?? 0) - (a.createdAt?.toMillis() ?? 0))}
             renderItem={renderTransaction}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.txnList}

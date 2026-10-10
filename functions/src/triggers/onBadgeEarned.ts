@@ -1,3 +1,4 @@
+import { getPeriodKey } from "../utils/recurrence";
 import { FieldValue } from "firebase-admin/firestore";
 // Cloud Function trigger — fires on any starTransaction write.
 // Checks 15 badge conditions against the child's data and awards
@@ -39,7 +40,7 @@ interface BadgeContext {
   requestsCompleted: number;
 }
 
-// ── Badge Definitions (placeholder logic) ───────────────────────────────────
+// ── Badge Definitions (earned-data checks) ───────────────────────────────────
 
 const BADGE_DEFINITIONS: BadgeDefinition[] = [
   {
@@ -81,25 +82,25 @@ const BADGE_DEFINITIONS: BadgeDefinition[] = [
   {
     id: "streak3",
     name: "On Fire",
-    description: "Maintain a 3-day streak",
+    description: "Maintain a 3-week streak",
     check: (ctx) => ctx.currentStreak >= 3,
   },
   {
     id: "streak7",
     name: "Week Warrior",
-    description: "Maintain a 7-day streak",
+    description: "Maintain a 7-week streak",
     check: (ctx) => ctx.currentStreak >= 7,
   },
   {
     id: "streak14",
     name: "Fortnight Force",
-    description: "Maintain a 14-day streak",
+    description: "Maintain a 14-week streak",
     check: (ctx) => ctx.currentStreak >= 14,
   },
   {
     id: "streak30",
     name: "Monthly Marvel",
-    description: "Maintain a 30-day streak",
+    description: "Maintain a 30-week streak",
     check: (ctx) => ctx.currentStreak >= 30,
   },
   {
@@ -175,16 +176,17 @@ export const onBadgeEarned = onDocumentCreated(
     }
 
     const childData = childSnap.data() ?? {};
+    const familyTimezone = (await db.doc(`families/${familyId}`).get()).data()?.timezone || "UTC";
 
-    // Build badge context from child data (placeholder — real data sources TBD)
+    // Build badge context from child data (server-owned completion metrics)
     const context: BadgeContext = {
       totalStarsEarned: childData.totalStarsEarned ?? 0,
       starBalance: childData.starBalance ?? 0,
       totalTasksCompleted: childData.totalTasksCompleted ?? 0,
-      currentStreak: childData.currentStreak ?? 0,
+      currentStreak: childData.currentStreakWeeks ?? 0,
       transactionType: data.transactionType,
       categoryCounts: childData.categoryCounts ?? {},
-      weeklyTaskCount: childData.weeklyTaskCount ?? 0,
+      weeklyTaskCount: childData.weeklyCompletionPeriod === getPeriodKey("weekly", new Date(), familyTimezone) ? childData.weeklyTaskCount ?? 0 : 0,
       requestsCompleted: childData.requestsCompleted ?? 0,
     };
 
@@ -210,9 +212,9 @@ export const onBadgeEarned = onDocumentCreated(
       if (badge.check(context)) {
         const achievementRef = db
           .collection(`families/${familyId}/achievements`)
-          .doc();
+          .doc(`${childProfileId}-${badge.id}`);
 
-        batch.set(achievementRef, {
+        batch.create(achievementRef, {
           familyAccountId: familyId,
           childProfileId,
           badgeId: badge.id,

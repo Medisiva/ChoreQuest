@@ -1,3 +1,6 @@
+import { registerFamilySubscriptions } from '@/services/familySubscriptions';
+import { useDeviceRequestAlerts } from '@/hooks/useDeviceRequestAlerts';
+import AppDialog from '@/components/shared/AppDialog';
 // S1-08: Root _layout.tsx — auth-gated navigation router
 // If auth loading: show splash. If not authenticated: redirect to /(auth)/login.
 // If authenticated but no family: redirect to /(onboarding).
@@ -24,8 +27,10 @@ function RootLayoutNav() {
   const segments = useSegments();
   const { user, role, familyId, parentProfile, loading, error, initialize } = useAuthStore();
   const [retry, setRetry] = useState(0);
+  useDeviceRequestAlerts(familyId, role);
 
   const switching = useChildSessionStore((state) => state.switching);
+  const sessionValid = useChildSessionStore((state) => state.isSessionValid());
   // Initialize Firebase ONCE
   useEffect(() => {
     initializeFirebase();
@@ -38,11 +43,11 @@ function RootLayoutNav() {
   }, [initialize, retry]);
 
   useEffect(() => {
-    if (!user || !familyId) return;
-    const unsubscribeFamily = useFamilyStore.getState().subscribeToFamily(familyId, user.uid);
+    if (switching || !user || !familyId || (role === 'child' && !sessionValid)) return;
+    const unsubscribeFamily = useFamilyStore.getState().subscribeToFamily(familyId, user.uid, role === 'child');
     const unsubscribeTasks = useTaskStore.getState().subscribeToTasks(familyId);
     const unsubscribeRequests = useRequestStore.getState().subscribeToRequests(familyId);
-    return () => {
+    return registerFamilySubscriptions(() => {
       unsubscribeFamily();
       unsubscribeTasks();
       unsubscribeRequests();
@@ -51,8 +56,8 @@ function RootLayoutNav() {
       useRequestStore.getState().clearRequests();
       useRewardStore.getState().clearRewards();
 
-    };
-  }, [user?.uid, familyId]);
+    });
+  }, [user?.uid, familyId, role, sessionValid, switching]);
 
   useEffect(() => useChildSessionStore.getState().setupBackgroundListener(), []);
 
@@ -60,6 +65,7 @@ function RootLayoutNav() {
   useEffect(() => {
     if (loading || switching || error) return;
     if (role === 'child') {
+      if (!sessionValid && segments[0] !== 'child-login' && segments[0] !== 'parent-unlock') { router.replace('/child-login'); return; }
       if (segments[0] === '(parent)' || segments[0] === '(onboarding)' || segments[0] === '(auth)') router.replace('/parent-unlock');
       return;
     }
@@ -75,7 +81,7 @@ function RootLayoutNav() {
     } else if (user && parentProfile && (inAuthGroup || inOnboardingGroup)) {
       router.replace('/profiles');
     }
-  }, [user, role, familyId, parentProfile, loading, error, switching, segments, router]);
+  }, [user, role, familyId, parentProfile, loading, error, switching, sessionValid, segments, router]);
 
   // Show splash while loading auth state or fonts
   if (loading || switching) {
@@ -119,6 +125,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <RootLayoutNav />
+      <AppDialog />
     </SafeAreaProvider>
   );
 }

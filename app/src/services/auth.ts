@@ -15,7 +15,9 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
 } from 'firebase/auth';
-import { auth } from './firebase';
+import { auth, db, restartFirestoreForIdentityChange } from './firebase';
+import { getDocFromServer, doc } from 'firebase/firestore';
+import { stopFamilySubscriptions } from './familySubscriptions';
 import { useChildSessionStore } from '../stores/childSessionStore';
 
 // Human-readable error messages for Firebase Auth error codes
@@ -56,12 +58,22 @@ function handleAuthError(error: unknown): AuthFailure {
   return { success: false, message, code };
 }
 
+async function replaceIdentity<T>(action: () => Promise<T>): Promise<T> {
+  const session = useChildSessionStore.getState();
+  session.setSwitching(true);
+  stopFamilySubscriptions();
+  try {
+    await restartFirestoreForIdentityChange();
+    return await action();
+  } finally { session.setSwitching(false); }
+}
+
 export async function signIn(
   email: string,
   password: string
 ): Promise<AuthResponse> {
   try {
-    const credential = await signInWithEmailAndPassword(auth, email, password);
+    const credential = await replaceIdentity(() => signInWithEmailAndPassword(auth, email, password));
     useChildSessionStore.getState().unlockParent();
     return { success: true, credential };
   } catch (error) {
@@ -74,11 +86,7 @@ export async function signUp(
   password: string
 ): Promise<AuthResponse> {
   try {
-    const credential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
+    const credential = await replaceIdentity(() => createUserWithEmailAndPassword(auth, email, password));
     useChildSessionStore.getState().unlockParent();
     return { success: true, credential };
   } catch (error) {
@@ -87,7 +95,7 @@ export async function signUp(
 }
 
 export async function signOut(): Promise<void> {
-  await firebaseSignOut(auth);
+  await replaceIdentity(() => firebaseSignOut(auth));
   useChildSessionStore.getState().endSession();
   useChildSessionStore.getState().lockParent();
 }
@@ -109,7 +117,7 @@ export async function signInWithGoogle(
 ): Promise<AuthResponse> {
   try {
     const credential = GoogleAuthProvider.credential(idToken);
-    const userCredential = await signInWithCredential(auth, credential);
+    const userCredential = await replaceIdentity(() => signInWithCredential(auth, credential));
     useChildSessionStore.getState().unlockParent();
     return { success: true, credential: userCredential };
   } catch (error) {
@@ -127,7 +135,7 @@ export async function signInWithApple(
       idToken: identityToken,
       rawNonce: nonce,
     });
-    const userCredential = await signInWithCredential(auth, credential);
+    const userCredential = await replaceIdentity(() => signInWithCredential(auth, credential));
     useChildSessionStore.getState().unlockParent();
     return { success: true, credential: userCredential };
   } catch (error) {
@@ -135,30 +143,46 @@ export async function signInWithApple(
   }
 }
 
-export async function unlockParentMode(password: string): Promise<void> {
+export async function unlockParentMode(password: string, emailOverride?: string): Promise<void> {
   const user = auth.currentUser;
-  const email = user?.email ?? useChildSessionStore.getState().parentEmail;
+  const email = emailOverride?.trim() || user?.email || useChildSessionStore.getState().parentEmail;
   if (!email) throw new Error('Sign in with your parent account again.');
   try {
-    if (user?.email) await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
-    else await signInWithEmailAndPassword(auth, email, password);
+    if (user?.email === email) await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
+    else {
+      const session = useChildSessionStore.getState(); session.setSwitching(true); stopFamilySubscriptions();
+      try { await restartFirestoreForIdentityChange(); await signInWithEmailAndPassword(auth, email, password); }
+      finally { session.setSwitching(false); }
+    }
     useChildSessionStore.getState().unlockParent();
   } catch (error) { throw new Error(handleAuthError(error).message); }
 }
 
 export async function enterChildMode(childId: string, sessionToken: string, customToken: string): Promise<void> {
   const session = useChildSessionStore.getState();
-  if (!auth.currentUser?.email) throw new Error('Unlock your parent account before selecting a child.');
-  session.rememberParent(auth.currentUser.email);
+  if (!auth.currentUser) throw new Error('Sign in to your family first.');
+  if (auth.currentUser.email) session.rememberParent(auth.currentUser.email);
   session.setSwitching(true);
   session.lockParent();
+  stopFamilySubscriptions();
+  let identityReplaced = false;
   try {
+    await restartFirestoreForIdentityChange();
+    identityReplaced = true;
     // Replace the principal; no parent credential is retained in another Auth instance.
     await firebaseSignOut(auth);
-    await signInWithCustomToken(auth, customToken);
+    const credential = await signInWithCustomToken(auth, customToken);
+    await credential.user.getIdToken(true);
+    const { claims } = await credential.user.getIdTokenResult();
+    if (claims.role !== 'child' || typeof claims.familyId !== 'string') throw new Error('Could not confirm child access. Please try the PIN again.');
+
+    // Wait for an actual server-authorized read before opening live listeners.
+    // An Auth callback alone does not establish Firestore transport readiness.
+    const family = await getDocFromServer(doc(db, 'families', claims.familyId));
+    if (!family.exists()) throw new Error('This family is unavailable. Ask a parent to sign in.');
     session.startSession(childId, sessionToken);
   } catch (error) {
-    await firebaseSignOut(auth);
+    if (identityReplaced) await firebaseSignOut(auth);
     session.endSession();
     throw error;
   } finally { session.setSwitching(false); }

@@ -25,7 +25,7 @@ import type { ChildProfile } from '@/types';
 
 export default function ProfileSelector() {
   const router = useRouter();
-  const { family, children, parentProfile, loading } = useFamilyStore();
+  const { family, children, parentProfile, loading, error } = useFamilyStore();
   const { parentLocked } = useChildSessionStore();
 
   const [selectedChild, setSelectedChild] = useState<ChildProfile | null>(null);
@@ -36,10 +36,9 @@ export default function ProfileSelector() {
   }, [router, parentLocked]);
 
   const handleChildTap = useCallback((child: ChildProfile) => {
-    if (parentLocked) { router.push('/parent-unlock'); return; }
     setSelectedChild(child);
     setShowPin(true);
-  }, [parentLocked, router]);
+  }, []);
 
   const handlePinSuccess = useCallback(
     async (sessionToken: string, customToken: string) => {
@@ -73,6 +72,7 @@ export default function ProfileSelector() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
+        {error && <Text accessibilityRole="alert" style={{ color: "#9B1C1C", padding: 16 }}>{error}</Text>}
         {/* Header */}
         <PlaygroundHero title="Pick your player!" subtitle="A little helping. A lot of happy." />
         {family && (

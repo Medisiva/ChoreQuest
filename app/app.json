@@ -2,7 +2,7 @@
   "expo": {
     "name": "ChoreQuest",
     "slug": "chorequest",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1A3E6E"
+      "backgroundColor": "#1555E8"
     },
     "ios": {
       "supportsTablet": true,

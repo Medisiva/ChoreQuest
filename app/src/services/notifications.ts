@@ -115,3 +115,12 @@ export async function scheduleRequestNotification(
     trigger: null,
   });
 }
+
+/** Permission for local device alerts; no remote push credential is needed. */
+export async function requestDeviceAlertsPermission(): Promise<boolean> {
+ if (Platform.OS === 'web') return false;
+ if (Platform.OS === 'android') await Notifications.setNotificationChannelAsync('default', { name: 'ChoreQuest', importance: Notifications.AndroidImportance.HIGH });
+ let permission = await Notifications.getPermissionsAsync();
+ if (permission.status !== 'granted') permission = await Notifications.requestPermissionsAsync();
+ return permission.status === 'granted';
+}

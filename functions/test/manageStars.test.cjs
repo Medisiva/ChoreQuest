@@ -58,3 +58,13 @@ test('restricted child identity requests rewards but cannot adjust balances or a
   await assert.rejects(f.reviewChildRedemption({ auth: childAuth, data: { familyId: 'f', redemptionId: 'red', status: 'approved' } }), { code: 'permission-denied' });
   await assert.rejects(f.requestChildRedemption({ auth: { uid: 'child-sibling' }, data: redemption(f, 'other') }), { code: 'unauthenticated' });
 });
+
+test('parent reward wallet uses server price, its own identity and retry-safe debit', async () => {
+ const f=fixture(); f.docs.set('families/f/parentUsers/p',{starBalance:10,totalStarsRedeemed:0});f.docs.set('families/f/parentRewards/pr',{isActive:true,approvedByParent:true,name:'Coffee',starCost:3});
+ const request={auth,data:{familyId:'f',rewardId:'pr',kind:'parent',operationId:'parent-op',starCost:1}};
+ await Promise.all([f.reviewChildRedemption(request),f.reviewChildRedemption(request)]);
+ assert.equal(f.docs.get('families/f/parentUsers/p').starBalance,7);assert.equal(f.docs.get('families/f/parentUsers/p').totalStarsRedeemed,3);
+ assert.equal(f.docs.get('families/f/parentStarTransactions/redemption-p-parent-op').deltaStars,-3);
+ assert.equal(f.docs.get('families/f/childProfiles/c').starBalance,30);
+ await assert.rejects(f.reviewChildRedemption({auth:{uid:'outsider'},data:request.data}),{code:'permission-denied'});
+});

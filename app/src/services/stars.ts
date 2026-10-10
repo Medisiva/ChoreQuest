@@ -29,3 +29,7 @@ export async function approveRedemption(familyId: string, redemptionId: string, 
 export async function declineRedemption(familyId: string, redemptionId: string, reason?: string): Promise<void> {
   await httpsCallable(functions, 'reviewChildRedemption')({ familyId, redemptionId, status: 'declined', ...(reason ? { reason } : {}) });
 }
+
+export async function redeemParentReward(familyId: string, rewardId: string): Promise<void> {
+  await httpsCallable(functions, 'reviewChildRedemption')({ familyId, rewardId, kind: 'parent', operationId: operationId() });
+}

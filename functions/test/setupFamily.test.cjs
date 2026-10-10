@@ -19,7 +19,7 @@ function fixture() {
   class HttpsError extends Error { constructor(code, message) { super(message); this.code = code; } }
   const module = { exports: {} };
   vm.runInNewContext(fs.readFileSync(require.resolve('../lib/http/setupFamily'), 'utf8'), { module, exports: module.exports, Intl, require: (name) => {
-    if (name === 'firebase-functions/v2/https') return { onCall: (callback) => callback, HttpsError };
+    if (name === 'firebase-functions/v2/https') return { onCall: (...args) => args.at(-1), HttpsError };
     if (name === 'firebase-admin/firestore') return { FieldValue: { serverTimestamp: () => 'server-time', delete: () => deletedField } };
     if (name === 'firebase-admin') return { firestore: Object.assign(() => db, { FieldValue: { serverTimestamp: () => 'server-time', delete: () => deletedField } }) };
     if (name === 'bcrypt') return require('bcrypt');

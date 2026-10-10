@@ -271,6 +271,7 @@ export interface Achievement {
   familyAccountId: string;
   childProfileId: string;
   badgeId: BadgeId;
+  badgeName?: string;
   earnedAt: Timestamp;
 }
 

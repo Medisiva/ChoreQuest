@@ -25,7 +25,8 @@ export const useRequestStore = create<RequestState>((set) => ({
   error: null,
 
   subscribeToRequests: (familyId) => {
-    set({ loading: true });
+    let active = true;
+    set({ requests: [], error: null, loading: true });
 
     const q = query(
       collection(db, 'families', familyId, 'familyRequests'),
@@ -35,18 +36,20 @@ export const useRequestStore = create<RequestState>((set) => ({
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
+        if (!active) return;
         const requests = snapshot.docs.map(
           (doc) => ({ id: doc.id, ...doc.data() }) as FamilyRequest
         );
         set({ requests, loading: false, error: null });
       },
       (error) => {
+        if (!active) return;
         console.error('[requestStore] Snapshot error:', error);
         set({ loading: false, error: 'Failed to load requests.' });
       }
     );
 
-    return unsubscribe;
+    return () => { active = false; unsubscribe(); };
   },
 
   clearRequests: () => set({ requests: [], loading: true, error: null }),

@@ -4,12 +4,14 @@
 // Emulator connections MUST happen BEFORE any auth/firestore calls.
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { initializePlatformAuth } from './platformAuth';
+import { connectAuthEmulator } from 'firebase/auth';
 import { Platform } from 'react-native';
 import {
   getFirestore,
   connectFirestoreEmulator,
-  enableMultiTabIndexedDbPersistence,
+  terminate,
+  waitForPendingWrites,
 } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
@@ -27,8 +29,8 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize services
-const auth = getAuth(app);
-const db = getFirestore(app);
+const auth = initializePlatformAuth(app);
+let db = getFirestore(app);
 const storage = getStorage(app);
 const functions = getFunctions(app);
 
@@ -59,16 +61,21 @@ function connectEmulators(): void {
   emulatorsConnected = true;
 }
 
-// Enable Firestore offline persistence (reduces reads by serving cached data)
-async function enableOfflinePersistence(): Promise<void> {
-  if (Platform.OS !== 'web') return;
+// Keep database connections scoped to one principal. Flush writes before replacing
+// the instance; a failed/offline flush must leave the current identity intact.
+export async function restartFirestoreForIdentityChange(): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    await enableMultiTabIndexedDbPersistence(db);
-    console.log('[Firebase] Offline persistence enabled');
-  } catch (error) {
-    // This is expected to fail in some environments (e.g., web workers)
-    console.warn('[Firebase] Offline persistence not available:', error);
-  }
+    await Promise.race([
+      waitForPendingWrites(db),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('Connect to the internet so your changes can finish saving, then switch profiles.')), 10000);
+      }),
+    ]);
+  } finally { if (timer) clearTimeout(timer); }
+  await terminate(db);
+  db = getFirestore(app);
+  if (useEmulators) connectFirestoreEmulator(db, emulatorHost, 8080);
 }
 
 connectEmulators();
@@ -76,7 +83,7 @@ connectEmulators();
 // Initialize everything - call this ONCE from _layout.tsx
 export async function initializeFirebase(): Promise<void> {
   connectEmulators();
-  await enableOfflinePersistence();
+
 }
 
 export { app, auth, db, storage, functions, isDev, useEmulators, emulatorHost };

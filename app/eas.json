@@ -32,7 +32,8 @@
         "EXPO_PUBLIC_FIREBASE_APP_ID": "1:984867039287:web:4d40a926a62de2a77037b2",
         "EXPO_PUBLIC_USE_EMULATORS": "false",
         "EXPO_PUBLIC_ENV": "preview"
-      }
+      },
+      "autoIncrement": true
     },
     "production": {
       "autoIncrement": true,

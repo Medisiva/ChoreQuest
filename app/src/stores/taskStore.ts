@@ -35,7 +35,8 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   error: null,
 
   subscribeToTasks: (familyId: string) => {
-    set({ loading: true, error: null });
+    let active = true;
+    set({ tasks: [], claims: [], loading: true, error: null });
 
     // Listener 1: Active tasks
     const tasksQuery = query(
@@ -46,12 +47,14 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     const unsubTasks = onSnapshot(
       tasksQuery,
       (snapshot) => {
+        if (!active) return;
         const tasks = snapshot.docs.map(
           (doc) => ({ id: doc.id, ...doc.data() }) as Task
         );
         set({ tasks, loading: false, error: null });
       },
       (error) => {
+        if (!active) return;
         console.error('[taskStore] Tasks snapshot error:', error);
         set({ loading: false, error: 'Failed to load tasks.' });
       }
@@ -60,18 +63,20 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     // Listener 2: Active claims (claimed or submitted)
     const claimsQuery = query(
       collection(db, 'families', familyId, 'taskClaims'),
-      where('status', 'in', ['claimed', 'submitted', 'rejected'])
+      where('status', 'in', ['claimed', 'submitted', 'rejected', 'approved', 'released'])
     );
 
     const unsubClaims = onSnapshot(
       claimsQuery,
       (snapshot) => {
+        if (!active) return;
         const claims = snapshot.docs.map(
           (doc) => ({ id: doc.id, ...doc.data() }) as TaskClaim
         );
         set({ claims });
       },
       (error) => {
+        if (!active) return;
         console.error('[taskStore] Claims snapshot error:', error);
         set({ error: 'Failed to load task claims.' });
       }
@@ -79,6 +84,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
     // Return combined unsubscribe
     return () => {
+      active = false;
       unsubTasks();
       unsubClaims();
     };

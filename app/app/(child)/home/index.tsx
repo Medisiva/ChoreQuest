@@ -1,3 +1,8 @@
+import { useChildProgress } from '@/hooks/useChildProgress';
+import { useDisplayPreferences } from '@/stores/displayPreferences';
+import WeeklyProgressBar from '@/components/child/WeeklyProgressBar';
+import WeeklyCountdown from '@/components/child/WeeklyCountdown';
+import WeeklyFuelGauge from '@/components/child/WeeklyFuelGauge';
 import PlaygroundHero from '@/components/shared/PlaygroundHero';
 // C-01: Child Home Screen
 // Hero greeting, weekly progress, active quest, streak, consequences, badges, quick actions.
@@ -31,6 +36,9 @@ export default function ChildHome() {
   const router = useRouter();
   const activeChildId = useChildSessionStore((s) => s.activeChildId);
   const children = useFamilyStore((s) => s.children);
+  const family = useFamilyStore((s) => s.family);
+  const progress = useChildProgress(family?.id, activeChildId ?? undefined, family?.timezone);
+  const preferredStyle = useDisplayPreferences((s) => activeChildId ? s.styles[activeChildId] : undefined);
   const claims = useTaskStore((s) => s.claims);
   const tasks = useTaskStore((s) => s.tasks);
 
@@ -61,6 +69,9 @@ export default function ChildHome() {
           <Text style={styles.sectionTitle}>★ {starBalance} stars to spend</Text>
           <Text style={{ ...typography.childBody, color: colors.ink950 }}>Your weekly goal: {child?.weeklyTargetStars ?? 0} stars</Text>
         </View>
+        <View style={styles.card}><Text style={styles.sectionTitle}>Your weekly wins</Text>
+          {progress.loading ? <Text>Loading your progress…</Text> : progress.error ? <Text accessibilityRole="alert">{progress.error}</Text> : (preferredStyle ?? child?.progressDisplayStyle) === 'Countdown' ? <WeeklyCountdown current={progress.weekly} target={child?.weeklyTargetStars ?? 0} /> : (preferredStyle ?? child?.progressDisplayStyle) === 'FuelGauge' ? <WeeklyFuelGauge current={progress.weekly} target={child?.weeklyTargetStars ?? 0} /> : <WeeklyProgressBar current={progress.weekly} target={child?.weeklyTargetStars ?? 0} />}
+        </View>
         {/* ── Active Quest Banner ───────────────────────────────────── */}
         {activeTask && activeClaim && (
           <TouchableOpacity
@@ -88,6 +99,10 @@ export default function ChildHome() {
         )}
 
         {!activeTask && <View style={styles.card}><Text style={styles.sectionTitle}>Ready for your next little win?</Text><Text style={{ ...typography.childBody, color: colors.ink600 }}>Pick a quest, help out, and ask a parent to cheer you on.</Text></View>}
+        <View style={styles.quickActions}>
+          <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.white }]} onPress={() => router.push('/(child)/requests')}><Text style={{ ...typography.childButton, color: colors.navy900 }}>My requests</Text></TouchableOpacity>
+          <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.white }]} onPress={() => router.push('/(child)/leaderboard')}><Text style={{ ...typography.childButton, color: colors.navy900 }}>Family leaderboard</Text></TouchableOpacity>
+        </View>
         {/* ── Quick Actions ─────────────────────────────────────────── */}
         <View style={styles.quickActions}>
           <TouchableOpacity

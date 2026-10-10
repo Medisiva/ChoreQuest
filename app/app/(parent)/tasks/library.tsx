@@ -3,6 +3,7 @@
 // 'Post Quest' and 'Customise first' both work.
 // Library data loaded ONCE and cached in component state (not Zustand).
 
+import Alert from '@/services/dialogs';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
@@ -49,6 +50,8 @@ export default function TaskLibraryBrowser() {
   const { user } = useAuthStore();
   const [items, setItems] = useState<TaskLibraryItem[]>(libraryCache ?? []);
   const [loading, setLoading] = useState(!libraryCache);
+  const [loadError, setLoadError] = useState(false);
+  const [reload, setReload] = useState(0);
   const [posting, setPosting] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<Category | 'All'>('All');
   const [ageFilter, setAgeFilter] = useState<AgeGroup | 'All'>('All');
@@ -56,6 +59,7 @@ export default function TaskLibraryBrowser() {
 
   useEffect(() => {
     if (libraryCache) return;
+    setLoading(true); setLoadError(false);
     (async () => {
       try {
         const snap = await getDocs(collection(db, 'taskLibrary'));
@@ -63,12 +67,12 @@ export default function TaskLibraryBrowser() {
         libraryCache = data;
         setItems(data);
       } catch (err) {
-        console.error('[Library] Failed to load:', err);
+        setLoadError(true);
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [reload]);
 
   const filtered = useMemo(() => {
     let result = items;
@@ -98,7 +102,7 @@ export default function TaskLibraryBrowser() {
       });
       setSelectedItem(null);
     } catch {
-      console.error('[Library] Failed to post task');
+      Alert.alert('Quest not saved', 'Please check your connection and try again.');
     } finally {
       setPosting(false);
     }
@@ -136,6 +140,7 @@ export default function TaskLibraryBrowser() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {loadError && <TouchableOpacity onPress={() => setReload(value=>value+1)}><Text accessibilityRole="alert">Could not load the library. Tap to retry.</Text></TouchableOpacity>}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backText}>← Back</Text>
@@ -215,7 +220,7 @@ export default function TaskLibraryBrowser() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.customizeButton}
-                  onPress={() => { setSelectedItem(null); router.push('/(parent)/tasks/create' as never); }}
+                  onPress={() => { setSelectedItem(null); router.push({ pathname: '/(parent)/tasks/create', params: { libraryId: selectedItem.id } } as never); }}
                 >
                   <Text style={styles.customizeText}>Customise first</Text>
                 </TouchableOpacity>

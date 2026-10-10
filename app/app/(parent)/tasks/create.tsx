@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,12 +9,14 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  Alert,
-} from 'react-native';
+  } from 'react-native';
+import Alert from '@/services/dialogs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
-import { useRouter } from 'expo-router';
-import { Timestamp } from 'firebase/firestore';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { db } from '@/services/firebase';
+import type { TaskLibraryItem } from '@/types';
+import { Timestamp, doc, getDoc } from 'firebase/firestore';
 import { createTask } from '@/services/tasks';
 import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
@@ -74,6 +76,7 @@ const TOTAL_STEPS = 4;
 
 export default function CreateTaskScreen() {
   const router = useRouter();
+  const { libraryId } = useLocalSearchParams<{libraryId?:string}>();
   const user = useAuthStore((state) => state.user);
   const family = useFamilyStore((state) => state.family);
   const [currentStep, setCurrentStep] = useState(1);
@@ -97,6 +100,13 @@ export default function CreateTaskScreen() {
     },
   });
 
+  useEffect(() => {
+    if(!libraryId)return; let active=true;
+    getDoc(doc(db,'taskLibrary',libraryId)).then(snapshot=>{if(!active||!snapshot.exists())return; const item=snapshot.data() as TaskLibraryItem;
+      setValue('title',item.title);setValue('description',item.description);setValue('category',item.category);setValue('ageGroup',item.ageGroupSuggestion);setValue('starValue',item.suggestedStars);setValue('difficulty',item.difficulty);setValue('isMilestone',item.isMilestone);setValue('milestoneSteps',item.milestoneSteps??3);setValue('starsPerStep',item.starsPerStep??5);setValue('milestoneBonus',item.milestoneBonus??0);
+    }).catch(()=>Alert.alert('Template not loaded','Please return to the library and try again.'));
+    return()=>{active=false;};
+  },[libraryId,setValue]);
   const watchAll = watch();
 
   // ── Navigation ───────────────────────────────────────────────────────────

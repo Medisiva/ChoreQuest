@@ -81,6 +81,7 @@ export default function ParentLayout() {
           ),
         }}
       />
+      <Tabs.Screen name="settings" options={{ href: null }} />
       {/* Hidden routes — navigable via router.push() but not shown in tab bar */}
       <Tabs.Screen
         name="leaderboard"

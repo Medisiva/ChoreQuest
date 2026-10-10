@@ -1,3 +1,4 @@
+import { getPeriodKey } from "../utils/recurrence";
 import { FieldValue } from "firebase-admin/firestore";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { logger } from "firebase-functions";
@@ -47,6 +48,12 @@ export const onTaskClaimApproved = onDocumentUpdated(
       transaction.update(childRef, {
         starBalance: (child.starBalance ?? 0) + stars,
         totalStarsEarned: (child.totalStarsEarned ?? 0) + stars,
+        ...(complete ? {
+          totalTasksCompleted: (child.totalTasksCompleted ?? 0) + 1,
+          categoryCounts: { ...(child.categoryCounts ?? {}), [task.category]: (child.categoryCounts?.[task.category] ?? 0) + 1 },
+          weeklyCompletionPeriod: getPeriodKey("weekly", new Date(), family.data()?.timezone || "UTC"),
+          weeklyTaskCount: (child.weeklyCompletionPeriod === getPeriodKey("weekly", new Date(), family.data()?.timezone || "UTC") ? child.weeklyTaskCount ?? 0 : 0) + 1,
+        } : {}),
         ...(complete && child.activeQuestId === claimId ? { activeQuestId: FieldValue.delete() } : {}),
       });
       transaction.set(ledgerRef, {
@@ -56,6 +63,7 @@ export const onTaskClaimApproved = onDocumentUpdated(
         transactionType: "taskApproval",
         taskClaimId: claimId,
         milestoneStep: step,
+        isQuestCompletion: complete,
         reason: `Approved: ${task.title}`,
         createdAt: FieldValue.serverTimestamp(),
       });

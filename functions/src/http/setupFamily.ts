@@ -25,7 +25,7 @@ export async function childData(input: Record<string, unknown>): Promise<{ profi
     throw new HttpsError("invalid-argument", "PIN must contain four digits");
   }
   return { credentials: { pinHash: await bcrypt.hash(input.pin, 12), failedPinAttempts: 0, lockedUntil: null }, profile: {
-    nickname, avatarId, ageGroup: input.ageGroup,
+    nickname, avatarId, ageGroup: input.ageGroup, credentialsPrivate: true,
     starBalance: 0, totalStarsEarned: 0, totalStarsRedeemed: 0,
     weeklyTargetStars: integer(input.weeklyTargetStars ?? 20, "weekly target"),
     monthlyTargetStars: integer(input.monthlyTargetStars ?? 80, "monthly target"),
@@ -87,7 +87,7 @@ export const setupFamily = onCall(async (request) => {
   return result;
 });
 
-export const createChildProfile = onCall(async (request) => {
+export const createChildProfile = onCall({ invoker: "public" }, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Sign in first");
   const input = request.data as Record<string, unknown>;
   const familyId = text(input?.familyId, "family ID", 150);
@@ -127,7 +127,7 @@ export const resetChildPin = onCall(async (request) => {
     if (!child.exists) throw new HttpsError("not-found", "Profile not found");
     // Session consumers compare this timestamp to their creation time.
     transaction.set(family.collection("childCredentials").doc(childId), { pinHash, failedPinAttempts: 0, lockedUntil: null });
-    transaction.update(childRef, { pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete(), sessionsRevokedAt: FieldValue.serverTimestamp() });
+    transaction.update(childRef, { credentialsPrivate: true, pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete(), sessionsRevokedAt: FieldValue.serverTimestamp() });
   });
   return { success: true };
 });

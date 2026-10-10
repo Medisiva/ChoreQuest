@@ -4,7 +4,7 @@ import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
 
 /** Disable access now, then let the retryable purge worker remove retained data. */
-export const deleteFamilyAccount = onRequest(async (req, res) => {
+export const deleteFamilyAccount = onRequest({ cors: true }, async (req, res) => {
   if (req.method !== "POST") { res.status(405).json({ error: "Method not allowed" }); return; }
   const header = req.headers.authorization;
   if (!header?.startsWith("Bearer ")) { res.status(401).json({ error: "Sign in first" }); return; }

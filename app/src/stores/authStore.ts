@@ -11,6 +11,9 @@ import type { ParentUser } from '../types';
 
 interface AuthState {
   role: 'parent' | 'child' | null;
+  childProfileId: string | null;
+  childNickname: string | null;
+  childAvatarId: string | null;
   familyId: string | null;
   user: User | null;
   parentProfile: ParentUser | null;
@@ -25,6 +28,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   familyId: null,
+  childProfileId: null, childNickname: null, childAvatarId: null,
   role: null,
   user: null,
   parentProfile: null,
@@ -40,13 +44,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       clearTimeout(profileTimeout);
       unsubscribeProfile?.();
       unsubscribeProfile = undefined;
-      set({ user, familyId: null, role: null, parentProfile: null, loading: Boolean(user), error: null });
+      set({ user, familyId: null, childProfileId: null, childNickname: null, childAvatarId: null, role: null, parentProfile: null, loading: Boolean(user), error: null });
       if (!user) return;
       try {
         const { claims } = await user.getIdTokenResult();
         if (current !== generation) return;
         if (claims.role === 'child' && typeof claims.familyId === 'string') {
-          set({ role: 'child', familyId: claims.familyId, parentProfile: null, loading: false });
+          set({ role: 'child', familyId: claims.familyId, childProfileId: typeof claims.childProfileId === 'string' ? claims.childProfileId : null, childNickname: typeof claims.childNickname === 'string' ? claims.childNickname : null, childAvatarId: typeof claims.childAvatarId === 'string' ? claims.childAvatarId : null, parentProfile: null, loading: false });
           return;
         }
         set({ role: 'parent' });
@@ -82,6 +86,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   clearAuth: () =>
     set({
       user: null,
+      childProfileId: null, childNickname: null, childAvatarId: null,
       familyId: null,
       role: null,
       parentProfile: null,

@@ -35,7 +35,8 @@ function fixture(trigger, initial) {
       if (name === 'firebase-functions/v2/firestore') return { onDocumentUpdated: (_pattern, handler) => handler };
       if (name === 'firebase-functions') return { logger: { info() {}, error() {}, warn() {} } };
       if (name === 'firebase-admin/firestore') return firestore;
-      if (name === 'firebase-admin') return { firestore };
+      if (name === '../utils/recurrence') return require('../lib/utils/recurrence');
+    if (name === 'firebase-admin') return { firestore };
       return require(name);
     },
   });

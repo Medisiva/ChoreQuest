@@ -13,9 +13,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
+import Alert from '@/services/dialogs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';

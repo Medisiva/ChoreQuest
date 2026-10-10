@@ -17,6 +17,7 @@ function fixture() {
       if (name === 'react-native') return { ...Object.fromEntries(['View','Text','TextInput','TouchableOpacity','ScrollView','KeyboardAvoidingView','ActivityIndicator'].map(n => [n,n])), Platform: { OS: 'android' }, StyleSheet: { create: x => x }, Alert: { alert: (title, message) => calls.push({ alert: title, message }) } };
       if (name === 'react-native-safe-area-context') return { SafeAreaView: 'SafeAreaView' };
       if (name === 'expo-router') return { useRouter: () => ({ replace: route => calls.push({ route }) }) };
+      if (name === '@/services/dialogs') return { default: { alert: (title, message) => calls.push({ alert: title, message }) } };
       if (name === '@/services/families') return { setupFamily: async payload => calls.push({ payload }) };
       if (name === '@/stores/authStore') return { useAuthStore: () => ({ user }) };
       if (name === '@/components/shared/PlaygroundHero') return { default: () => null };

@@ -24,7 +24,7 @@ import { callBackend, type PinVerification } from '../../services/backend';
 import type { ChildProfile } from '../../types';
 
 interface PinOverlayProps {
-  child: ChildProfile;
+  child: Pick<ChildProfile, 'id' | 'nickname' | 'avatarId' | 'familyAccountId'>;
   onSuccess: (sessionToken: string, customToken: string) => Promise<void>;
   onCancel: () => void;
 }

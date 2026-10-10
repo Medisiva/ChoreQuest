@@ -1,3 +1,5 @@
+import { useRouter } from 'expo-router';
+import { reviewSuggestedParentReward } from '@/services/rewards';
 // S5: Parent Reward Store (P-10)
 // 2-column reward grid with name, star cost, creator, and "Redeem" button.
 // "+Add reward" card at end. Pending kid-added rewards section with approve/decline.
@@ -10,14 +12,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
+import Alert from '@/services/dialogs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useRewardStore } from '@/stores/rewardStore';
 import { useFamilyStore } from '@/stores/familyStore';
-import { approveRedemption, declineRedemption } from '@/services/stars';
+import { approveRedemption, declineRedemption, redeemParentReward } from '@/services/stars';
 import { colors, spacing, radius, typography, shadows, layout } from '@/constants/tokens';
 import type { Reward, Redemption, RewardType, RedemptionStatus } from '@/types';
 
@@ -48,6 +50,7 @@ const STATUS_CONFIG: Record<RedemptionStatus, { label: string; bg: string; fg: s
 type GridItem = Reward | { id: 'add-new'; type: 'add' };
 
 export default function ParentRewardsScreen() {
+  const router = useRouter();
   const { childRewards, parentRewards, redemptions, loading } = useRewardStore();
   const { family, children, parentProfile } = useFamilyStore();
 
@@ -150,8 +153,7 @@ export default function ParentRewardsScreen() {
             style={styles.addCard}
             activeOpacity={0.7}
             onPress={() => {
-              // Navigate to add reward screen (to be built)
-              Alert.alert('Coming Soon', 'Add Reward form is under construction.');
+              router.push('/(parent)/rewards/create');
             }}
           >
             <Text style={styles.addCardIcon}>+</Text>
@@ -184,7 +186,7 @@ export default function ParentRewardsScreen() {
         </View>
       );
     },
-    []
+    [router]
   );
 
   if (loading) {
@@ -209,6 +211,14 @@ export default function ParentRewardsScreen() {
           </View>
         </View>
 
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Your parent rewards</Text>
+          {parentRewards.filter(reward => reward.approvedByParent).map(reward => <View key={reward.id} style={styles.pendingCard}>
+            <View style={styles.pendingInfo}><Text style={styles.pendingName}>{reward.name}</Text><Text style={styles.pendingCost}>★ {reward.starCost}</Text></View>
+            <TouchableOpacity accessibilityRole="button" disabled={processingId !== null || starBalance < reward.starCost} style={[styles.approveBtn, starBalance < reward.starCost && { opacity: 0.5 }]} onPress={async () => { if (!family) return; setProcessingId(reward.id); try { await redeemParentReward(family.id, reward.id); Alert.alert('Reward redeemed', reward.name); } catch (error) { Alert.alert('Could not redeem', error instanceof Error ? error.message : 'Please retry.'); } finally { setProcessingId(null); } }}><Text style={styles.approveBtnText}>{processingId === reward.id ? 'Saving…' : 'Redeem'}</Text></TouchableOpacity>
+          </View>)}
+        </View>
+        <Text style={styles.sectionTitle}>Rewards for your children</Text>
         {/* Reward Grid */}
         <View style={styles.gridContainer}>
           <FlashList
@@ -231,10 +241,10 @@ export default function ParentRewardsScreen() {
                   <Text style={styles.pendingCost}>{'⭐ '}{reward.starCost}</Text>
                 </View>
                 <View style={styles.pendingActions}>
-                  <TouchableOpacity style={styles.approveBtn}>
+                  <TouchableOpacity style={styles.approveBtn} onPress={() => { if (family) void reviewSuggestedParentReward(family.id, reward.id, true).catch(() => Alert.alert("Error", "Could not review this reward.")); }}>
                     <Text style={styles.approveBtnText}>Approve</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.declineBtn}>
+                  <TouchableOpacity style={styles.declineBtn} onPress={() => { if (family) void reviewSuggestedParentReward(family.id, reward.id, false).catch(() => Alert.alert("Error", "Could not review this reward.")); }}>
                     <Text style={styles.declineBtnText}>Decline</Text>
                   </TouchableOpacity>
                 </View>

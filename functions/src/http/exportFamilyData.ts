@@ -8,7 +8,7 @@ export function exportRecord(id: string, data: Record<string, unknown>): Record<
   return Object.fromEntries(Object.entries({ ...data, id }).filter(([key]) => !PRIVATE_FIELDS.has(key)));
 }
 
-export const exportFamilyData = onRequest(async (req, res) => {
+export const exportFamilyData = onRequest({ cors: true }, async (req, res) => {
   if (req.method !== "POST") { res.status(405).json({ error: "Method not allowed" }); return; }
   const header = req.headers.authorization;
   if (!header?.startsWith("Bearer ")) { res.status(401).json({ error: "Sign in first" }); return; }

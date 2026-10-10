@@ -28,7 +28,7 @@ const SESSION_TOKEN_EXPIRY_MINUTES = 30;
 
 // ── Cloud Function ─────────────────────────────────────────────────────────────
 
-export const verifyChildPin = onRequest(async (req, res) => {
+export const verifyChildPin = onRequest({ cors: true }, async (req, res) => {
   const executionId = crypto.randomUUID();
   logger.info("verifyChildPin START", { executionId });
 
@@ -48,8 +48,10 @@ export const verifyChildPin = onRequest(async (req, res) => {
 
     const idToken = authHeader.split("Bearer ")[1];
     let callerUid: string;
+    let callerClaims: admin.auth.DecodedIdToken;
     try {
-      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const decodedToken = await admin.auth().verifyIdToken(idToken, true);
+      callerClaims = decodedToken;
       callerUid = decodedToken.uid;
     } catch {
       res.status(401).json({ error: "Invalid or expired auth token" });
@@ -73,7 +75,19 @@ export const verifyChildPin = onRequest(async (req, res) => {
 
     // ── Fetch child profile ──────────────────────────────────────────────────
     const db = admin.firestore();
-    const parentSnap = await db.doc(`families/${familyId}/parentUsers/${callerUid}`).get();
+    // A returning child uses another PIN, never an adult password. Delegation
+    // remains bound to the same family and the verified original parent session.
+    let parentUid = callerUid;
+    if (callerClaims.role === 'child') {
+      const previousChildId = callerClaims.childProfileId;
+      const hash = callerClaims.sessionHash;
+      if (callerClaims.familyId !== familyId || typeof previousChildId !== 'string' || !previousChildId || previousChildId.includes('/') || typeof hash !== 'string' || !/^[a-f0-9]{64}$/.test(hash)) { res.status(403).json({ error: 'Not authorized for this family' }); return; }
+      const expectedUid = `child-${crypto.createHash('sha256').update(`${familyId}/${previousChildId}`).digest('hex')}`;
+      const source = (await db.doc(`families/${familyId}/childSessions/${hash}`).get()).data();
+      if (callerUid !== expectedUid || source?.childAuthUid !== callerUid || source?.childProfileId !== previousChildId || typeof source?.parentUid !== 'string' || source.parentUid.includes('/')) { res.status(403).json({ error: 'Not authorized for this family' }); return; }
+      parentUid = source.parentUid;
+    }
+    const parentSnap = await db.doc(`families/${familyId}/parentUsers/${parentUid}`).get();
     const familySnap = await db.doc(`families/${familyId}`).get();
     if (!parentSnap.exists || !familySnap.exists || familySnap.data()?.isDeleted) {
       res.status(403).json({ error: "Not authorized for this family" });
@@ -105,9 +119,9 @@ export const verifyChildPin = onRequest(async (req, res) => {
       if (await bcrypt.compare(pin, profile.pinHash)) {
         const expiresAt = new Date(now.toMillis() + SESSION_TOKEN_EXPIRY_MINUTES * 60 * 1000);
         transaction.set(credentialsRef, { pinHash: profile.pinHash, failedPinAttempts: 0, lockedUntil: null });
-        transaction.update(profileRef, { pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete() });
+        transaction.update(profileRef, { credentialsPrivate: true, pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete() });
         transaction.set(db.doc(`families/${familyId}/childSessions/${tokenHash}`), {
-          childProfileId, parentUid: callerUid, childAuthUid,
+          childProfileId, parentUid, childAuthUid,
           expiresAt: Timestamp.fromDate(expiresAt), createdAt: now,
         });
         return { status: 200, body: { success: true, sessionToken: { token, expiresAt: expiresAt.toISOString() } } };
@@ -117,15 +131,16 @@ export const verifyChildPin = onRequest(async (req, res) => {
       if (attempts >= MAX_FAILED_ATTEMPTS) {
         const lockedUntil = Timestamp.fromDate(new Date(now.toMillis() + LOCKOUT_MINUTES * 60 * 1000));
         transaction.set(credentialsRef, { pinHash: profile.pinHash, failedPinAttempts: attempts, lockedUntil });
-        transaction.update(profileRef, { pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete() });
+        transaction.update(profileRef, { credentialsPrivate: true, pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete() });
         return { status: 403, body: { success: false, locked: true, lockedUntil: lockedUntil.toDate().toISOString() } };
       }
       transaction.set(credentialsRef, { pinHash: profile.pinHash, failedPinAttempts: attempts, lockedUntil: null });
-      transaction.update(profileRef, { pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete() });
+      transaction.update(profileRef, { credentialsPrivate: true, pinHash: FieldValue.delete(), failedPinAttempts: FieldValue.delete(), lockedUntil: FieldValue.delete() });
       return { status: 401, body: { success: false, attemptsRemaining: MAX_FAILED_ATTEMPTS - attempts } };
     });
     if (result.status === 200 && result.body.success) {
-      const customToken = await admin.auth().createCustomToken(childAuthUid, { role: 'child', familyId, childProfileId, sessionHash: tokenHash });
+      const presentation = (await profileRef.get()).data();
+      const customToken = await admin.auth().createCustomToken(childAuthUid, { role: 'child', familyId, childProfileId, sessionHash: tokenHash, childNickname: typeof presentation?.nickname === 'string' ? presentation.nickname : 'Your profile', childAvatarId: typeof presentation?.avatarId === 'string' ? presentation.avatarId : 'avatar-01' });
       res.status(200).json({ ...result.body, customToken });
     } else res.status(result.status).json(result.body);
     logger.info("verifyChildPin END", { executionId, status: result.status });

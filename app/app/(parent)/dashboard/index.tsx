@@ -1,6 +1,7 @@
 import PlaygroundHero from '@/components/shared/PlaygroundHero';
 import KidAvatar from '@/components/shared/KidAvatar';
 // P-01: Parent Dashboard
+import { useFamilyEarnings } from '@/hooks/useFamilyEarnings';
 import { useMemo } from 'react';
 import {
   View,
@@ -31,16 +32,6 @@ function isToday(timestamp: { toDate: () => Date } | undefined): boolean {
   );
 }
 
-function isThisWeek(timestamp: { toDate: () => Date } | undefined): boolean {
-  if (!timestamp) return false;
-  const d = timestamp.toDate();
-  const now = new Date();
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay());
-  startOfWeek.setHours(0, 0, 0, 0);
-  return d >= startOfWeek;
-}
-
 function childName(id: string, children: ChildProfile[]): string {
   return children.find((c) => c.id === id)?.nickname ?? 'Child';
 }
@@ -53,6 +44,8 @@ export default function ParentDashboard() {
   const { family, children } = useFamilyStore();
   const { tasks, claims } = useTaskStore();
   const { requests } = useRequestStore();
+
+  const earnings = useFamilyEarnings(family?.id, family?.timezone ?? 'UTC');
 
   // Derived data
   const activeTasks = useMemo(() => tasks.filter((t) => t.isActive), [tasks]);
@@ -67,15 +60,6 @@ export default function ParentDashboard() {
     [requests]
   );
 
-  const starsThisWeek = useMemo(() => {
-    return claims
-      .filter((c) => c.status === 'approved' && isThisWeek(c.approvedAt))
-      .reduce((sum, c) => {
-        const task = tasks.find((t) => t.id === c.taskId);
-        return sum + (task?.starValue ?? 0);
-      }, 0);
-  }, [claims, tasks]);
-
   const todayActivity = useMemo(() => {
     const items: { label: string; time: Date }[] = [];
 
@@ -87,18 +71,13 @@ export default function ParentDashboard() {
           time: c.submittedAt!.toDate(),
         });
       }
-      if (c.status === 'approved' && isToday(c.approvedAt)) {
-        const task = tasks.find((t) => t.id === c.taskId);
-        items.push({
-          label: `"${task?.title ?? 'A quest'}" approved (+${task?.starValue ?? 0} stars)`,
-          time: c.approvedAt!.toDate(),
-        });
-      }
+
     });
 
+    earnings.records.filter(record => record.deltaStars > 0 && isToday(record.createdAt)).forEach(record => items.push({label: `${childName(record.childProfileId, children)}: ${record.reason ?? 'Stars earned'} (+${record.deltaStars} stars)`, time: record.createdAt.toDate()}));
     items.sort((a, b) => b.time.getTime() - a.time.getTime());
     return items;
-  }, [claims, tasks, children]);
+  }, [claims, tasks, children, earnings.records]);
 
   const parentDisplayName = parentProfile?.displayName ?? 'Parent';
   const familyDisplayName = family?.familyName ?? 'Family';
@@ -134,12 +113,13 @@ export default function ParentDashboard() {
           />
           <StatCard
             label="Stars This Week"
-            value={starsThisWeek}
+            value={earnings.loading ? '…' : earnings.error ? '—' : earnings.weekly}
             bg={colors.starGold}
             textColor={colors.ink950}
           />
         </View>
 
+        {earnings.error && <Text accessibilityRole="alert">{earnings.error}</Text>}
         {/* ── Today's Activity ────────────────────────────────────── */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Today's Activity</Text>
@@ -169,17 +149,7 @@ export default function ParentDashboard() {
               contentContainerStyle={styles.childrenRow}
             >
               {children.map((child) => {
-                const weeklyEarned = claims
-                  .filter(
-                    (c) =>
-                      c.childProfileId === child.id &&
-                      c.status === 'approved' &&
-                      isThisWeek(c.approvedAt)
-                  )
-                  .reduce((sum, c) => {
-                    const task = tasks.find((t) => t.id === c.taskId);
-                    return sum + (task?.starValue ?? 0);
-                  }, 0);
+                const weeklyEarned = earnings.weeklyByChild[child.id] ?? 0;
 
                 const target = child.weeklyTargetStars || 1;
                 const progress = Math.min(weeklyEarned / target, 1);
@@ -297,7 +267,7 @@ function StatCard({
   textColor,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   bg: string;
   textColor: string;
 }) {

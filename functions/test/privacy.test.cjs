@@ -15,7 +15,7 @@ function fixture({ uid = 'p', authTime = Date.now() / 1000, failStorage = false 
   const load = (file) => {
     const module = { exports: {} };
     vm.runInNewContext(fs.readFileSync(require.resolve(file), 'utf8'), { module, exports: module.exports, Date, require: (name) => {
-      if (name === 'firebase-functions/v2/https') return { onRequest: (handler) => handler };
+      if (name === 'firebase-functions/v2/https') return { onRequest: (...args) => args.at(-1) };
       if (name === 'firebase-functions/v2/scheduler') return { onSchedule: (_schedule, handler) => handler };
       if (name === 'firebase-functions') return { logger: { error() {}, info() {} } };
       if (name === 'firebase-admin/firestore') return admin.firestore;

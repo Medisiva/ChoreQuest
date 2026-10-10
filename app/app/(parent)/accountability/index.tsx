@@ -11,8 +11,8 @@ import {
   TouchableOpacity,
   Pressable,
   RefreshControl,
-  Alert,
-} from 'react-native';
+  } from 'react-native';
+import Alert from '@/services/dialogs';
 import { useFamilyStore } from '@/stores/familyStore';
 import { useLeaderboard } from '@/utils/useLeaderboard';
 import { periodKey } from '@/utils/leaderboard';

@@ -13,6 +13,7 @@ function fixture({ member = false, deleted = false, profile, correct = false } =
       doc: (ref) => ({ path: ref, get: async () => {
         reads.push(ref);
         if (ref.endsWith('/parentUsers/caller')) return { exists: member };
+        if (ref === 'families/family/childProfiles/child' && member) return { exists: !!profile, data: () => ({ ...profile, nickname: 'Test Child', avatarId: 'avatar-01' }) };
         if (ref === 'families/family') return { exists: true, data: () => ({ isDeleted: deleted }) };
         throw new Error('Child data must not be read for an unauthorized request');
       } }),
@@ -44,7 +45,7 @@ function fixture({ member = false, deleted = false, profile, correct = false } =
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../lib/http/verifyChildPin.js'), 'utf8'), {
     exports: module.exports, module,
     require: (name) => {
-      if (name === 'firebase-functions/v2/https') return { onRequest: (handler) => handler };
+      if (name === 'firebase-functions/v2/https') return { onRequest: (...args) => args.at(-1) };
       if (name === 'firebase-functions') return { logger: { info() {}, error() {} } };
       if (name === 'firebase-admin/firestore') return admin.firestore;
       if (name === 'firebase-admin') return admin;

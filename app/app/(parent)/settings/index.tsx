@@ -1,3 +1,10 @@
+import Constants from 'expo-constants';
+import { exportArtifact } from '@/services/exportArtifact';
+import { useDeviceAlerts } from '@/stores/deviceAlerts';
+import { requestDeviceAlertsPermission } from '@/services/notifications';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { db } from '@/services/firebase';
+import { useEffect } from 'react';
 // S11: Parent Settings screen
 // Manage family, notification prefs, leaderboard toggle, data export, account deletion.
 
@@ -9,10 +16,10 @@ import {
   TouchableOpacity,
   ScrollView,
   Switch,
-  Alert,
   ActivityIndicator,
-  Share,
+  Platform,
 } from 'react-native';
+import Alert from '@/services/dialogs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
@@ -25,7 +32,9 @@ export default function SettingsScreen() {
   const { user } = useAuthStore();
   const { family } = useFamilyStore();
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(true);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const { enabled, choose } = useDeviceAlerts();
+  const notificationsEnabled = Boolean(family && enabled[family.id]);
+  useEffect(() => { if (!family) return; return onSnapshot(doc(db, "families", family.id, "settings", "config"), snapshot => setLeaderboardEnabled(snapshot.data()?.leaderboardEnabled !== false)); }, [family?.id]);
   const [exporting, setExporting] = useState(false);
 
   const handleExportData = useCallback(async () => {
@@ -33,7 +42,7 @@ export default function SettingsScreen() {
     setExporting(true);
     try {
       const data = await callBackend<Record<string, unknown>>('exportFamilyData', { familyId: family.id });
-      await Share.share({ title: 'ChoreQuest family data', message: JSON.stringify(data, null, 2) });
+      await exportArtifact(data);
 
     } catch {
       Alert.alert('Error', 'Export failed. Try again.');
@@ -111,16 +120,17 @@ export default function SettingsScreen() {
           <Text style={styles.cardLabel}>Family Leaderboard</Text>
           <Switch
             value={leaderboardEnabled}
-            onValueChange={setLeaderboardEnabled}
+            onValueChange={(value) => { if (family) void setDoc(doc(db, "families", family.id, "settings", "config"), { leaderboardEnabled: value }, { merge: true }).catch(() => Alert.alert("Could not save", "Reconnect and try again.")); }}
             trackColor={{ true: '#1555E8', false: '#E5EFFF' }}
             thumbColor="#FFFFFF"
           />
         </View>
         <View style={styles.card}>
-          <Text style={styles.cardLabel}>Push Notifications</Text>
+          <Text style={styles.cardLabel}>Device alerts while the app is open</Text>
           <Switch
             value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
+            disabled={Platform.OS === "web"}
+            onValueChange={async (value) => { if (!family) return; if (!value) { choose(family.id, false); return; } try { const granted = await requestDeviceAlertsPermission(); choose(family.id, granted); if (!granted) Alert.alert("Device alerts off", "Allow notifications in your phone settings to enable device alerts."); } catch { Alert.alert("Could not enable alerts", "Please try again on your Android phone."); } }}
             trackColor={{ true: '#1555E8', false: '#E5EFFF' }}
             thumbColor="#FFFFFF"
           />
@@ -142,7 +152,7 @@ export default function SettingsScreen() {
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
 
-        <Text style={styles.version}>ChoreQuest v1.0.0</Text>
+        <Text style={styles.version}>ChoreQuest v{Constants.expoConfig?.version ?? '1.0.1'}</Text>
       </ScrollView>
     </SafeAreaView>
   );

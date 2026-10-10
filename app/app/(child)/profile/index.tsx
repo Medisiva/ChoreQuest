@@ -1,3 +1,5 @@
+import { useChildProgress } from '@/hooks/useChildProgress';
+import { useDisplayPreferences } from '@/stores/displayPreferences';
 import KidAvatar from '@/components/shared/KidAvatar';
 // S10: Child Profile screen (C-09)
 // Avatar, stats, badge showcase, progress display selector, switch profile
@@ -24,8 +26,10 @@ const PROGRESS_OPTIONS: { value: ProgressDisplayStyle; label: string; emoji: str
 
 export default function ChildProfileScreen() {
   const router = useRouter();
-  const { activeChildId, endSession } = useChildSessionStore();
-  const { children } = useFamilyStore();
+  const { activeChildId } = useChildSessionStore();
+  const { children, family } = useFamilyStore();
+  const progress = useChildProgress(family?.id, activeChildId ?? undefined, family?.timezone);
+  const { styles: preferredStyles, choose } = useDisplayPreferences();
 
   const child = useMemo(
     () => children.find((c) => c.id === activeChildId),
@@ -33,9 +37,8 @@ export default function ChildProfileScreen() {
   );
 
   const handleSwitchProfile = useCallback(() => {
-    endSession();
     router.replace('/profiles');
-  }, [endSession, router]);
+  }, [router]);
 
   if (!child) {
     return (
@@ -95,16 +98,19 @@ export default function ChildProfileScreen() {
             {PROGRESS_OPTIONS.map((opt) => (
               <TouchableOpacity
                 key={opt.value}
+                onPress={() => choose(child.id, opt.value)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: (preferredStyles[child.id] ?? child.progressDisplayStyle) === opt.value }}
                 style={[
                   styles.progressChip,
-                  child.progressDisplayStyle === opt.value && styles.progressChipSelected,
+                  (preferredStyles[child.id] ?? child.progressDisplayStyle) === opt.value && styles.progressChipSelected,
                 ]}
               >
                 <Text style={styles.progressEmoji}>{opt.emoji}</Text>
                 <Text
                   style={[
                     styles.progressLabel,
-                    child.progressDisplayStyle === opt.value && styles.progressLabelSelected,
+                    (preferredStyles[child.id] ?? child.progressDisplayStyle) === opt.value && styles.progressLabelSelected,
                   ]}
                 >
                   {opt.label}
@@ -118,7 +124,7 @@ export default function ChildProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>My Badges</Text>
           <View style={styles.badgeRow}>
-            <Text style={styles.badgePlaceholder}>🏆 Badges coming soon!</Text>
+            <Text style={styles.badgePlaceholder}>{progress.badges.length ? progress.badges.map(badge => `🏆 ${badge.badgeName ?? badge.badgeId}`).join(" · ") : "Your first badge is waiting. Complete a quest!"}</Text>
           </View>
         </View>
 

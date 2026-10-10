@@ -2,7 +2,7 @@
 // Parent creates child: nickname, avatar, age group, PIN setup (double-confirm).
 // PIN hashing and profile creation are handled by the authenticated backend.
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -37,6 +36,8 @@ export default function CreateChildScreen() {
   const router = useRouter();
   const { family } = useFamilyStore();
   const [loading, setLoading] = useState(false);
+  const savingRef = useRef(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const { control, handleSubmit, watch, formState: { errors } } = useForm<CreateChildForm>({
     defaultValues: {
@@ -52,23 +53,27 @@ export default function CreateChildScreen() {
   const watchPin = watch('pin');
 
   const onSubmit = async (data: CreateChildForm) => {
-    if (!family) return;
+    if (!family) { setSaveError('Your family is still loading. Try again shortly.'); return; }
 
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaveError(null);
     setLoading(true);
     try {
       await addChildProfile(family.id, {
-        nickname: data.nickname,
+        nickname: data.nickname.trim(),
         avatarId: data.avatarId,
         ageGroup: data.ageGroup,
         pin: data.pin,
       });
 
-      Alert.alert('Success!', `${data.nickname}'s profile is ready.`, [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      router.replace('/profiles');
     } catch (error) {
-      Alert.alert('Error', 'Could not create profile. Please try again.');
+      const code = (error as { code?: string }).code;
+      console.error('[CreateChild] Save failed', { code: code || 'unknown' });
+      setSaveError(code === 'functions/permission-denied' || code === 'functions/unauthenticated' ? 'Please sign in to your parent account again.' : code === 'functions/internal' ? 'The profile service is unavailable. Please retry after the connection is restored.' : error instanceof Error ? error.message : 'Could not create profile. Please try again.');
     } finally {
+      savingRef.current = false;
       setLoading(false);
     }
   };
@@ -94,6 +99,7 @@ export default function CreateChildScreen() {
             rules={{
               required: 'Nickname is required',
               maxLength: { value: 20, message: 'Max 20 characters' },
+              validate: (value) => Boolean(value.trim()) || 'Nickname is required',
             }}
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
@@ -205,6 +211,7 @@ export default function CreateChildScreen() {
             <Text style={styles.errorText}>{errors.confirmPin.message}</Text>
           )}
 
+          {saveError && <Text accessibilityRole="alert" style={styles.errorText}>{saveError}</Text>}
           {/* Submit */}
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitDisabled]}
@@ -224,7 +231,6 @@ export default function CreateChildScreen() {
   );
 }
 
-// Simple PIN hashing — in production replace with bcryptjs
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F8FF' },
   flex: { flex: 1 },

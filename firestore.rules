@@ -42,7 +42,7 @@ service cloud.firestore {
       // Profile creation, credentials, membership and balances are server-owned.
       match /childProfiles/{childId} {
         allow read: if isFamilyMember(familyId) || (isChild(familyId) &&
-          !('pinHash' in resource.data) && !('failedPinAttempts' in resource.data) && !('lockedUntil' in resource.data));
+          resource.data.credentialsPrivate == true);
         allow create, delete: if false;
         allow update: if isFamilyMember(familyId) &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -113,10 +113,10 @@ service cloud.firestore {
         allow write: if false;
       }
 
-      // Parent redemptions
+      // Parent wallet transactions and redemptions are server-owned.
       match /parentRedemptions/{redemptionId} {
         allow read: if canReadFamily(familyId);
-        allow write: if isFamilyMember(familyId);
+        allow write: if false;
       }
 
       match /familyRequests/{requestId} {
