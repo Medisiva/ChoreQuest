@@ -1,3 +1,5 @@
+import PlaygroundHero from '@/components/shared/PlaygroundHero';
+import KidAvatar from '@/components/shared/KidAvatar';
 // P-01: Parent Dashboard
 import { useMemo } from 'react';
 import {
@@ -17,13 +19,6 @@ import { colors, typography, spacing, radius, layout, shadows } from '@/constant
 import type { TaskClaim, ChildProfile, FamilyRequest } from '@/types';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'morning';
-  if (hour < 17) return 'afternoon';
-  return 'evening';
-}
 
 function isToday(timestamp: { toDate: () => Date } | undefined): boolean {
   if (!timestamp) return false;
@@ -116,21 +111,7 @@ export default function ParentDashboard() {
         showsVerticalScrollIndicator={false}
       >
         {/* ── Header ──────────────────────────────────────────────── */}
-        <View style={styles.header}>
-          <View style={styles.headerText}>
-            <Text style={styles.greeting}>
-              Good {getGreeting()}, {parentDisplayName}!
-            </Text>
-            <Text style={styles.familySubtitle}>{familyDisplayName}</Text>
-          </View>
-          <View style={styles.starChip}>
-            <Text style={styles.starEmoji}>⭐</Text>
-            <Text style={styles.starChipText}>
-              {parentProfile?.starBalance ?? 0}
-            </Text>
-          </View>
-        </View>
-
+        <PlaygroundHero title={`Hi, ${parentDisplayName}!`} subtitle={`${familyDisplayName} · Make room for little wins today.`} compact />
         {/* ── Quick Stats ─────────────────────────────────────────── */}
         <View style={styles.statsRow}>
           <StatCard
@@ -209,13 +190,11 @@ export default function ParentDashboard() {
                     style={styles.childCard}
                     activeOpacity={0.7}
                     onPress={() =>
-                      router.push(`/(parent)/children/${child.id}` as never)
+                      router.push('/(parent)/accountability')
                     }
                   >
                     <View style={styles.childAvatar}>
-                      <Text style={styles.childAvatarText}>
-                        {child.nickname.charAt(0).toUpperCase()}
-                      </Text>
+                      <KidAvatar avatarId={child.avatarId} size={56} />
                     </View>
                     <Text style={styles.childName} numberOfLines={1}>
                       {child.nickname}

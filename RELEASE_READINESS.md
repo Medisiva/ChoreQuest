@@ -203,3 +203,28 @@ Local corrected emulator preview is http://localhost:8084 (test account/family o
 
 - The isolated emulator/browser servers were stopped after verification; their temporary preview URL is no longer active. The live local preview remains running on port 8081, session 48572, with the repair.
 - Created a preview-only visual concept board at ../outputs/chorequest-friendly-screen-concepts.png: Storybook Adventure, Bright Playground, Calm Family. Illustrated child portraits and friendlier screens are concept art only; no redesign has been implemented yet. User direction selection remains pending.
+
+
+## Bright Playground redesign — October 10, 2026
+
+The user's selected bright-color direction is implemented in the app. Shared PlaygroundHero and bundled KidAvatar portraits replace plain headers and generic child emoji in login/registration, setup, profile selection, the PIN sheet, parent dashboard and child home/profile. Twenty fictional illustrated portraits retain the existing avatar-01 through avatar-20 identifiers. No real child photos are uploaded. The atlas is bundled (~2.6 MB) and works without fetching artwork.
+
+The blue, yellow, coral and mint palette propagates through shared tokens and legacy inline screen styles. Avatar selection has accessible button names and selected state. Auth forms have rounded cards and a bounded desktop width. The setup step remount keys and private, account-scoped draft recovery remain intact.
+
+The child home no longer displays invented weekly earnings or earned badges: it shows the actual stored star balance, configured weekly goal, active quest and streak. A real weekly-progress subscription remains future work; the old widget used constant 15/20. The parent dashboard child card now opens the existing Accountability screen instead of a nonexistent child-detail route.
+
+## Verified
+- All 71 unit/transport tests pass (13 app, 58 backend), including the rendered setup, draft restoration and account isolation regressions.
+- TypeScript checking passes.
+- Android Metro/Hermes export succeeds and includes the portrait asset. This is bundling evidence, not a signed native build or phone test.
+- Actual browser visual inspection at 390 × 844: login, child portrait picker, and final setup summary. Twenty portraits, selection ring, preserved family/child/reward values and no horizontal scrolling in those views.
+- Final summary rendered without the previous childRewards exception.
+
+## Limits and next work
+- The attempted current local emulator save ran into a temporary runtime/socket setup failure. The emulator was restarted with an absolute repository TMPDIR, but a subsequent browser navigation failed with connection refused. A complete save/reopen retest for this redesign and visual review of the parent and child dashboards remain pending. The earlier setup-fix save/reopen test passed before the redesign.
+- Screenshot images were shown inline during inspection; persistent screenshot files were not saved because the browser tool's file-writing context previously returned EPERM. Do not present the concept board as an actual app screenshot.
+- Existing signed APK 14b34ebf-6bbd-4d88-8694-a09bfbbedf35 contains neither this redesign nor the subsequent setup fixes. No replacement APK was started in this selected design scope.
+- No Firebase production data was changed by this redesign validation; test accounts were local demo-chorequest only. No store publication or production-ready claim.
+- Main preview is http://localhost:8081 using the public chorequest-prod client config. It was responsive at handoff; it requires this computer and a running local server. Temporary demo preview is not a user deliverable.
+
+Next user choices: (1) finish persistence/parent-child checks and build a new signed Android test APK (recommended); (2) review and refine the bright screens together in the browser before building.

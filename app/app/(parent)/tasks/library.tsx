@@ -24,7 +24,7 @@ import { useAuthStore } from '@/stores/authStore';
 import type { TaskLibraryItem, Category, AgeGroup } from '@/types';
 
 const CATEGORIES: { label: string; value: Category | 'All'; icon: string; deep: string; light: string }[] = [
-  { label: 'All', value: 'All', icon: '✨', deep: '#1A3E6E', light: '#E8F2FB' },
+  { label: 'All', value: 'All', icon: '✨', deep: '#1555E8', light: '#E5EFFF' },
   { label: 'Household', value: 'Household', icon: '🏠', deep: '#1B6CA8', light: '#DBEAFE' },
   { label: 'Learning', value: 'Learning', icon: '📚', deep: '#7B2D8B', light: '#EDE9FE' },
   { label: 'Life Skills', value: 'LifeSkills', icon: '🌱', deep: '#0D7377', light: '#CCFBF1' },
@@ -114,7 +114,7 @@ export default function TaskLibraryBrowser() {
         onPress={() => setSelectedItem(item)}
         activeOpacity={0.7}
       >
-        <View style={[styles.gridCardHeader, { backgroundColor: catConfig?.deep ?? '#1A3E6E' }]}>
+        <View style={[styles.gridCardHeader, { backgroundColor: catConfig?.deep ?? '#1555E8' }]}>
           <Text style={styles.gridCardIcon}>{catConfig?.icon}</Text>
         </View>
         <View style={styles.gridCardBody}>
@@ -129,7 +129,7 @@ export default function TaskLibraryBrowser() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#1A3E6E" style={{ marginTop: 100 }} />
+        <ActivityIndicator size="large" color="#1555E8" style={{ marginTop: 100 }} />
       </SafeAreaView>
     );
   }
@@ -232,39 +232,39 @@ export default function TaskLibraryBrowser() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: '#F5F8FF' },
   header: { paddingHorizontal: 16, paddingVertical: 12 },
-  backText: { fontFamily: 'Inter_500Medium', fontSize: 16, color: '#4A90D9', marginBottom: 8 },
-  heading: { fontFamily: 'Inter_700Bold', fontSize: 24, color: '#1A1A2E' },
+  backText: { fontFamily: 'Inter_500Medium', fontSize: 16, color: '#2563EB', marginBottom: 8 },
+  heading: { fontFamily: 'Inter_700Bold', fontSize: 24, color: '#16244D' },
   filterRow: { paddingHorizontal: 16, paddingBottom: 8, gap: 8 },
-  chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: '#FFFFFF', marginRight: 8, borderWidth: 1, borderColor: '#E8F2FB' },
-  chipActive: { backgroundColor: '#1A3E6E', borderColor: '#1A3E6E' },
-  chipText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#555555' },
+  chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: '#FFFFFF', marginRight: 8, borderWidth: 1, borderColor: '#E5EFFF' },
+  chipActive: { backgroundColor: '#1555E8', borderColor: '#1555E8' },
+  chipText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#4B5875' },
   chipTextActive: { color: '#FFFFFF' },
   gridContent: { paddingHorizontal: 12, paddingBottom: 100 },
   gridCard: { flex: 1, margin: 4, backgroundColor: '#FFFFFF', borderRadius: 12, overflow: 'hidden', shadowOffset: { width: 0, height: 1 }, shadowRadius: 2, shadowOpacity: 0.06, shadowColor: 'rgba(26,62,110,0.12)', elevation: 1 },
   gridCardHeader: { height: 40, justifyContent: 'center', alignItems: 'center' },
   gridCardIcon: { fontSize: 20 },
   gridCardBody: { padding: 10 },
-  gridCardTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: '#1A1A2E', marginBottom: 6 },
-  gridCardStars: { fontFamily: 'Inter_700Bold', fontSize: 14, color: '#1A1A2E' },
+  gridCardTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: '#16244D', marginBottom: 6 },
+  gridCardStars: { fontFamily: 'Inter_700Bold', fontSize: 14, color: '#16244D' },
   gridCardMilestone: { fontFamily: 'Inter_400Regular', fontSize: 11, color: '#7B2D8B', marginTop: 4 },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 48 },
-  emptyText: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#555555' },
+  emptyText: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#4B5875' },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 48 },
-  dragHandle: { width: 40, height: 4, backgroundColor: '#E8F2FB', borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
+  dragHandle: { width: 40, height: 4, backgroundColor: '#E5EFFF', borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
   previewCatBadge: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginBottom: 12 },
   previewCatText: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
-  previewTitle: { fontFamily: 'Inter_700Bold', fontSize: 22, color: '#1A1A2E', marginBottom: 8 },
-  previewDesc: { fontFamily: 'Inter_400Regular', fontSize: 15, color: '#555555', lineHeight: 22, marginBottom: 12 },
-  previewStars: { fontFamily: 'Inter_700Bold', fontSize: 20, color: '#1A1A2E', marginBottom: 12 },
+  previewTitle: { fontFamily: 'Inter_700Bold', fontSize: 22, color: '#16244D', marginBottom: 8 },
+  previewDesc: { fontFamily: 'Inter_400Regular', fontSize: 15, color: '#4B5875', lineHeight: 22, marginBottom: 12 },
+  previewStars: { fontFamily: 'Inter_700Bold', fontSize: 20, color: '#16244D', marginBottom: 12 },
   previewMeta: { flexDirection: 'row', gap: 8, marginBottom: 24 },
-  previewMetaText: { fontFamily: 'Inter_500Medium', fontSize: 12, color: '#555555', backgroundColor: '#F8FAFC', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  postButton: { backgroundColor: '#1A3E6E', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 10 },
+  previewMetaText: { fontFamily: 'Inter_500Medium', fontSize: 12, color: '#4B5875', backgroundColor: '#F5F8FF', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
+  postButton: { backgroundColor: '#1555E8', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 10 },
   postButtonText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#FFFFFF' },
-  customizeButton: { borderWidth: 1, borderColor: '#1A3E6E', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginBottom: 10 },
-  customizeText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#1A3E6E' },
+  customizeButton: { borderWidth: 1, borderColor: '#1555E8', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginBottom: 10 },
+  customizeText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#1555E8' },
   closeButton: { alignItems: 'center', paddingVertical: 12 },
-  closeText: { fontFamily: 'Inter_500Medium', fontSize: 16, color: '#9CA3AF' },
+  closeText: { fontFamily: 'Inter_500Medium', fontSize: 16, color: '#6C7893' },
 });

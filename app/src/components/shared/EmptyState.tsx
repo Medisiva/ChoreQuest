@@ -42,20 +42,20 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'Inter_700Bold',
     fontSize: 20,
-    color: '#1A1A2E',
+    color: '#16244D',
     marginBottom: 8,
     textAlign: 'center',
   },
   description: {
     fontFamily: 'Inter_400Regular',
     fontSize: 15,
-    color: '#555555',
+    color: '#4B5875',
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
   },
   actionButton: {
-    backgroundColor: '#1A3E6E',
+    backgroundColor: '#1555E8',
     paddingVertical: 14,
     paddingHorizontal: 32,
     borderRadius: 12,

@@ -135,7 +135,7 @@ export default function RequestWizard() {
             <TextInput
               style={styles.input}
               placeholder="e.g. Take me to the park"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="#6C7893"
               value={title}
               onChangeText={setTitle}
               maxLength={60}
@@ -146,7 +146,7 @@ export default function RequestWizard() {
             <TextInput
               style={[styles.input, styles.inputMultiline]}
               placeholder="e.g. I really want to go because it's sunny!"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="#6C7893"
               value={description}
               onChangeText={setDescription}
               maxLength={100}
@@ -223,32 +223,32 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF0F6' },
   content: { padding: 24, paddingBottom: 48 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  backText: { fontFamily: 'Inter_500Medium', fontSize: 16, color: '#FF6B6B' },
-  limitText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#555555' },
+  backText: { fontFamily: 'Inter_500Medium', fontSize: 16, color: '#FF6688' },
+  limitText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#4B5875' },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 24 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E8F2FB' },
-  dotActive: { backgroundColor: '#FF6B6B', width: 24 },
-  stepTitle: { fontFamily: 'Nunito_700Bold', fontSize: 24, color: '#1A1A2E', marginBottom: 20, textAlign: 'center' },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E5EFFF' },
+  dotActive: { backgroundColor: '#FF6688', width: 24 },
+  stepTitle: { fontFamily: 'Nunito_700Bold', fontSize: 24, color: '#16244D', marginBottom: 20, textAlign: 'center' },
   categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center' },
   categoryTile: { width: '45%', paddingVertical: 28, borderRadius: 16, alignItems: 'center', gap: 8 },
   categoryIcon: { fontSize: 32 },
   categoryLabel: { fontFamily: 'Nunito_700Bold', fontSize: 15 },
-  input: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E8F2FB', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontFamily: 'Inter_400Regular', fontSize: 16, color: '#1A1A2E' },
+  input: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5EFFF', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontFamily: 'Inter_400Regular', fontSize: 16, color: '#16244D' },
   inputMultiline: { height: 80, textAlignVertical: 'top' },
-  charCount: { fontFamily: 'Inter_400Regular', fontSize: 12, color: '#9CA3AF', textAlign: 'right', marginTop: 4, marginBottom: 16 },
-  label: { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: '#1A1A2E', marginTop: 16, marginBottom: 8 },
+  charCount: { fontFamily: 'Inter_400Regular', fontSize: 12, color: '#6C7893', textAlign: 'right', marginTop: 4, marginBottom: 16 },
+  label: { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: '#16244D', marginTop: 16, marginBottom: 8 },
   suggestionsRow: { marginBottom: 24 },
   suggestionChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#FFFFFF', marginRight: 8, borderWidth: 1, borderColor: '#FFF0F6' },
-  suggestionText: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#555555' },
-  nextButton: { backgroundColor: '#FF6B6B', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
+  suggestionText: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#4B5875' },
+  nextButton: { backgroundColor: '#FF6688', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
   nextDisabled: { opacity: 0.4 },
   nextText: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#FFFFFF' },
   starPicker: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 24, marginVertical: 32 },
   starBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center', shadowOffset: { width: 0, height: 2 }, shadowRadius: 4, shadowOpacity: 0.1, shadowColor: '#000' },
-  starBtnText: { fontSize: 28, color: '#1A1A2E', fontWeight: '700' },
-  starDisplay: { fontFamily: 'Nunito_800ExtraBold', fontSize: 48, color: '#1A1A2E' },
-  helperText: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#555555', textAlign: 'center', marginBottom: 32 },
-  sendButton: { backgroundColor: '#FF6B6B', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
+  starBtnText: { fontSize: 28, color: '#16244D', fontWeight: '700' },
+  starDisplay: { fontFamily: 'Nunito_800ExtraBold', fontSize: 48, color: '#16244D' },
+  helperText: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#4B5875', textAlign: 'center', marginBottom: 32 },
+  sendButton: { backgroundColor: '#FF6688', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
   sendText: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#FFFFFF' },
-  footnote: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#9CA3AF', textAlign: 'center', marginTop: 16 },
+  footnote: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#6C7893', textAlign: 'center', marginTop: 16 },
 });

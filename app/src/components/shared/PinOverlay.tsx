@@ -1,3 +1,4 @@
+import KidAvatar from '@/components/shared/KidAvatar';
 // PIN entry overlay for child profile access
 // Full-screen modal slides up with Reanimated.
 // Shows child avatar + nickname, 4 large circular PIN dots, number pad.
@@ -132,7 +133,7 @@ export default function PinOverlay({
           {/* Child Info */}
           <View style={styles.childInfo}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarEmoji}>😊</Text>
+              <KidAvatar avatarId={child.avatarId} size={64} />
             </View>
             <Text style={styles.childName}>{child.nickname}</Text>
           </View>
@@ -149,7 +150,7 @@ export default function PinOverlay({
           {loading && (
             <ActivityIndicator
               size="small"
-              color="#1A3E6E"
+              color="#1555E8"
               style={styles.loader}
             />
           )}
@@ -241,7 +242,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#F0F9FF',
+    backgroundColor: '#EEF6FF',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -252,7 +253,7 @@ const styles = StyleSheet.create({
   childName: {
     fontFamily: 'Inter_700Bold',
     fontSize: 22,
-    color: '#1A1A2E',
+    color: '#16244D',
   },
   dotsRow: {
     flexDirection: 'row',
@@ -264,11 +265,11 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#1A3E6E',
+    borderColor: '#1555E8',
     backgroundColor: 'transparent',
   },
   dotFilled: {
-    backgroundColor: '#1A3E6E',
+    backgroundColor: '#1555E8',
   },
   dotError: {
     backgroundColor: '#9B1C1C',
@@ -295,7 +296,7 @@ const styles = StyleSheet.create({
   lockedText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 16,
-    color: '#555555',
+    color: '#4B5875',
   },
   numPad: {
     marginTop: 8,
@@ -309,14 +310,14 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F5F8FF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   numKeyText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 28,
-    color: '#1A1A2E',
+    color: '#16244D',
   },
   cancelButton: {
     marginTop: 20,
@@ -326,6 +327,6 @@ const styles = StyleSheet.create({
   cancelText: {
     fontFamily: 'Inter_500Medium',
     fontSize: 16,
-    color: '#4A90D9',
+    color: '#2563EB',
   },
 });

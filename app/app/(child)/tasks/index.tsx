@@ -18,7 +18,7 @@ import { useChildSessionStore } from '@/stores/childSessionStore';
 import type { Task, TaskClaim, Category } from '@/types';
 
 const CATEGORIES: { label: string; value: Category | 'All'; icon: string; deep: string; light: string }[] = [
-  { label: 'All', value: 'All', icon: '✨', deep: '#1A3E6E', light: '#E8F2FB' },
+  { label: 'All', value: 'All', icon: '✨', deep: '#1555E8', light: '#E5EFFF' },
   { label: 'Household', value: 'Household', icon: '🏠', deep: '#1B6CA8', light: '#DBEAFE' },
   { label: 'Learning', value: 'Learning', icon: '📚', deep: '#7B2D8B', light: '#EDE9FE' },
   { label: 'Life Skills', value: 'LifeSkills', icon: '🌱', deep: '#0D7377', light: '#CCFBF1' },
@@ -62,11 +62,11 @@ export default function TaskFeedScreen() {
           activeOpacity={0.7}
           disabled={!!isClaimedBySibling}
         >
-          <View style={[styles.categoryBorder, { backgroundColor: catInfo?.deep ?? '#1A3E6E' }]} />
+          <View style={[styles.categoryBorder, { backgroundColor: catInfo?.deep ?? '#1555E8' }]} />
           <View style={styles.taskContent}>
             <View style={styles.taskHeader}>
               <Text style={styles.categoryIcon}>{catInfo?.icon}</Text>
-              <View style={[styles.categoryBadge, { backgroundColor: catInfo?.light ?? '#E8F2FB' }]}>
+              <View style={[styles.categoryBadge, { backgroundColor: catInfo?.light ?? '#E5EFFF' }]}>
                 <Text style={[styles.categoryBadgeText, { color: catInfo?.deep }]}>{item.category}</Text>
               </View>
               {item.isMilestone && (
@@ -155,10 +155,10 @@ function getDifficultyBg(d: string) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { paddingHorizontal: 16, paddingVertical: 12 },
-  heading: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#1A1A2E' },
+  heading: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#16244D' },
   filterRow: { paddingHorizontal: 16, paddingBottom: 12, gap: 8 },
-  filterChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#F0F9FF', marginRight: 8 },
-  filterChipText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#555555' },
+  filterChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#EEF6FF', marginRight: 8 },
+  filterChipText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#4B5875' },
   filterChipTextActive: { color: '#FFFFFF' },
   claimBanner: { backgroundColor: '#FEF3C7', marginHorizontal: 16, marginBottom: 8, padding: 12, borderRadius: 12 },
   claimBannerText: { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: '#92400E' },
@@ -173,16 +173,16 @@ const styles = StyleSheet.create({
   categoryBadgeText: { fontFamily: 'Inter_500Medium', fontSize: 11 },
   milestoneBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: '#EDE9FE' },
   milestoneBadgeText: { fontFamily: 'Inter_500Medium', fontSize: 11, color: '#7B2D8B' },
-  taskTitle: { fontFamily: 'Nunito_700Bold', fontSize: 16, color: '#1A1A2E', marginBottom: 4 },
-  taskTitleClaimed: { color: '#9CA3AF' },
-  taskDescription: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#555555', marginBottom: 8 },
+  taskTitle: { fontFamily: 'Nunito_700Bold', fontSize: 16, color: '#16244D', marginBottom: 4 },
+  taskTitleClaimed: { color: '#6C7893' },
+  taskDescription: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#4B5875', marginBottom: 8 },
   taskFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  starValue: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#1A1A2E' },
+  starValue: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#16244D' },
   difficultyBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  difficultyText: { fontFamily: 'Inter_500Medium', fontSize: 11, color: '#1A1A2E' },
-  lockedText: { fontFamily: 'Inter_500Medium', fontSize: 12, color: '#9CA3AF', marginTop: 6 },
+  difficultyText: { fontFamily: 'Inter_500Medium', fontSize: 11, color: '#16244D' },
+  lockedText: { fontFamily: 'Inter_500Medium', fontSize: 12, color: '#6C7893', marginTop: 6 },
   myClaimText: { fontFamily: 'Inter_500Medium', fontSize: 12, color: '#B45309', marginTop: 6 },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 48 },
   emptyEmoji: { fontSize: 48, marginBottom: 16 },
-  emptyText: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#555555', textAlign: 'center', lineHeight: 24 },
+  emptyText: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#4B5875', textAlign: 'center', lineHeight: 24 },
 });

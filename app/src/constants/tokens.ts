@@ -4,20 +4,20 @@
 
 export const colors = {
   // Brand
-  navy900: '#1A3E6E',
-  navy700: '#2E6DB4',
-  navy500: '#4A90D9',
-  navy50: '#E8F2FB',
-  ink950: '#1A1A2E',
-  ink600: '#555555',
-  ink400: '#9CA3AF',
-  ink50: '#F8FAFC',
+  navy900: '#1555E8',
+  navy700: '#254BC4',
+  navy500: '#2563EB',
+  navy50: '#E5EFFF',
+  ink950: '#16244D',
+  ink600: '#4B5875',
+  ink400: '#6C7893',
+  ink50: '#F5F8FF',
   // Child accents
-  starGold: '#FFD700',
-  coral: '#FF6B6B',
-  skyBlue: '#4FC3F7',
-  softPurple: '#A78BFA',
-  cloud: '#F0F9FF',
+  starGold: '#FFDC45',
+  coral: '#FF6688',
+  skyBlue: '#36BEFA',
+  softPurple: '#AC8BFA',
+  cloud: '#EEF6FF',
   cream: '#FFF8DC',
   blush: '#FFF0F6',
   // Categories
@@ -56,9 +56,9 @@ export const spacing = {
 
 export const radius = {
   sm: 6,
-  md: 12,
-  lg: 16,
-  xl: 24,
+  md: 16,
+  lg: 22,
+  xl: 28,
   full: 9999,
 } as const;
 

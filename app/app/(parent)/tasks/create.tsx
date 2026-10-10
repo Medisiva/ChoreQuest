@@ -58,7 +58,7 @@ const DIFFICULTIES: { key: Difficulty; label: string; color: string }[] = [
   { key: 'Easy', label: 'Easy', color: '#1B7A34' },
   { key: 'Medium', label: 'Medium', color: '#B45309' },
   { key: 'Hard', label: 'Hard', color: '#9B1C1C' },
-  { key: 'AdultSupervised', label: 'Adult Supervised', color: '#A78BFA' },
+  { key: 'AdultSupervised', label: 'Adult Supervised', color: '#AC8BFA' },
 ];
 
 const RECURRENCE_OPTIONS: { key: Recurrence; label: string }[] = [
@@ -194,7 +194,7 @@ export default function CreateTaskScreen() {
             <TextInput
               style={[styles.textInput, errors.title && styles.textInputError]}
               placeholder="e.g. Make your bed"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="#6C7893"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -217,7 +217,7 @@ export default function CreateTaskScreen() {
             <TextInput
               style={[styles.textInput, styles.textArea]}
               placeholder="Optional details about this task..."
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="#6C7893"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -353,8 +353,8 @@ export default function CreateTaskScreen() {
             <Switch
               value={value}
               onValueChange={onChange}
-              trackColor={{ false: '#9CA3AF', true: '#4A90D9' }}
-              thumbColor={value ? '#1A3E6E' : '#FFFFFF'}
+              trackColor={{ false: '#6C7893', true: '#2563EB' }}
+              thumbColor={value ? '#1555E8' : '#FFFFFF'}
             />
           )}
         />
@@ -452,8 +452,8 @@ export default function CreateTaskScreen() {
             <Switch
               value={value}
               onValueChange={onChange}
-              trackColor={{ false: '#9CA3AF', true: '#4A90D9' }}
-              thumbColor={value ? '#1A3E6E' : '#FFFFFF'}
+              trackColor={{ false: '#6C7893', true: '#2563EB' }}
+              thumbColor={value ? '#1555E8' : '#FFFFFF'}
             />
           )}
         />
@@ -472,8 +472,8 @@ export default function CreateTaskScreen() {
             <Switch
               value={value}
               onValueChange={onChange}
-              trackColor={{ false: '#9CA3AF', true: '#4A90D9' }}
-              thumbColor={value ? '#1A3E6E' : '#FFFFFF'}
+              trackColor={{ false: '#6C7893', true: '#2563EB' }}
+              thumbColor={value ? '#1555E8' : '#FFFFFF'}
             />
           )}
         />
@@ -644,7 +644,7 @@ export default function CreateTaskScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F5F8FF',
   },
   flex: {
     flex: 1,
@@ -669,13 +669,13 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#4A90D9',
+    color: '#2563EB',
     fontWeight: '600',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: '#16244D',
   },
   headerSpacer: {
     minWidth: 60,
@@ -695,10 +695,10 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   dotActive: {
-    backgroundColor: '#1A3E6E',
+    backgroundColor: '#1555E8',
   },
   dotInactive: {
-    backgroundColor: '#9CA3AF',
+    backgroundColor: '#6C7893',
   },
 
   // Step Content
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: '#16244D',
     marginBottom: 20,
   },
 
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#555555',
+    color: '#4B5875',
     marginBottom: 8,
     marginTop: 16,
   },
@@ -728,7 +728,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#1A1A2E',
+    color: '#16244D',
   },
   textInputError: {
     borderColor: '#9B1C1C',
@@ -738,7 +738,7 @@ const styles = StyleSheet.create({
   },
   charCounter: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: '#6C7893',
     textAlign: 'right',
     marginTop: 4,
   },
@@ -795,7 +795,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   ageGroupSelected: {
-    borderColor: '#1A3E6E',
+    borderColor: '#1555E8',
     backgroundColor: '#DBEAFE',
   },
   radioOuter: {
@@ -803,27 +803,27 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#9CA3AF',
+    borderColor: '#6C7893',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
   },
   radioOuterSelected: {
-    borderColor: '#1A3E6E',
+    borderColor: '#1555E8',
   },
   radioInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#1A3E6E',
+    backgroundColor: '#1555E8',
   },
   ageGroupLabel: {
     fontSize: 14,
-    color: '#555555',
+    color: '#4B5875',
     fontWeight: '500',
   },
   ageGroupLabelSelected: {
-    color: '#1A3E6E',
+    color: '#1555E8',
     fontWeight: '700',
   },
 
@@ -839,7 +839,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#1A3E6E',
+    backgroundColor: '#1555E8',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -854,7 +854,7 @@ const styles = StyleSheet.create({
   starValueText: {
     fontSize: 48,
     fontWeight: '800',
-    color: '#1A3E6E',
+    color: '#1555E8',
   },
   starEmoji: {
     fontSize: 20,
@@ -899,11 +899,11 @@ const styles = StyleSheet.create({
   toggleLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: '#16244D',
   },
   toggleHint: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: '#6C7893',
     marginTop: 2,
   },
 
@@ -939,13 +939,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   recurrenceButtonSelected: {
-    borderColor: '#1A3E6E',
-    backgroundColor: '#1A3E6E',
+    borderColor: '#1555E8',
+    backgroundColor: '#1555E8',
   },
   recurrenceLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#555555',
+    color: '#4B5875',
   },
   recurrenceLabelSelected: {
     color: '#FFFFFF',
@@ -964,7 +964,7 @@ const styles = StyleSheet.create({
   },
   deadlinePlaceholderText: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: '#6C7893',
     fontStyle: 'italic',
   },
 
@@ -984,12 +984,12 @@ const styles = StyleSheet.create({
   reviewTaskTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: '#16244D',
     marginBottom: 4,
   },
   reviewDescription: {
     fontSize: 14,
-    color: '#555555',
+    color: '#4B5875',
     marginBottom: 12,
   },
   categoryBadge: {
@@ -1016,11 +1016,11 @@ const styles = StyleSheet.create({
   reviewStarValue: {
     fontSize: 40,
     fontWeight: '800',
-    color: '#1A3E6E',
+    color: '#1555E8',
   },
   reviewStarLabel: {
     fontSize: 16,
-    color: '#555555',
+    color: '#4B5875',
     marginTop: 2,
   },
   reviewGrid: {
@@ -1033,13 +1033,13 @@ const styles = StyleSheet.create({
   },
   reviewGridLabel: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: '#6C7893',
     marginBottom: 2,
   },
   reviewGridValue: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: '#16244D',
   },
   reviewMilestone: {
     backgroundColor: '#EDE9FE',
@@ -1078,7 +1078,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
   },
   nextButton: {
-    backgroundColor: '#4A90D9',
+    backgroundColor: '#2563EB',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
@@ -1092,7 +1092,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   postButton: {
-    backgroundColor: '#1A3E6E',
+    backgroundColor: '#1555E8',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',

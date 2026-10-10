@@ -126,7 +126,7 @@ export default function TaskDetailScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Category banner */}
-      <View style={[styles.banner, { backgroundColor: catConfig?.deep ?? '#1A3E6E' }]}>
+      <View style={[styles.banner, { backgroundColor: catConfig?.deep ?? '#1555E8' }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
@@ -240,33 +240,33 @@ function getDifficultyBg(d: string) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
-  notFound: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#555555', textAlign: 'center', marginTop: 100 },
+  notFound: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#4B5875', textAlign: 'center', marginTop: 100 },
   banner: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
   backBtn: { padding: 8 },
   backText: { fontSize: 24, color: '#FFFFFF' },
   bannerIcon: { fontSize: 24 },
   bannerLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#FFFFFF' },
   content: { padding: 24, paddingBottom: 48 },
-  title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#1A1A2E', marginBottom: 8 },
-  description: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#555555', lineHeight: 24, marginBottom: 20 },
+  title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#16244D', marginBottom: 8 },
+  description: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#4B5875', lineHeight: 24, marginBottom: 20 },
   starBlock: { alignItems: 'center', marginVertical: 24 },
-  starBig: { fontFamily: 'Nunito_800ExtraBold', fontSize: 48, color: '#1A1A2E' },
-  starLabel: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#9CA3AF', marginTop: 4 },
+  starBig: { fontFamily: 'Nunito_800ExtraBold', fontSize: 48, color: '#16244D' },
+  starLabel: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#6C7893', marginTop: 4 },
   infoRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 20 },
-  infoBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: '#F8FAFC' },
-  infoText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#1A1A2E' },
+  infoBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: '#F5F8FF' },
+  infoText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#16244D' },
   photoNotice: { backgroundColor: '#FEF3C7', padding: 12, borderRadius: 12, marginBottom: 12 },
   photoNoticeText: { fontFamily: 'Inter_500Medium', fontSize: 14, color: '#92400E' },
   milestoneNotice: { backgroundColor: '#EDE9FE', padding: 12, borderRadius: 12, marginBottom: 20 },
   milestoneText: { fontFamily: 'Inter_500Medium', fontSize: 14, color: '#7B2D8B' },
-  claimedNotice: { backgroundColor: '#F8FAFC', padding: 16, borderRadius: 12, alignItems: 'center' },
-  claimedText: { fontFamily: 'Inter_500Medium', fontSize: 14, color: '#9CA3AF' },
+  claimedNotice: { backgroundColor: '#F5F8FF', padding: 16, borderRadius: 12, alignItems: 'center' },
+  claimedText: { fontFamily: 'Inter_500Medium', fontSize: 14, color: '#6C7893' },
   claimButton: { backgroundColor: '#1B7A34', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
   claimButtonText: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#FFFFFF' },
-  submitButton: { backgroundColor: '#FFD700', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
-  submitButtonText: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#1A1A2E' },
+  submitButton: { backgroundColor: '#FFDC45', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
+  submitButtonText: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#16244D' },
   releaseLink: { alignItems: 'center', marginTop: 16 },
-  releaseLinkText: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#9CA3AF' },
+  releaseLinkText: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#6C7893' },
   waitingState: { backgroundColor: '#FEF3C7', padding: 20, borderRadius: 12, alignItems: 'center' },
   waitingText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#92400E' },
   approvedState: { backgroundColor: '#D1FAE5', padding: 20, borderRadius: 12, alignItems: 'center' },

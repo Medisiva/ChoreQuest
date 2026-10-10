@@ -19,6 +19,7 @@ function fixture() {
       if (name === 'expo-router') return { useRouter: () => ({ replace: route => calls.push({ route }) }) };
       if (name === '@/services/families') return { setupFamily: async payload => calls.push({ payload }) };
       if (name === '@/stores/authStore') return { useAuthStore: () => ({ user }) };
+      if (name === '@/components/shared/PlaygroundHero') return { default: () => null };
       if (name === '@/components/shared/AvatarPicker') return { default: ({ onSelect }) => React.createElement('AvatarPicker', { onSelect }) };
       if (name === '@/constants/tokens') return load('../src/constants/tokens.ts');
       if (name === '@/services/onboardingDraft') return load('../src/services/onboardingDraft.ts');

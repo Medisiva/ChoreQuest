@@ -112,7 +112,7 @@ export default function SettingsScreen() {
           <Switch
             value={leaderboardEnabled}
             onValueChange={setLeaderboardEnabled}
-            trackColor={{ true: '#1A3E6E', false: '#E8F2FB' }}
+            trackColor={{ true: '#1555E8', false: '#E5EFFF' }}
             thumbColor="#FFFFFF"
           />
         </View>
@@ -121,7 +121,7 @@ export default function SettingsScreen() {
           <Switch
             value={notificationsEnabled}
             onValueChange={setNotificationsEnabled}
-            trackColor={{ true: '#1A3E6E', false: '#E8F2FB' }}
+            trackColor={{ true: '#1555E8', false: '#E5EFFF' }}
             thumbColor="#FFFFFF"
           />
         </View>
@@ -130,7 +130,7 @@ export default function SettingsScreen() {
         <Text style={styles.sectionLabel}>YOUR DATA</Text>
         <TouchableOpacity style={styles.card} onPress={handleExportData} disabled={exporting}>
           <Text style={styles.cardLabel}>Export family data</Text>
-          {exporting ? <ActivityIndicator size="small" color="#1A3E6E" /> : <Text style={styles.cardArrow}>↓</Text>}
+          {exporting ? <ActivityIndicator size="small" color="#1555E8" /> : <Text style={styles.cardArrow}>↓</Text>}
         </TouchableOpacity>
         <TouchableOpacity style={[styles.card, styles.dangerCard]} onPress={handleDeleteAccount}>
           <Text style={styles.dangerLabel}>Delete account</Text>
@@ -149,18 +149,18 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: '#F5F8FF' },
   content: { padding: 24, paddingBottom: 48 },
-  heading: { fontFamily: 'Inter_700Bold', fontSize: 28, color: '#1A1A2E', marginBottom: 24 },
-  sectionLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 12, color: '#9CA3AF', letterSpacing: 1, marginTop: 24, marginBottom: 8 },
+  heading: { fontFamily: 'Inter_700Bold', fontSize: 28, color: '#16244D', marginBottom: 24 },
+  sectionLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 12, color: '#6C7893', letterSpacing: 1, marginTop: 24, marginBottom: 8 },
   card: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, marginBottom: 8 },
-  cardLabel: { fontFamily: 'Inter_500Medium', fontSize: 15, color: '#1A1A2E' },
-  cardValue: { fontFamily: 'Inter_400Regular', fontSize: 15, color: '#555555' },
-  cardArrow: { fontSize: 18, color: '#9CA3AF' },
+  cardLabel: { fontFamily: 'Inter_500Medium', fontSize: 15, color: '#16244D' },
+  cardValue: { fontFamily: 'Inter_400Regular', fontSize: 15, color: '#4B5875' },
+  cardArrow: { fontSize: 18, color: '#6C7893' },
   dangerCard: { borderWidth: 1, borderColor: '#FEE2E2' },
   dangerLabel: { fontFamily: 'Inter_500Medium', fontSize: 15, color: '#9B1C1C' },
   dangerArrow: { fontSize: 18, color: '#9B1C1C' },
-  signOutButton: { marginTop: 32, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E8F2FB', borderRadius: 12, paddingVertical: 16, alignItems: 'center' },
-  signOutText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#1A3E6E' },
-  version: { fontFamily: 'Inter_400Regular', fontSize: 12, color: '#9CA3AF', textAlign: 'center', marginTop: 24 },
+  signOutButton: { marginTop: 32, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5EFFF', borderRadius: 12, paddingVertical: 16, alignItems: 'center' },
+  signOutText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#1555E8' },
+  version: { fontFamily: 'Inter_400Regular', fontSize: 12, color: '#6C7893', textAlign: 'center', marginTop: 24 },
 });

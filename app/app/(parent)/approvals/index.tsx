@@ -124,7 +124,7 @@ export default function ApprovalQueueScreen() {
           onPress={() => setSelectedClaim(item)}
           activeOpacity={0.7}
         >
-          <View style={[styles.catBorder, { backgroundColor: CATEGORY_DEEP[category] ?? '#1A3E6E' }]} />
+          <View style={[styles.catBorder, { backgroundColor: CATEGORY_DEEP[category] ?? '#1555E8' }]} />
           <View style={styles.claimBody}>
             <View style={styles.claimHeader}>
               <Text style={styles.childAvatar}>😊</Text>
@@ -198,7 +198,7 @@ export default function ApprovalQueueScreen() {
                 <TextInput
                   style={styles.rejectInput}
                   placeholder="Reason for sending back..."
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#6C7893"
                   value={rejectReason}
                   onChangeText={setRejectReason}
                   maxLength={200}
@@ -220,9 +220,9 @@ export default function ApprovalQueueScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: '#F5F8FF' },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, gap: 10 },
-  heading: { fontFamily: 'Inter_700Bold', fontSize: 22, color: '#1A1A2E' },
+  heading: { fontFamily: 'Inter_700Bold', fontSize: 22, color: '#16244D' },
   countBadge: { backgroundColor: '#B45309', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
   countText: { fontFamily: 'Inter_700Bold', fontSize: 13, color: '#FFFFFF' },
   batchButton: { marginHorizontal: 16, marginBottom: 12, backgroundColor: '#1B7A34', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
@@ -233,25 +233,25 @@ const styles = StyleSheet.create({
   claimBody: { flex: 1, padding: 14 },
   claimHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   childAvatar: { fontSize: 18 },
-  childName: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#555555' },
-  taskTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: '#1A1A2E', marginBottom: 6 },
+  childName: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#4B5875' },
+  taskTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: '#16244D', marginBottom: 6 },
   claimFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  starValue: { fontFamily: 'Inter_700Bold', fontSize: 16, color: '#1A1A2E' },
-  photoTag: { fontFamily: 'Inter_500Medium', fontSize: 12, color: '#4A90D9' },
+  starValue: { fontFamily: 'Inter_700Bold', fontSize: 16, color: '#16244D' },
+  photoTag: { fontFamily: 'Inter_500Medium', fontSize: 12, color: '#2563EB' },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 48 },
   emptyEmoji: { fontSize: 48, marginBottom: 16 },
-  emptyText: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#555555', textAlign: 'center' },
+  emptyText: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#4B5875', textAlign: 'center' },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 48 },
-  dragHandle: { width: 40, height: 4, backgroundColor: '#E8F2FB', borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
-  modalTitle: { fontFamily: 'Inter_700Bold', fontSize: 20, color: '#1A1A2E', marginBottom: 4 },
-  modalChild: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#555555', marginBottom: 12 },
-  modalStars: { fontFamily: 'Inter_700Bold', fontSize: 24, color: '#1A1A2E', marginBottom: 20 },
+  dragHandle: { width: 40, height: 4, backgroundColor: '#E5EFFF', borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
+  modalTitle: { fontFamily: 'Inter_700Bold', fontSize: 20, color: '#16244D', marginBottom: 4 },
+  modalChild: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#4B5875', marginBottom: 12 },
+  modalStars: { fontFamily: 'Inter_700Bold', fontSize: 24, color: '#16244D', marginBottom: 20 },
   approveButton: { backgroundColor: '#1B7A34', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 12 },
   approveText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#FFFFFF' },
-  rejectInput: { borderWidth: 1, borderColor: '#E8F2FB', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontFamily: 'Inter_400Regular', fontSize: 14, color: '#1A1A2E', marginBottom: 12 },
+  rejectInput: { borderWidth: 1, borderColor: '#E5EFFF', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontFamily: 'Inter_400Regular', fontSize: 14, color: '#16244D', marginBottom: 12 },
   rejectButton: { backgroundColor: '#9B1C1C', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 12 },
   rejectText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#FFFFFF' },
   cancelButton: { alignItems: 'center', paddingVertical: 12 },
-  cancelText: { fontFamily: 'Inter_500Medium', fontSize: 16, color: '#4A90D9' },
+  cancelText: { fontFamily: 'Inter_500Medium', fontSize: 16, color: '#2563EB' },
 });

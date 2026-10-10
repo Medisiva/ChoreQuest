@@ -41,10 +41,10 @@ export default function ResetPinScreen() {
   </ScrollView></SafeAreaView>;
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F8FAFC' }, content: { padding: 24, gap: 16 },
-  link: { color: '#1A3E6E', fontSize: 16, paddingVertical: 8 }, title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#1A3E6E' },
-  description: { fontSize: 16, color: '#555', lineHeight: 24 }, label: { fontSize: 16, color: '#1A1A2E' },
-  choice: { padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#DCE4ED', backgroundColor: '#FFF' }, selected: { borderColor: '#1A3E6E', backgroundColor: '#E8F2FB' },
+  screen: { flex: 1, backgroundColor: '#F5F8FF' }, content: { padding: 24, gap: 16 },
+  link: { color: '#1555E8', fontSize: 16, paddingVertical: 8 }, title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#1555E8' },
+  description: { fontSize: 16, color: '#555', lineHeight: 24 }, label: { fontSize: 16, color: '#16244D' },
+  choice: { padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#DCE4ED', backgroundColor: '#FFF' }, selected: { borderColor: '#1555E8', backgroundColor: '#E5EFFF' },
   input: { padding: 16, borderWidth: 1, borderColor: '#DCE4ED', borderRadius: 12, backgroundColor: '#FFF', fontSize: 22 },
-  button: { backgroundColor: '#1A3E6E', padding: 18, borderRadius: 12, alignItems: 'center' }, buttonText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+  button: { backgroundColor: '#1555E8', padding: 18, borderRadius: 12, alignItems: 'center' }, buttonText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
 });

@@ -43,8 +43,8 @@ function QuestForm({ task }: { task: Task }) {
   </ScrollView></SafeAreaView>;
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F8FAFC' }, content: { padding: 24, gap: 16 },
-  title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#1A3E6E' }, label: { fontSize: 16, color: '#1A1A2E' }, description: { fontSize: 15, lineHeight: 22, color: '#555', padding: 16 },
+  screen: { flex: 1, backgroundColor: '#F5F8FF' }, content: { padding: 24, gap: 16 },
+  title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#1555E8' }, label: { fontSize: 16, color: '#16244D' }, description: { fontSize: 15, lineHeight: 22, color: '#555', padding: 16 },
   input: { padding: 16, borderWidth: 1, borderColor: '#DCE4ED', borderRadius: 12, fontSize: 16, backgroundColor: '#FFF' }, multiline: { minHeight: 120, textAlignVertical: 'top' },
-  button: { padding: 18, alignItems: 'center', backgroundColor: '#1A3E6E', borderRadius: 12 }, buttonText: { color: '#FFF', fontSize: 16, fontWeight: '600' }, link: { fontSize: 16, color: '#1A3E6E', paddingVertical: 8 },
+  button: { padding: 18, alignItems: 'center', backgroundColor: '#1555E8', borderRadius: 12 }, buttonText: { color: '#FFF', fontSize: 16, fontWeight: '600' }, link: { fontSize: 16, color: '#1555E8', paddingVertical: 8 },
 });

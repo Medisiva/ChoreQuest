@@ -1,3 +1,4 @@
+import PlaygroundHero from '@/components/shared/PlaygroundHero';
 // C-01: Child Home Screen
 // Hero greeting, weekly progress, active quest, streak, consequences, badges, quick actions.
 // Uses childSessionStore to identify active child, familyStore for profile, taskStore for claims.
@@ -23,50 +24,6 @@ import {
   layout,
   shadows,
 } from '@/constants/tokens';
-import WeeklyProgressBar from '@/components/child/WeeklyProgressBar';
-import WeeklyCountdown from '@/components/child/WeeklyCountdown';
-import WeeklyFuelGauge from '@/components/child/WeeklyFuelGauge';
-import ConsequenceCard from '@/components/child/ConsequenceCard';
-import type { ProgressDisplayStyle } from '@/types';
-
-// ── Mock data (until stores are fully wired) ────────────────────────────────
-
-const MOCK_WEEKLY_PROGRESS = { current: 15, target: 20 };
-
-const MOCK_ACTIVE_CONSEQUENCE = null as {
-  name: string;
-  description: string;
-} | null;
-
-const MOCK_BADGES = [
-  { id: 'B-01', label: 'First Quest', emoji: '🌟' },
-  { id: 'B-02', label: '5-Day Streak', emoji: '🔥' },
-  { id: 'B-03', label: 'Helping Hand', emoji: '🤝' },
-  { id: 'B-04', label: 'Star Collector', emoji: '💎' },
-  { id: 'B-05', label: 'Early Bird', emoji: '🐦' },
-];
-
-// ── Progress Widget ──────────────────────────────────────────────────────────
-
-function ProgressWidget({
-  style,
-  current,
-  target,
-}: {
-  style: ProgressDisplayStyle;
-  current: number;
-  target: number;
-}) {
-  switch (style) {
-    case 'Countdown':
-      return <WeeklyCountdown current={current} target={target} />;
-    case 'FuelGauge':
-      return <WeeklyFuelGauge current={current} target={target} />;
-    case 'ProgressBar':
-    default:
-      return <WeeklyProgressBar current={current} target={target} />;
-  }
-}
 
 // ── Main Screen ──────────────────────────────────────────────────────────────
 
@@ -90,8 +47,6 @@ export default function ChildHome() {
   const nickname = child?.nickname ?? 'Adventurer';
   const starBalance = child?.starBalance ?? 0;
   const streakWeeks = child?.currentStreakWeeks ?? 0;
-  const progressStyle: ProgressDisplayStyle =
-    child?.progressDisplayStyle ?? 'ProgressBar';
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -101,24 +56,11 @@ export default function ChildHome() {
         showsVerticalScrollIndicator={false}
       >
         {/* ── Hero ──────────────────────────────────────────────────── */}
-        <View style={styles.heroSection}>
-          <Text style={styles.greeting}>Hey, {nickname}!</Text>
-          <View style={styles.starRow}>
-            <Text style={styles.starEmoji}>⭐</Text>
-            <Text style={styles.starCount}>{starBalance} stars</Text>
-          </View>
+        <PlaygroundHero title={`Hi, ${nickname}!`} subtitle="You’ve got this. Every little help counts!" avatarId={child?.avatarId} />
+        <View style={[styles.card, { backgroundColor: colors.starGold }]}>
+          <Text style={styles.sectionTitle}>★ {starBalance} stars to spend</Text>
+          <Text style={{ ...typography.childBody, color: colors.ink950 }}>Your weekly goal: {child?.weeklyTargetStars ?? 0} stars</Text>
         </View>
-
-        {/* ── Weekly Progress ───────────────────────────────────────── */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Weekly Progress</Text>
-          <ProgressWidget
-            style={progressStyle}
-            current={MOCK_WEEKLY_PROGRESS.current}
-            target={MOCK_WEEKLY_PROGRESS.target}
-          />
-        </View>
-
         {/* ── Active Quest Banner ───────────────────────────────────── */}
         {activeTask && activeClaim && (
           <TouchableOpacity
@@ -145,31 +87,7 @@ export default function ChildHome() {
           </View>
         )}
 
-        {/* ── Active Consequence ────────────────────────────────────── */}
-        {MOCK_ACTIVE_CONSEQUENCE && (
-          <ConsequenceCard
-            name={MOCK_ACTIVE_CONSEQUENCE.name}
-            description={MOCK_ACTIVE_CONSEQUENCE.description}
-          />
-        )}
-
-        {/* ── Recent Badges ─────────────────────────────────────────── */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Badges</Text>
-        </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.badgeRow}
-        >
-          {MOCK_BADGES.map((badge) => (
-            <View key={badge.id} style={styles.badgeChip}>
-              <Text style={styles.badgeEmoji}>{badge.emoji}</Text>
-              <Text style={styles.badgeLabel}>{badge.label}</Text>
-            </View>
-          ))}
-        </ScrollView>
-
+        {!activeTask && <View style={styles.card}><Text style={styles.sectionTitle}>Ready for your next little win?</Text><Text style={{ ...typography.childBody, color: colors.ink600 }}>Pick a quest, help out, and ask a parent to cheer you on.</Text></View>}
         {/* ── Quick Actions ─────────────────────────────────────────── */}
         <View style={styles.quickActions}>
           <TouchableOpacity
@@ -330,10 +248,10 @@ const styles = StyleSheet.create({
     ...shadows.elevation2,
   },
   actionQuests: {
-    backgroundColor: colors.coral,
+    backgroundColor: colors.starGold,
   },
   actionRequest: {
-    backgroundColor: colors.softPurple,
+    backgroundColor: '#A6EDD5',
   },
   actionEmoji: {
     fontSize: 36,
@@ -341,7 +259,7 @@ const styles = StyleSheet.create({
   },
   actionLabel: {
     ...typography.childButton,
-    color: colors.white,
+    color: colors.ink950,
     textAlign: 'center',
   },
 });

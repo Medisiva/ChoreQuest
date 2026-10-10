@@ -1,3 +1,5 @@
+import PlaygroundHero from '@/components/shared/PlaygroundHero';
+import KidAvatar from '@/components/shared/KidAvatar';
 // S1-11: Profile Selector screen (PS-01)
 // Hub screen shown after parent authenticates.
 // Parent tiles (no PIN) and child tiles (PIN required).
@@ -63,7 +65,7 @@ export default function ProfileSelector() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#1A3E6E" />
+        <ActivityIndicator size="large" color="#1555E8" />
       </SafeAreaView>
     );
   }
@@ -72,7 +74,7 @@ export default function ProfileSelector() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         {/* Header */}
-        <Text style={styles.heading}>Who's using ChoreQuest?</Text>
+        <PlaygroundHero title="Pick your player!" subtitle="A little helping. A lot of happy." />
         {family && (
           <Text style={styles.familyName}>{family.familyName}</Text>
         )}
@@ -106,15 +108,15 @@ export default function ProfileSelector() {
               {children.map((child) => (
                 <TouchableOpacity
                   key={child.id}
-                  style={styles.tile}
+                  style={[styles.tile, { backgroundColor: children.indexOf(child) % 2 ? '#FFF1B8' : '#D9F7EC' }]}
                   onPress={() => handleChildTap(child)}
                   activeOpacity={0.7}
                 >
                   <View style={[styles.avatarCircle, styles.childAvatar]}>
-                    <Text style={styles.avatarEmoji}>😊</Text>
+                    <KidAvatar avatarId={child.avatarId} size={64} />
                   </View>
                   <Text style={styles.tileName}>{child.nickname}</Text>
-                  <Text style={styles.tileLabel}>{child.ageGroup}</Text>
+                  <Text style={styles.tileLabel}>Kid access · PIN needed</Text>
                   <View style={styles.tileFooter}>
                     <Text style={styles.tileStars}>
                       ⭐ {child.starBalance}
@@ -157,31 +159,34 @@ export default function ProfileSelector() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC', // ink50
+    backgroundColor: '#F5F8FF', // ink50
   },
   content: {
-    padding: 24,
+    padding: 20,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
     alignItems: 'center',
   },
   heading: {
     fontFamily: 'Inter_700Bold',
     fontSize: 28,
     lineHeight: 35,
-    color: '#1A1A2E', // ink950
+    color: '#16244D', // ink950
     marginTop: 32,
     textAlign: 'center',
   },
   familyName: {
     fontFamily: 'Inter_400Regular',
     fontSize: 16,
-    color: '#555555', // ink600
+    color: '#4B5875', // ink600
     marginTop: 8,
     marginBottom: 32,
   },
   sectionLabel: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Nunito_800ExtraBold',
     fontSize: 14,
-    color: '#9CA3AF', // ink400
+    color: '#6C7893', // ink400
     textTransform: 'uppercase',
     letterSpacing: 1,
     alignSelf: 'flex-start',
@@ -195,9 +200,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tile: {
-    width: 140,
+    width: 150,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 20,
     alignItems: 'center',
     shadowOffset: { width: 0, height: 2 },
@@ -210,27 +215,27 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#E8F2FB', // navy50
+    backgroundColor: '#E5EFFF', // navy50
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
   },
   childAvatar: {
-    backgroundColor: '#F0F9FF', // cloud
+    backgroundColor: '#EEF6FF', // cloud
   },
   avatarEmoji: {
     fontSize: 28,
   },
   tileName: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Nunito_800ExtraBold',
     fontSize: 16,
-    color: '#1A1A2E', // ink950
+    color: '#16244D', // ink950
     marginBottom: 4,
   },
   tileLabel: {
     fontFamily: 'Inter_400Regular',
     fontSize: 12,
-    color: '#9CA3AF', // ink400
+    color: '#6C7893', // ink400
     marginBottom: 8,
   },
   tileFooter: {
@@ -240,12 +245,12 @@ const styles = StyleSheet.create({
   tileStars: {
     fontFamily: 'Inter_500Medium',
     fontSize: 14,
-    color: '#1A3E6E', // navy900
+    color: '#1555E8', // navy900
   },
   tileStreak: {
     fontFamily: 'Inter_500Medium',
     fontSize: 14,
-    color: '#FF6B6B', // coral
+    color: '#FF6688', // coral
   },
   addChildButton: {
     flexDirection: 'row',
@@ -255,18 +260,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#E8F2FB', // navy50
+    borderColor: '#E5EFFF', // navy50
     borderStyle: 'dashed',
     marginTop: 8,
   },
   addChildIcon: {
     fontSize: 20,
-    color: '#4A90D9', // blue500
+    color: '#2563EB', // blue500
     fontWeight: '700',
   },
   addChildText: {
     fontFamily: 'Inter_500Medium',
     fontSize: 14,
-    color: '#4A90D9', // blue500
+    color: '#2563EB', // blue500
   },
 });

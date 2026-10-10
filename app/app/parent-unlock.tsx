@@ -24,8 +24,8 @@ export default function ParentUnlock() {
   </KeyboardAvoidingView></SafeAreaView>;
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F8FAFC' }, content: { padding: 24, gap: 20 },
-  title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#1A3E6E' }, description: { fontSize: 16, lineHeight: 24, color: '#555' },
+  screen: { flex: 1, backgroundColor: '#F5F8FF' }, content: { padding: 24, gap: 20 },
+  title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#1555E8' }, description: { fontSize: 16, lineHeight: 24, color: '#555' },
   input: { padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#DCE4ED', backgroundColor: '#FFF', fontSize: 16 },
-  button: { padding: 18, alignItems: 'center', backgroundColor: '#1A3E6E', borderRadius: 12 }, buttonText: { color: '#FFF', fontSize: 16, fontWeight: '600' }, link: { color: '#1A3E6E', fontSize: 16, paddingVertical: 8 },
+  button: { padding: 18, alignItems: 'center', backgroundColor: '#1555E8', borderRadius: 12 }, buttonText: { color: '#FFF', fontSize: 16, fontWeight: '600' }, link: { color: '#1555E8', fontSize: 16, paddingVertical: 8 },
 });

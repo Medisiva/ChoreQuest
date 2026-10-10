@@ -90,7 +90,7 @@ function RootLayoutNav() {
     return <View style={[styles.splash, { padding: 24 }]}>
       <Text style={{ color: '#FFFFFF', fontSize: 20, textAlign: 'center', marginBottom: 16 }}>{error}</Text>
       <TouchableOpacity accessibilityRole="button" onPress={() => setRetry(value => value + 1)} style={{ backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12 }}>
-        <Text style={{ color: '#1A3E6E' }}>Retry loading my family</Text>
+        <Text style={{ color: '#1555E8' }}>Retry loading my family</Text>
       </TouchableOpacity>
     </View>;
   }
@@ -128,6 +128,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1A3E6E', // navy900
+    backgroundColor: '#1555E8', // navy900
   },
 });

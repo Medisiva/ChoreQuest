@@ -1,3 +1,4 @@
+import PlaygroundHero from '@/components/shared/PlaygroundHero';
 import React, { useState } from 'react';
 import {
   View,
@@ -16,12 +17,12 @@ import { router } from 'expo-router';
 import { signIn } from '@/services/auth';
 
 // Brand colors
-const navy900 = '#1A3E6E';
-const blue500 = '#4A90D9';
-const ink950 = '#1A1A2E';
-const ink600 = '#555555';
-const ink400 = '#9CA3AF';
-const ink50 = '#F8FAFC';
+const navy900 = '#1555E8';
+const blue500 = '#2563EB';
+const ink950 = '#16244D';
+const ink600 = '#4B5875';
+const ink400 = '#6C7893';
+const ink50 = '#F5F8FF';
 const white = '#FFFFFF';
 const danger = '#9B1C1C';
 const dangerLight = '#FEE2E2';
@@ -75,10 +76,7 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.logo}>ChoreQuest</Text>
-            <Text style={styles.heading}>Welcome back</Text>
-          </View>
+          <PlaygroundHero title="Small chores. Big smiles." subtitle="Welcome back! Let’s make today a little brighter." />
 
 
           {/* Form */}
@@ -198,12 +196,15 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: white,
+    backgroundColor: ink50,
   },
   flex: {
     flex: 1,
   },
   scrollContent: {
+    width: '100%',
+    maxWidth: 560,
+    alignSelf: 'center',
     flexGrow: 1,
     paddingHorizontal: 24,
     paddingBottom: 32,
@@ -266,6 +267,9 @@ const styles = StyleSheet.create({
     color: ink400,
   },
   form: {
+    backgroundColor: white,
+    padding: 20,
+    borderRadius: 26,
     gap: 16,
     marginBottom: 24,
   },

@@ -1,3 +1,4 @@
+import PlaygroundHero from '@/components/shared/PlaygroundHero';
 // S1-10: Onboarding Wizard — 8-step flow shown on first launch after account creation
 // Collects form data and sends one authenticated server-owned setup request.
 // Steps OB-04 through OB-07 are skippable.
@@ -754,6 +755,7 @@ export default function OnboardingWizard() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}><PlaygroundHero compact title={step === 0 ? "Let’s build your team!" : step === 1 ? "Meet your little hero" : "Little steps, big wins"} subtitle={`Family setup · ${step + 1} of 8`} avatarId={watch("childAvatarId") || "avatar-06"} /></View>
         {renderProgressDots()}
         {draftNotice && <Text style={{ paddingHorizontal: spacing[4], paddingVertical: spacing[2], color: colors.ink600 }}>{draftNotice}</Text>}
 
@@ -782,7 +784,7 @@ export default function OnboardingWizard() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.cloud,
   },
   flex: {
     flex: 1,
@@ -827,7 +829,7 @@ const styles = StyleSheet.create({
   // Step content
   stepContent: {
     flex: 1,
-    paddingTop: spacing[6],
+    paddingTop: spacing[2],
   },
 
   // Typography
