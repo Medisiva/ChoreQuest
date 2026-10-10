@@ -200,3 +200,6 @@ The existing downloadable Android APK does not contain these fixes. No replaceme
 User has also requested a friendlier redesign with illustrated child faces. Visual direction selection is pending.
 
 Local corrected emulator preview is http://localhost:8084 (test account/family only). Main live preview at http://localhost:8081 is being restarted with the repair. Emulator source copy is ignored work/browser-repro-app and must be recopied for later source edits. Do not mistake cached reports from port 8082/8083 for errors in the isolated fixed build.
+
+- The isolated emulator/browser servers were stopped after verification; their temporary preview URL is no longer active. The live local preview remains running on port 8081, session 48572, with the repair.
+- Created a preview-only visual concept board at ../outputs/chorequest-friendly-screen-concepts.png: Storybook Adventure, Bright Playground, Calm Family. Illustrated child portraits and friendlier screens are concept art only; no redesign has been implemented yet. User direction selection remains pending.
