@@ -34,8 +34,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   initialize: () => {
     let unsubscribeProfile: Unsubscribe | undefined;
     let generation = 0;
+    let profileTimeout: ReturnType<typeof setTimeout> | undefined;
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       const current = ++generation;
+      clearTimeout(profileTimeout);
       unsubscribeProfile?.();
       unsubscribeProfile = undefined;
       set({ user, familyId: null, role: null, parentProfile: null, loading: Boolean(user), error: null });
@@ -49,8 +51,14 @@ export const useAuthStore = create<AuthState>((set) => ({
         }
         set({ role: 'parent' });
       } catch { if (current === generation) set({ loading: false, error: 'Please sign in again.' }); return; }
-      unsubscribeProfile = onSnapshot(doc(db, 'parentProfiles', user.uid), (snapshot) => {
+      profileTimeout = setTimeout(() => {
+        if (current === generation) set({ loading: false, error: 'Could not confirm your family. Check your connection and retry.' });
+      }, 10000);
+      unsubscribeProfile = onSnapshot(doc(db, 'parentProfiles', user.uid), { includeMetadataChanges: true }, (snapshot) => {
         if (current !== generation) return;
+        // An empty local cache is not proof that a returning user needs setup.
+        if (!snapshot.exists() && snapshot.metadata.fromCache) return;
+        clearTimeout(profileTimeout);
         set({
           familyId: snapshot.exists() ? snapshot.data().familyAccountId : null,
           parentProfile: snapshot.exists()
@@ -59,10 +67,14 @@ export const useAuthStore = create<AuthState>((set) => ({
           loading: false,
           error: null,
         });
-      }, () => set({ loading: false, error: 'Failed to load profile. Please try again.' }));
+      }, () => {
+        if (current !== generation) return;
+        clearTimeout(profileTimeout);
+        set({ loading: false, error: 'Failed to load profile. Please try again.' });
+      });
     });
 
-    return () => { generation++; unsubscribe(); unsubscribeProfile?.(); };
+    return () => { generation++; clearTimeout(profileTimeout); unsubscribe(); unsubscribeProfile?.(); };
   },
 
   setError: (error) => set({ error }),

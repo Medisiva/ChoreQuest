@@ -172,3 +172,31 @@ Validation: npm test passes 7 app tests and 58 backend tests. npm run app:typech
 - Running server session 38286; start command is npm run app:preview if it stops. CI preview mode disables hot reload; restart after code changes. Browser tab is kept as a deliverable. Browser screenshot could be displayed but saving PNG via the browser runtime is denied (EPERM).
 
 - Browser-preview dependency validation: app TypeScript checking and all 20 Expo Doctor checks pass. Changes are committed separately from the APK source; no new Android build was started.
+
+## Setup crash reproduced and repaired — October 9
+
+Reported phone: Samsung S24 Ultra. Android version and exact phone button were not supplied. User selected browser reproduction first.
+
+## Reproduced failure
+
+The unchanged wizard throws TypeError: Cannot read properties of undefined (reading 'length') at its final summary, in renderStep7_Complete. Advancing from child entry alone did not crash the browser. The React Hook Form 7.72 Controller implementation unregisters its previous field when a reused controller changes its name. Wizard steps reused controller instances, dropping family/child/reward fields. No family is saved until the final authenticated setup request. Reopening before that point loses the old in-memory draft.
+
+## Repair
+
+- Key each wizard step to remount its controls; keep unmounted field values registered. A rendered regression test failed with the original code and passes with the fix, preserving family, child and both reward arrays through the final save.
+- Save unfinished setup locally under the signed-in account’s UID using an explicit field allowlist. PINs and confirmation PINs are excluded. Restoring returns to child entry to request a fresh PIN. Queued writes and deletion prevent stale draft writes after successful setup. Another account neither sees nor copies the first account’s draft.
+- Ignore missing profile snapshots from an empty local cache. A missing server-confirmed profile is required before onboarding. Profile errors show a retry screen, and stale callbacks cannot overwrite the next account.
+
+## Evidence
+
+All 71 automated tests pass (13 app, 58 backend), including six new rendered/state regression tests. TypeScript checking, all 20 Expo Doctor checks, and Android Metro/Hermes export pass.
+
+Using isolated Firebase emulators, the original browser flow reproduced the final-screen exception. The corrected browser restored unfinished child entry after reload without its PIN, completed the final save, displayed the new child, and still displayed that child after reopening. The final isolated build has no observed browser console errors. One initial local service attempt failed because concurrent previews shared Expo’s generated environment module; the successful run uses an isolated source copy and correct demo-chorequest configuration. Test account credentials remain only in ignored private files. No real family data was changed.
+
+## Limits and next step
+
+The existing downloadable Android APK does not contain these fixes. No replacement APK has been built and the Samsung phone has not been retested. The reproduced shared-code crash is consistent with the report, but a separate Android-specific crash cannot be ruled out. Build and verify a corrected APK, then repeat setup on the S24 Ultra.
+
+User has also requested a friendlier redesign with illustrated child faces. Visual direction selection is pending.
+
+Local corrected emulator preview is http://localhost:8084 (test account/family only). Main live preview at http://localhost:8081 is being restarted with the repair. Emulator source copy is ignored work/browser-repro-app and must be recopied for later source edits. Do not mistake cached reports from port 8082/8083 for errors in the isolated fixed build.

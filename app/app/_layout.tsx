@@ -5,8 +5,8 @@
 // Never flashes wrong screen.
 // onAuthStateChanged called ONCE globally here.
 
-import { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { Nunito_600SemiBold, Nunito_700Bold, Nunito_800ExtraBold } from '@expo-google-fonts/nunito';
@@ -22,7 +22,8 @@ import { useChildSessionStore } from '@/stores/childSessionStore';
 function RootLayoutNav() {
   const router = useRouter();
   const segments = useSegments();
-  const { user, role, familyId, parentProfile, loading, initialize } = useAuthStore();
+  const { user, role, familyId, parentProfile, loading, error, initialize } = useAuthStore();
+  const [retry, setRetry] = useState(0);
 
   const switching = useChildSessionStore((state) => state.switching);
   // Initialize Firebase ONCE
@@ -34,7 +35,7 @@ function RootLayoutNav() {
   useEffect(() => {
     const unsubscribe = initialize();
     return unsubscribe;
-  }, [initialize]);
+  }, [initialize, retry]);
 
   useEffect(() => {
     if (!user || !familyId) return;
@@ -57,7 +58,7 @@ function RootLayoutNav() {
 
   // Auth-gated routing
   useEffect(() => {
-    if (loading || switching) return;
+    if (loading || switching || error) return;
     if (role === 'child') {
       if (segments[0] === '(parent)' || segments[0] === '(onboarding)' || segments[0] === '(auth)') router.replace('/parent-unlock');
       return;
@@ -74,7 +75,7 @@ function RootLayoutNav() {
     } else if (user && parentProfile && (inAuthGroup || inOnboardingGroup)) {
       router.replace('/profiles');
     }
-  }, [user, role, familyId, parentProfile, loading, switching, segments, router]);
+  }, [user, role, familyId, parentProfile, loading, error, switching, segments, router]);
 
   // Show splash while loading auth state or fonts
   if (loading || switching) {
@@ -85,6 +86,14 @@ function RootLayoutNav() {
     );
   }
 
+  if (error && user) {
+    return <View style={[styles.splash, { padding: 24 }]}>
+      <Text style={{ color: '#FFFFFF', fontSize: 20, textAlign: 'center', marginBottom: 16 }}>{error}</Text>
+      <TouchableOpacity accessibilityRole="button" onPress={() => setRetry(value => value + 1)} style={{ backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12 }}>
+        <Text style={{ color: '#1A3E6E' }}>Retry loading my family</Text>
+      </TouchableOpacity>
+    </View>;
+  }
   return <Slot />;
 }
 

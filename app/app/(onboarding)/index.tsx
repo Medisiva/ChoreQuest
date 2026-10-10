@@ -2,7 +2,7 @@
 // Collects form data and sends one authenticated server-owned setup request.
 // Steps OB-04 through OB-07 are skippable.
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { setupFamily } from '@/services/families';
+import { DEFAULT_VALUES, loadOnboardingDraft, saveOnboardingDraft, clearOnboardingDraft } from '@/services/onboardingDraft';
+import type { OnboardingFormData } from '@/services/onboardingDraft';
 import { useAuthStore } from '@/stores/authStore';
 import AvatarPicker from '@/components/shared/AvatarPicker';
 import { colors, spacing, radius, typography, shadows, categoryColors } from '@/constants/tokens';
@@ -47,53 +49,6 @@ const CATEGORIES: { key: Category; label: string; icon: string }[] = [
 
 // ── Form Data Shape ──────────────────────────────────────────────────────────
 
-interface OnboardingFormData {
-  // OB-01
-  familyName: string;
-  // OB-02
-  childNickname: string;
-  childAvatarId: string;
-  childAgeGroup: AgeGroup;
-  childPin: string;
-  childPinConfirm: string;
-  // OB-03
-  weeklyTarget: number;
-  monthlyTarget: number;
-  // OB-04
-  taskTitle: string;
-  taskCategory: Category;
-  taskStarValue: number;
-  // OB-05
-  childRewards: Array<{ name: string; starCost: number }>;
-  // OB-06
-  parentRewards: Array<{ name: string; starCost: number }>;
-  // OB-07
-  weeklyRequestLimit: number;
-}
-
-const DEFAULT_VALUES: OnboardingFormData = {
-  familyName: '',
-  childNickname: '',
-  childAvatarId: '',
-  childAgeGroup: '6-8',
-  childPin: '',
-  childPinConfirm: '',
-  weeklyTarget: 15,
-  monthlyTarget: 60,
-  taskTitle: 'Clean your bedroom',
-  taskCategory: 'Household',
-  taskStarValue: 15,
-  childRewards: [
-    { name: '30 min screen time', starCost: 20 },
-    { name: 'Movie night', starCost: 50 },
-  ],
-  parentRewards: [
-    { name: 'Coffee shop treat', starCost: 30 },
-    { name: 'Movie of my choice', starCost: 60 },
-  ],
-  weeklyRequestLimit: 3,
-};
-
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export default function OnboardingWizard() {
@@ -101,14 +56,50 @@ export default function OnboardingWizard() {
   const { user } = useAuthStore();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [draftReady, setDraftReady] = useState(false);
+  const [draftOwner, setDraftOwner] = useState<string | null>(null);
+  const [draftNotice, setDraftNotice] = useState<string | null>(null);
+  const completed = useRef(false);
   const [skippedSteps, setSkippedSteps] = useState<Set<number>>(new Set());
 
-  const { control, watch, setValue, getValues } = useForm<OnboardingFormData>({
+  const { control, watch, setValue, getValues, reset } = useForm<OnboardingFormData>({
     defaultValues: DEFAULT_VALUES,
+    shouldUnregister: false,
     mode: 'onChange',
   });
 
   const watchedValues = watch();
+
+  useEffect(() => {
+    let active = true;
+    completed.current = false;
+    setDraftReady(false);
+    setDraftOwner(null);
+    reset(DEFAULT_VALUES);
+    setStep(0);
+    setSkippedSteps(new Set());
+    setDraftNotice(null);
+    if (!user?.uid) return;
+    loadOnboardingDraft(user.uid).then(draft => {
+      if (!active) return;
+      if (draft) {
+        reset(draft.values);
+        setStep(draft.step);
+        setSkippedSteps(new Set(draft.skippedSteps));
+        setDraftNotice('Your unfinished setup was restored. Re-enter the child PIN to continue; PINs are never saved in drafts.');
+      }
+    }).catch(() => {
+      if (active) setDraftNotice('Saved setup could not be loaded. Please keep the app open until setup finishes.');
+    }).finally(() => { if (active) { setDraftOwner(user.uid); setDraftReady(true); } });
+    return () => { active = false; };
+  }, [user?.uid, reset]);
+
+  useEffect(() => {
+    if (!draftReady || !user?.uid || draftOwner !== user.uid || completed.current) return;
+    saveOnboardingDraft(user.uid, watchedValues, step, [...skippedSteps]).catch(() => {
+      setDraftNotice('Progress could not be saved on this device. Please keep the app open until setup finishes.');
+    });
+  }, [draftReady, draftOwner, user?.uid, watchedValues, step, skippedSteps]);
 
   // ── Navigation ───────────────────────────────────────────────────────────
 
@@ -116,6 +107,7 @@ export default function OnboardingWizard() {
     // Validate current step before advancing
     const valid = await validateCurrentStep();
     if (!valid) return;
+    if (step === 1) setDraftNotice(current => current?.startsWith('Your unfinished setup') ? null : current);
     if (step < TOTAL_STEPS - 1) setStep((s) => s + 1);
   }, [step]);
 
@@ -212,6 +204,8 @@ export default function OnboardingWizard() {
         parentRewards: skippedSteps.has(5) ? [] : data.parentRewards.filter((reward) => reward.name.trim()),
       });
 
+      completed.current = true;
+      await clearOnboardingDraft(user.uid).catch(() => {});
       // Navigate to profiles
       router.replace('/profiles');
     } catch (error) {
@@ -750,6 +744,8 @@ export default function OnboardingWizard() {
     }
   };
 
+  if (!draftReady) return <SafeAreaView style={styles.safeArea}><ActivityIndicator color={colors.navy900} /></SafeAreaView>;
+
   // ── Render ───────────────────────────────────────────────────────────────
 
   return (
@@ -759,6 +755,7 @@ export default function OnboardingWizard() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {renderProgressDots()}
+        {draftNotice && <Text style={{ paddingHorizontal: spacing[4], paddingVertical: spacing[2], color: colors.ink600 }}>{draftNotice}</Text>}
 
         {step > 0 && (
           <TouchableOpacity style={styles.backButton} onPress={goBack}>
@@ -772,7 +769,8 @@ export default function OnboardingWizard() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {renderCurrentStep()}
+          {/* Remount each step so Controllers never change their registered name. */}
+          <View key={step}>{renderCurrentStep()}</View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
