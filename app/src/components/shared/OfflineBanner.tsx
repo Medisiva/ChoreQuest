@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#B45309',
+    backgroundColor: '#FFE177',
     paddingVertical: 8,
     paddingHorizontal: 16,
     zIndex: 1000,
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   text: {
     fontFamily: 'Inter_500Medium',
     fontSize: 13,
-    color: '#FFFFFF',
+    color: '#17200C',
     textAlign: 'center',
   },
 });

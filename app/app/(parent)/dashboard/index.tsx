@@ -121,12 +121,12 @@ export default function ParentDashboard() {
           <StatCard
             label="Stars This Week"
             value={earnings.loading ? '…' : earnings.error ? '—' : earnings.weekly}
-            bg={colors.starGold}
-            textColor={colors.ink950}
+            bg={colors.cream}
+            textColor={colors.starGold}
           />
         </View>
 
-        {earnings.error && <Text accessibilityRole="alert">{earnings.error}</Text>}
+        {earnings.error && <Text style={{color:'#F7F5FF'}} accessibilityRole="alert">{earnings.error}</Text>}
         {/* ── Today's Activity ────────────────────────────────────── */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Today's Activity</Text>
@@ -219,8 +219,8 @@ export default function ParentDashboard() {
           </View>
         )}
 
-        {claims.some(claim=>claim.status==='awardFailed') && <View style={styles.section}><Text accessibilityRole="alert">A quest reward needs attention. The affected quest was retired and the child can choose another. Create a corrected quest to continue.</Text></View>}
-        {pendingRewardCount>0 && <TouchableOpacity accessibilityRole="button" onPress={()=>router.push('/(parent)/rewards')} style={styles.miniCard}><Text>{pendingRewardCount} reward request{pendingRewardCount===1?'':'s'} waiting</Text><Text>Review rewards →</Text></TouchableOpacity>}
+        {claims.some(claim=>claim.status==='awardFailed') && <View style={styles.section}><Text style={{color:'#F7F5FF'}} accessibilityRole="alert">A quest reward needs attention. The affected quest was retired and the child can choose another. Create a corrected quest to continue.</Text></View>}
+        {pendingRewardCount>0 && <TouchableOpacity accessibilityRole="button" onPress={()=>router.push('/(parent)/rewards')} style={styles.miniCard}><Text style={{color:'#F7F5FF'}}>{pendingRewardCount} reward request{pendingRewardCount===1?'':'s'} waiting</Text><Text style={{color:'#F7F5FF'}}>Review rewards →</Text></TouchableOpacity>}
         {/* ── Pending Requests Preview ────────────────────────────── */}
         {pendingRequests.length > 0 && (
           <View style={styles.section}>
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   starChipText: {
     ...typography.label,
-    color: colors.ink950,
+    color: colors.onAccent,
   },
 
   // Stats
@@ -410,11 +410,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...shadows.elevation1,
   },
-  statValue: {
+  statValue: {color:'#F7F5FF',
     ...typography.heading2,
     marginBottom: spacing[1],
   },
-  statLabel: {
+  statLabel: {color:'#F7F5FF',
     ...typography.caption,
     textAlign: 'center',
   },
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
 
   // Today's activity
   emptyCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     padding: spacing[4],
     borderRadius: radius.md,
     alignItems: 'center',
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
   activityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     padding: spacing[3],
     borderRadius: radius.md,
     marginBottom: spacing[2],
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
   },
   childCard: {
     width: 140,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: radius.lg,
     padding: spacing[3],
     alignItems: 'center',
@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
   miniCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     padding: spacing[3],
     borderRadius: radius.md,
     marginBottom: spacing[2],
@@ -588,11 +588,11 @@ const styles = StyleSheet.create({
   },
   fabPrimaryText: {
     ...typography.button,
-    color: colors.white,
+    color: colors.onAccent,
   },
   fabSecondary: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     paddingVertical: spacing[4],
     borderRadius: radius.lg,
     alignItems: 'center',

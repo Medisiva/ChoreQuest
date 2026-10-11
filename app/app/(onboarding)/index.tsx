@@ -244,7 +244,7 @@ export default function OnboardingWizard() {
       <Text style={styles.subheading}>
         What do you call your family? (e.g. The Smiths)
       </Text>
-      <Text>Your parent name</Text><Controller control={control} name="parentName" render={({field:{onChange,value}})=><TextInput accessibilityLabel="Your parent name" value={value || user?.displayName || ''} onChangeText={onChange} maxLength={80} style={styles.textInput}/>}/>
+      <Text style={{color:'#F7F5FF'}}>Your parent name</Text><Controller control={control} name="parentName" render={({field:{onChange,value}})=><TextInput placeholderTextColor="#A9A7BA" accessibilityLabel="Your parent name" value={value || user?.displayName || ''} onChangeText={onChange} maxLength={80} style={styles.textInput}/>}/>
       <TouchableOpacity accessibilityRole="button" onPress={()=>router.push('/join-family')}><Text style={{color:colors.navy900,paddingVertical:12}}>Have a parent invitation? Join an existing family</Text></TouchableOpacity>
       <Controller
         control={control}
@@ -393,7 +393,7 @@ export default function OnboardingWizard() {
               >
                 <Text style={styles.numberButtonText}>-</Text>
               </TouchableOpacity>
-              <TextInput
+              <TextInput placeholderTextColor="#A9A7BA"
                 style={styles.numberInput}
                 value={String(value)}
                 onChangeText={(text) => {
@@ -429,7 +429,7 @@ export default function OnboardingWizard() {
               >
                 <Text style={styles.numberButtonText}>-</Text>
               </TouchableOpacity>
-              <TextInput
+              <TextInput placeholderTextColor="#A9A7BA"
                 style={styles.numberInput}
                 value={String(value)}
                 onChangeText={(text) => onChange(parseInt(text, 10) || 0)}
@@ -762,7 +762,7 @@ export default function OnboardingWizard() {
       >
         <View style={{ paddingHorizontal: 16, paddingTop: 12 }}><PlaygroundHero compact title={step === 0 ? "Let’s build your team!" : step === 1 ? "Meet your little hero" : "Little steps, big wins"} subtitle={`Family setup · ${step + 1} of 8`} avatarId={watch("childAvatarId") || "avatar-06"} /></View>
         {renderProgressDots()}
-        {parentProfile?.familyDeleted && <View style={{padding:16}}><Text>This family is scheduled for deletion. Adult sign-ins remain active. The owner can restore it within 30 days, or you can start a new family below.</Text><TouchableOpacity accessibilityRole="button" onPress={()=>void manageFamily({action:'restore',familyId:parentProfile.familyAccountId}).catch(error=>Alert.alert('Could not restore family',error instanceof Error?error.message:'Try again.'))}><Text style={{padding:16,color:colors.navy900}}>Restore deleted family</Text></TouchableOpacity></View>}
+        {parentProfile?.familyDeleted && <View style={{padding:16}}><Text style={{color:'#F7F5FF'}}>This family is scheduled for deletion. Adult sign-ins remain active. The owner can restore it within 30 days, or you can start a new family below.</Text><TouchableOpacity accessibilityRole="button" onPress={()=>void manageFamily({action:'restore',familyId:parentProfile.familyAccountId}).catch(error=>Alert.alert('Could not restore family',error instanceof Error?error.message:'Try again.'))}><Text style={{padding:16,color:colors.navy900}}>Restore deleted family</Text></TouchableOpacity></View>}
         {draftNotice && <Text style={{ paddingHorizontal: spacing[4], paddingVertical: spacing[2], color: colors.ink600 }}>{draftNotice}</Text>}
 
         {step > 0 && (
@@ -947,7 +947,7 @@ const styles = StyleSheet.create({
     minWidth: 80,
     justifyContent: 'center',
   },
-  starEmoji: {
+  starEmoji: {color:'#F7F5FF',
     fontSize: 18,
   },
   starValueText: {
@@ -998,7 +998,7 @@ const styles = StyleSheet.create({
   categoryTileActive: {
     borderColor: colors.navy500,
   },
-  categoryIcon: {
+  categoryIcon: {color:'#F7F5FF',
     fontSize: 28,
     marginBottom: spacing[1],
   },
@@ -1076,7 +1076,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     ...typography.button,
-    color: colors.white,
+    color: colors.onAccent,
   },
   secondaryButton: {
     minWidth: 0,

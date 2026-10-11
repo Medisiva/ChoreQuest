@@ -217,7 +217,7 @@ export default function ParentWalletScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   centered: {
     flex: 1,
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[5],
   },
   heroCard: {
-    backgroundColor: colors.navy900,
+    backgroundColor: colors.hero,
     borderRadius: radius.xl,
     padding: spacing[6],
     alignItems: 'center',
@@ -239,14 +239,14 @@ const styles = StyleSheet.create({
   },
   heroLabel: {
     ...typography.label,
-    color: colors.navy50,
+    color: colors.ink600,
     marginBottom: spacing[2],
   },
   heroRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  heroStar: {
+  heroStar: {color:'#F7F5FF',
     fontSize: 36,
     marginRight: spacing[3],
   },
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: spacing[3],
   },
-  txnIconText: {
+  txnIconText: {color:'#F7F5FF',
     fontSize: 18,
   },
   txnInfo: {
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     color: colors.ink400,
     marginTop: spacing[1],
   },
-  txnDelta: {
+  txnDelta: {color:'#F7F5FF',
     ...typography.heading3,
     minWidth: 50,
     textAlign: 'right',
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing[10],
   },
-  emptyEmoji: {
+  emptyEmoji: {color:'#F7F5FF',
     fontSize: 48,
     marginBottom: spacing[4],
   },
@@ -361,6 +361,6 @@ const styles = StyleSheet.create({
   },
   ctaButtonText: {
     ...typography.button,
-    color: colors.white,
+    color: colors.onAccent,
   },
 });

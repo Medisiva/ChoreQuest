@@ -25,10 +25,10 @@ import { pickImageFromCamera, pickImageFromGallery, uploadTaskProof } from '@/se
 import { useFamilyStore } from '@/stores/familyStore';
 
 const CATEGORY_CONFIG: Record<string, { icon: string; deep: string; light: string; label: string }> = {
-  Household: { icon: '🏠', deep: '#1B6CA8', light: '#DBEAFE', label: 'Household' },
-  Learning: { icon: '📚', deep: '#7B2D8B', light: '#EDE9FE', label: 'Learning' },
-  LifeSkills: { icon: '🌱', deep: '#0D7377', light: '#CCFBF1', label: 'Life Skills' },
-  Hobbies: { icon: '🎨', deep: '#B85C00', light: '#FFEDD5', label: 'Hobbies' },
+  Household: { icon: '🏠', deep: '#65F3FF', light: '#17363A', label: 'Household' },
+  Learning: { icon: '📚', deep: '#B7A1FF', light: '#302445', label: 'Learning' },
+  LifeSkills: { icon: '🌱', deep: '#CDFF65', light: '#26351D', label: 'Life Skills' },
+  Hobbies: { icon: '🎨', deep: '#FFBA82', light: '#392719', label: 'Hobbies' },
 };
 
 export default function TaskDetailScreen() {
@@ -130,9 +130,9 @@ export default function TaskDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {task.deadline && <Text accessibilityLabel="Quest deadline">Due {task.deadline.toDate().toLocaleDateString()}</Text>}
+      {task.deadline && <Text style={{color:'#F7F5FF'}} accessibilityLabel="Quest deadline">Due {task.deadline.toDate().toLocaleDateString()}</Text>}
         {/* Category banner */}
-      <View style={[styles.banner, { backgroundColor: catConfig?.deep ?? '#1555E8' }]}>
+      <View style={[styles.banner, { backgroundColor: catConfig?.deep ?? '#65F3FF' }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
@@ -148,7 +148,6 @@ export default function TaskDetailScreen() {
         {/* Star value */}
         <View style={styles.starBlock}>
           <Text style={styles.starBig}>⭐ {questRewardLabel(task)}</Text>
-          <Text style={styles.starLabel}>stars</Text>
         </View>
 
         {/* Info chips */}
@@ -237,44 +236,44 @@ export default function TaskDetailScreen() {
 
 function getDifficultyBg(d: string) {
   switch (d) {
-    case 'Easy': return { backgroundColor: '#D1FAE5' };
-    case 'Medium': return { backgroundColor: '#FEF3C7' };
-    case 'Hard': return { backgroundColor: '#FEE2E2' };
-    default: return { backgroundColor: '#EDE9FE' };
+    case 'Easy': return { backgroundColor: '#26351D' };
+    case 'Medium': return { backgroundColor: '#302719' };
+    case 'Hard': return { backgroundColor: '#391D2B' };
+    default: return { backgroundColor: '#302445' };
   }
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  notFound: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#4B5875', textAlign: 'center', marginTop: 100 },
+  container: { flex: 1, backgroundColor: '#121219' },
+  notFound: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#C0BDCF', textAlign: 'center', marginTop: 100 },
   banner: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
   backBtn: { padding: 8 },
-  backText: { fontSize: 24, color: '#FFFFFF' },
-  bannerIcon: { fontSize: 24 },
-  bannerLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#FFFFFF' },
+  backText: { fontSize: 24, color: '#17200C' },
+  bannerIcon: {color:'#F7F5FF', fontSize: 24 },
+  bannerLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#17200C' },
   content: { padding: 24, paddingBottom: 48 },
-  title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#16244D', marginBottom: 8 },
-  description: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#4B5875', lineHeight: 24, marginBottom: 20 },
+  title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#F7F5FF', marginBottom: 8 },
+  description: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#C0BDCF', lineHeight: 24, marginBottom: 20 },
   starBlock: { alignItems: 'center', marginVertical: 24 },
-  starBig: { fontFamily: 'Nunito_800ExtraBold', fontSize: 48, color: '#16244D' },
-  starLabel: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#6C7893', marginTop: 4 },
+  starBig: { fontFamily: 'Nunito_800ExtraBold', fontSize: 48, color: '#F7F5FF' },
+  starLabel: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#A9A7BA', marginTop: 4 },
   infoRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 20 },
-  infoBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: '#F5F8FF' },
-  infoText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#16244D' },
-  photoNotice: { backgroundColor: '#FEF3C7', padding: 12, borderRadius: 12, marginBottom: 12 },
-  photoNoticeText: { fontFamily: 'Inter_500Medium', fontSize: 14, color: '#92400E' },
-  milestoneNotice: { backgroundColor: '#EDE9FE', padding: 12, borderRadius: 12, marginBottom: 20 },
-  milestoneText: { fontFamily: 'Inter_500Medium', fontSize: 14, color: '#7B2D8B' },
-  claimedNotice: { backgroundColor: '#F5F8FF', padding: 16, borderRadius: 12, alignItems: 'center' },
-  claimedText: { fontFamily: 'Inter_500Medium', fontSize: 14, color: '#6C7893' },
-  claimButton: { backgroundColor: '#1B7A34', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
-  claimButtonText: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#FFFFFF' },
-  submitButton: { backgroundColor: '#FFDC45', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
-  submitButtonText: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#16244D' },
+  infoBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: '#23232F' },
+  infoText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#F7F5FF' },
+  photoNotice: { backgroundColor: '#302719', padding: 12, borderRadius: 12, marginBottom: 12 },
+  photoNoticeText: { fontFamily: 'Inter_500Medium', fontSize: 14, color: '#FFE177' },
+  milestoneNotice: { backgroundColor: '#302445', padding: 12, borderRadius: 12, marginBottom: 20 },
+  milestoneText: { fontFamily: 'Inter_500Medium', fontSize: 14, color: '#B7A1FF' },
+  claimedNotice: { backgroundColor: '#23232F', padding: 16, borderRadius: 12, alignItems: 'center' },
+  claimedText: { fontFamily: 'Inter_500Medium', fontSize: 14, color: '#A9A7BA' },
+  claimButton: { backgroundColor: '#CDFF65', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
+  claimButtonText: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#17200C' },
+  submitButton: { backgroundColor: '#FFE177', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
+  submitButtonText: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#17200C' },
   releaseLink: { alignItems: 'center', marginTop: 16 },
-  releaseLinkText: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#6C7893' },
-  waitingState: { backgroundColor: '#FEF3C7', padding: 20, borderRadius: 12, alignItems: 'center' },
-  waitingText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#92400E' },
-  approvedState: { backgroundColor: '#D1FAE5', padding: 20, borderRadius: 12, alignItems: 'center' },
-  approvedText: { fontFamily: 'Nunito_700Bold', fontSize: 20, color: '#1B7A34' },
+  releaseLinkText: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#A9A7BA' },
+  waitingState: { backgroundColor: '#302719', padding: 20, borderRadius: 12, alignItems: 'center' },
+  waitingText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#FFE177' },
+  approvedState: { backgroundColor: '#26351D', padding: 20, borderRadius: 12, alignItems: 'center' },
+  approvedText: { fontFamily: 'Nunito_700Bold', fontSize: 20, color: '#CDFF65' },
 });

@@ -13,7 +13,7 @@ export default function AvatarPicker({ selectedId, onSelect, accentColor = color
 export { AVATARS };
 const styles = StyleSheet.create({
  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8, marginVertical: 12 },
- cell: { width: '22%', minHeight: 70, borderRadius: 20, backgroundColor: colors.white, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
+ cell: { width: '22%', minHeight: 70, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
  check: { position: 'absolute', right: -2, bottom: -2, width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
- checkText: { color: colors.white, fontWeight: '800', fontSize: 13 },
+ checkText: { color: colors.onAccent, fontWeight: '800', fontSize: 13 },
 });

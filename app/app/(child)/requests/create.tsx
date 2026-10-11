@@ -26,10 +26,10 @@ import { useChildSessionStore } from '@/stores/childSessionStore';
 import type { Category } from '@/types';
 
 const CATEGORIES: { value: Category; icon: string; label: string; deep: string; light: string }[] = [
-  { value: 'Household', icon: '🏠', label: 'Household', deep: '#1B6CA8', light: '#DBEAFE' },
-  { value: 'Learning', icon: '📚', label: 'Learning', deep: '#7B2D8B', light: '#EDE9FE' },
-  { value: 'LifeSkills', icon: '🌱', label: 'Life Skills', deep: '#0D7377', light: '#CCFBF1' },
-  { value: 'Hobbies', icon: '🎨', label: 'Hobbies & Fun', deep: '#B85C00', light: '#FFEDD5' },
+  { value: 'Household', icon: '🏠', label: 'Household', deep: '#65F3FF', light: '#17363A' },
+  { value: 'Learning', icon: '📚', label: 'Learning', deep: '#B7A1FF', light: '#302445' },
+  { value: 'LifeSkills', icon: '🌱', label: 'Life Skills', deep: '#CDFF65', light: '#26351D' },
+  { value: 'Hobbies', icon: '🎨', label: 'Hobbies & Fun', deep: '#FFBA82', light: '#392719' },
 ];
 
 const SUGGESTED_REQUESTS = [
@@ -129,7 +129,7 @@ export default function RequestWizard() {
                   onPress={() => { setCategory(cat.value); setStep(2); }}
                 >
                   <Text style={styles.categoryIcon}>{cat.icon}</Text>
-                  <Text style={[styles.categoryLabel, { color: category === cat.value ? '#FFF' : cat.deep }]}>
+                  <Text style={[styles.categoryLabel, { color: category === cat.value ? '#17200C' : cat.deep }]}>
                     {cat.label}
                   </Text>
                 </TouchableOpacity>
@@ -145,7 +145,7 @@ export default function RequestWizard() {
             <TextInput
               style={styles.input}
               placeholder="e.g. Take me to the park"
-              placeholderTextColor="#6C7893"
+              placeholderTextColor="#A9A7BA"
               value={title}
               onChangeText={setTitle}
               maxLength={60}
@@ -156,7 +156,7 @@ export default function RequestWizard() {
             <TextInput
               style={[styles.input, styles.inputMultiline]}
               placeholder="e.g. I really want to go because it's sunny!"
-              placeholderTextColor="#6C7893"
+              placeholderTextColor="#A9A7BA"
               value={description}
               onChangeText={setDescription}
               maxLength={100}
@@ -230,35 +230,35 @@ export default function RequestWizard() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF0F6' },
+  container: { flex: 1, backgroundColor: '#341C2D' },
   content: { padding: 24, paddingBottom: 48 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  backText: { fontFamily: 'Inter_500Medium', fontSize: 16, color: '#FF6688' },
-  limitText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#4B5875' },
+  backText: { fontFamily: 'Inter_500Medium', fontSize: 16, color: '#FF76C5' },
+  limitText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#C0BDCF' },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 24 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E5EFFF' },
-  dotActive: { backgroundColor: '#FF6688', width: 24 },
-  stepTitle: { fontFamily: 'Nunito_700Bold', fontSize: 24, color: '#16244D', marginBottom: 20, textAlign: 'center' },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#17363A' },
+  dotActive: { backgroundColor: '#FF76C5', width: 24 },
+  stepTitle: { fontFamily: 'Nunito_700Bold', fontSize: 24, color: '#F7F5FF', marginBottom: 20, textAlign: 'center' },
   categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center' },
   categoryTile: { width: '45%', paddingVertical: 28, borderRadius: 16, alignItems: 'center', gap: 8 },
-  categoryIcon: { fontSize: 32 },
-  categoryLabel: { fontFamily: 'Nunito_700Bold', fontSize: 15 },
-  input: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5EFFF', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontFamily: 'Inter_400Regular', fontSize: 16, color: '#16244D' },
-  inputMultiline: { height: 80, textAlignVertical: 'top' },
-  charCount: { fontFamily: 'Inter_400Regular', fontSize: 12, color: '#6C7893', textAlign: 'right', marginTop: 4, marginBottom: 16 },
-  label: { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: '#16244D', marginTop: 16, marginBottom: 8 },
+  categoryIcon: {color:'#F7F5FF', fontSize: 32 },
+  categoryLabel: {color:'#F7F5FF', fontFamily: 'Nunito_700Bold', fontSize: 15 },
+  input: { backgroundColor: '#121219', borderWidth: 1, borderColor: '#17363A', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontFamily: 'Inter_400Regular', fontSize: 16, color: '#F7F5FF' },
+  inputMultiline: {color:'#F7F5FF', height: 80, textAlignVertical: 'top' },
+  charCount: { fontFamily: 'Inter_400Regular', fontSize: 12, color: '#A9A7BA', textAlign: 'right', marginTop: 4, marginBottom: 16 },
+  label: { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: '#F7F5FF', marginTop: 16, marginBottom: 8 },
   suggestionsRow: { marginBottom: 24 },
-  suggestionChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#FFFFFF', marginRight: 8, borderWidth: 1, borderColor: '#FFF0F6' },
-  suggestionText: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#4B5875' },
-  nextButton: { backgroundColor: '#FF6688', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
+  suggestionChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#121219', marginRight: 8, borderWidth: 1, borderColor: '#341C2D' },
+  suggestionText: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#C0BDCF' },
+  nextButton: { backgroundColor: '#FF76C5', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
   nextDisabled: { opacity: 0.4 },
-  nextText: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#FFFFFF' },
+  nextText: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#17200C' },
   starPicker: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 24, marginVertical: 32 },
-  starBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center', shadowOffset: { width: 0, height: 2 }, shadowRadius: 4, shadowOpacity: 0.1, shadowColor: '#000' },
-  starBtnText: { fontSize: 28, color: '#16244D', fontWeight: '700' },
-  starDisplay: { fontFamily: 'Nunito_800ExtraBold', fontSize: 48, color: '#16244D' },
-  helperText: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#4B5875', textAlign: 'center', marginBottom: 32 },
-  sendButton: { backgroundColor: '#FF6688', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
-  sendText: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#FFFFFF' },
-  footnote: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#6C7893', textAlign: 'center', marginTop: 16 },
+  starBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#121219', justifyContent: 'center', alignItems: 'center', shadowOffset: { width: 0, height: 2 }, shadowRadius: 4, shadowOpacity: 0.1, shadowColor: '#000' },
+  starBtnText: { fontSize: 28, color: '#F7F5FF', fontWeight: '700' },
+  starDisplay: { fontFamily: 'Nunito_800ExtraBold', fontSize: 48, color: '#F7F5FF' },
+  helperText: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#C0BDCF', textAlign: 'center', marginBottom: 32 },
+  sendButton: { backgroundColor: '#FF76C5', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
+  sendText: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#17200C' },
+  footnote: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#A9A7BA', textAlign: 'center', marginTop: 16 },
 });

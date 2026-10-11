@@ -1,10 +1,11 @@
+import { Home, Flag, UserRound, ChartNoAxesColumnIncreasing, MessagesSquare } from 'lucide-react-native';
 // S1-Tab: Parent mode bottom tab navigator (WFB-001)
 // 5 tabs: Dashboard, Tasks, Accountability, Requests, Profile
 // Uses Expo Router Tabs with design tokens from DS-001
 
 import { useAuthStore } from '@/stores/authStore';
 import { Tabs, Redirect } from 'expo-router';
-import { Text, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useChildSessionStore } from '@/stores/childSessionStore';
 import { colors, layout, typography } from '@/constants/tokens';
 
@@ -16,7 +17,7 @@ type TabIconProps = {
 function TabIcon({ emoji, focused }: TabIconProps) {
   return (
     <View style={[styles.iconContainer, focused && styles.iconContainerActive]}>
-      <Text style={styles.icon}>{emoji}</Text>
+      {(() => { const Icon = emoji === '🏠' ? Home : emoji === '📋' ? Flag : emoji === '📊' ? ChartNoAxesColumnIncreasing : emoji === '📥' ? MessagesSquare : UserRound; return <Icon size={23} color={focused ? colors.skyBlue : colors.ink400} />; })()}
     </View>
   );
 }
@@ -58,6 +59,7 @@ export default function ParentLayout() {
         name="accountability"
         options={{
           title: 'Accountability',
+          tabBarLabel: 'Progress',
           tabBarIcon: ({ focused }) => (
             <TabIcon emoji="📊" focused={focused} />
           ),
@@ -106,9 +108,9 @@ export default function ParentLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     height: layout.tabBarHeight,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: colors.ink50,
+    borderTopColor: colors.border,
     paddingTop: 8,
     paddingBottom: 16,
   },

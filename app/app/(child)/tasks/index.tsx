@@ -1,3 +1,4 @@
+import GameArt from '@/components/shared/GameArt';
 import { questRewardLabel } from '@/services/questPresentation';
 // S2-07: Task Feed screen (C-02)
 // FlashList with category filter chips. Claimed-by-sibling cards greyed with lock.
@@ -19,11 +20,11 @@ import { useChildSessionStore } from '@/stores/childSessionStore';
 import type { Task, TaskClaim, Category } from '@/types';
 
 const CATEGORIES: { label: string; value: Category | 'All'; icon: string; deep: string; light: string }[] = [
-  { label: 'All', value: 'All', icon: '✨', deep: '#1555E8', light: '#E5EFFF' },
-  { label: 'Household', value: 'Household', icon: '🏠', deep: '#1B6CA8', light: '#DBEAFE' },
-  { label: 'Learning', value: 'Learning', icon: '📚', deep: '#7B2D8B', light: '#EDE9FE' },
-  { label: 'Life Skills', value: 'LifeSkills', icon: '🌱', deep: '#0D7377', light: '#CCFBF1' },
-  { label: 'Hobbies', value: 'Hobbies', icon: '🎨', deep: '#B85C00', light: '#FFEDD5' },
+  { label: 'All', value: 'All', icon: '✨', deep: '#65F3FF', light: '#17363A' },
+  { label: 'Household', value: 'Household', icon: '🏠', deep: '#65F3FF', light: '#17363A' },
+  { label: 'Learning', value: 'Learning', icon: '📚', deep: '#B7A1FF', light: '#302445' },
+  { label: 'Life Skills', value: 'LifeSkills', icon: '🌱', deep: '#CDFF65', light: '#26351D' },
+  { label: 'Hobbies', value: 'Hobbies', icon: '🎨', deep: '#FFBA82', light: '#392719' },
 ];
 
 export default function TaskFeedScreen() {
@@ -63,11 +64,11 @@ export default function TaskFeedScreen() {
           activeOpacity={0.7}
           disabled={!!isClaimedBySibling}
         >
-          <View style={[styles.categoryBorder, { backgroundColor: catInfo?.deep ?? '#1555E8' }]} />
-          <View style={styles.taskContent}>
+          <View style={[styles.categoryBorder, { backgroundColor: catInfo?.deep ?? '#65F3FF' }]} />
+          <View style={styles.taskContent}><View style={styles.artRow}><GameArt kind={item.category==='Learning'?'book':item.category==='LifeSkills'?'plant':item.category==='Hobbies'?'paint':'toys'} size={80}/></View>
             <View style={styles.taskHeader}>
               <Text style={styles.categoryIcon}>{catInfo?.icon}</Text>
-              <View style={[styles.categoryBadge, { backgroundColor: catInfo?.light ?? '#E5EFFF' }]}>
+              <View style={[styles.categoryBadge, { backgroundColor: catInfo?.light ?? '#17363A' }]}>
                 <Text style={[styles.categoryBadgeText, { color: catInfo?.deep }]}>{item.category}</Text>
               </View>
               {item.isMilestone && (
@@ -79,7 +80,7 @@ export default function TaskFeedScreen() {
             <Text style={[styles.taskTitle, isClaimedBySibling && styles.taskTitleClaimed]}>{item.title}</Text>
             {item.description && <Text style={styles.taskDescription} numberOfLines={1}>{item.description}</Text>}
             <View style={styles.taskFooter}>
-              {item.deadline && <Text>Due {item.deadline.toDate().toLocaleDateString()}{item.deadline.toMillis() < Date.now() ? " · Expired" : ""}</Text>}
+              {item.deadline && <Text style={{color:'#C0BDCF'}}>Due {item.deadline.toDate().toLocaleDateString()}{item.deadline.toMillis() < Date.now() ? " · Expired" : ""}</Text>}
               <Text style={styles.starValue}>⭐ {questRewardLabel(item)}</Text>
               <View style={[styles.difficultyBadge, getDifficultyBg(item.difficulty)]}>
                 <Text style={styles.difficultyText}>{item.difficulty}</Text>
@@ -101,10 +102,10 @@ export default function TaskFeedScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.heading}>Quests</Text>
+        <Text style={styles.eyebrow}>A LITTLE HELP. A BIG WIN.</Text><Text style={styles.heading}>Choose your next quest.</Text><Text style={styles.subtitle}>Every adventure begins with a little “I can!”</Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+      <ScrollView horizontal style={{flexGrow:0,maxHeight:64}} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
         {CATEGORIES.map((cat) => (
           <TouchableOpacity
             key={cat.value}
@@ -147,44 +148,47 @@ export default function TaskFeedScreen() {
 
 function getDifficultyBg(d: string) {
   switch (d) {
-    case 'Easy': return { backgroundColor: '#D1FAE5' };
-    case 'Medium': return { backgroundColor: '#FEF3C7' };
-    case 'Hard': return { backgroundColor: '#FEE2E2' };
-    default: return { backgroundColor: '#EDE9FE' };
+    case 'Easy': return { backgroundColor: '#26351D' };
+    case 'Medium': return { backgroundColor: '#302719' };
+    case 'Hard': return { backgroundColor: '#391D2B' };
+    default: return { backgroundColor: '#302445' };
   }
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1, backgroundColor: '#121219' },
+  eyebrow: { fontFamily: 'Nunito_800ExtraBold', fontSize: 11, letterSpacing: 1, color: '#A9A7BA', marginBottom: 9 },
+  subtitle: { fontSize: 14, color: '#C0BDCF', lineHeight: 21, marginTop: 10 },
+  artRow: { alignItems: 'center', backgroundColor: '#1B1B26', borderRadius: 18, marginBottom: 16 },
   header: { paddingHorizontal: 16, paddingVertical: 12 },
-  heading: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#16244D' },
+  heading: { fontFamily: 'Nunito_700Bold', fontSize: 32, color: '#65F3FF' },
   filterRow: { paddingHorizontal: 16, paddingBottom: 12, gap: 8 },
-  filterChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#EEF6FF', marginRight: 8 },
-  filterChipText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#4B5875' },
-  filterChipTextActive: { color: '#FFFFFF' },
-  claimBanner: { backgroundColor: '#FEF3C7', marginHorizontal: 16, marginBottom: 8, padding: 12, borderRadius: 12 },
-  claimBannerText: { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: '#92400E' },
+  filterChip: { paddingHorizontal: 14, paddingVertical: 12, borderRadius: 20, backgroundColor: '#060609', marginRight: 8 },
+  filterChipText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#C0BDCF' },
+  filterChipTextActive: { color: '#17200C' },
+  claimBanner: { backgroundColor: '#302719', marginHorizontal: 16, marginBottom: 8, padding: 12, borderRadius: 12 },
+  claimBannerText: { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: '#FFE177' },
   listContent: { paddingHorizontal: 16, paddingBottom: 100 },
-  taskCard: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 12, marginBottom: 12, shadowOffset: { width: 0, height: 1 }, shadowRadius: 2, shadowOpacity: 0.06, shadowColor: 'rgba(26,62,110,0.12)', elevation: 1, overflow: 'hidden' },
+  taskCard: { flexDirection: 'row', backgroundColor: '#121219', borderRadius: 24, borderWidth: 1, borderColor: '#333240', marginBottom: 16, shadowOffset: { width: 0, height: 1 }, shadowRadius: 2, shadowOpacity: 0.06, shadowColor: 'rgba(26,62,110,0.12)', elevation: 1, overflow: 'hidden' },
   taskCardClaimed: { opacity: 0.5 },
   categoryBorder: { width: 4, borderTopLeftRadius: 12, borderBottomLeftRadius: 12 },
   taskContent: { flex: 1, padding: 14 },
   taskHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  categoryIcon: { fontSize: 16 },
+  categoryIcon: {color:'#F7F5FF', fontSize: 16 },
   categoryBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-  categoryBadgeText: { fontFamily: 'Inter_500Medium', fontSize: 11 },
-  milestoneBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: '#EDE9FE' },
-  milestoneBadgeText: { fontFamily: 'Inter_500Medium', fontSize: 11, color: '#7B2D8B' },
-  taskTitle: { fontFamily: 'Nunito_700Bold', fontSize: 16, color: '#16244D', marginBottom: 4 },
-  taskTitleClaimed: { color: '#6C7893' },
-  taskDescription: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#4B5875', marginBottom: 8 },
-  taskFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  starValue: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#16244D' },
+  categoryBadgeText: {color:'#F7F5FF', fontFamily: 'Inter_500Medium', fontSize: 11 },
+  milestoneBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: '#302445' },
+  milestoneBadgeText: { fontFamily: 'Inter_500Medium', fontSize: 11, color: '#B7A1FF' },
+  taskTitle: { fontFamily: 'Nunito_700Bold', fontSize: 23, color: '#F7F5FF', marginBottom: 8 },
+  taskTitleClaimed: { color: '#A9A7BA' },
+  taskDescription: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#C0BDCF', marginBottom: 8 },
+  taskFooter: { flexWrap: 'wrap', gap: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  starValue: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: '#FFE177' },
   difficultyBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  difficultyText: { fontFamily: 'Inter_500Medium', fontSize: 11, color: '#16244D' },
-  lockedText: { fontFamily: 'Inter_500Medium', fontSize: 12, color: '#6C7893', marginTop: 6 },
-  myClaimText: { fontFamily: 'Inter_500Medium', fontSize: 12, color: '#B45309', marginTop: 6 },
+  difficultyText: { fontFamily: 'Inter_500Medium', fontSize: 11, color: '#F7F5FF' },
+  lockedText: { fontFamily: 'Inter_500Medium', fontSize: 12, color: '#A9A7BA', marginTop: 6 },
+  myClaimText: { fontFamily: 'Inter_500Medium', fontSize: 12, color: '#FFE177', marginTop: 6 },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 48 },
-  emptyEmoji: { fontSize: 48, marginBottom: 16 },
-  emptyText: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#4B5875', textAlign: 'center', lineHeight: 24 },
+  emptyEmoji: {color:'#F7F5FF', fontSize: 48, marginBottom: 16 },
+  emptyText: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#C0BDCF', textAlign: 'center', lineHeight: 24 },
 });

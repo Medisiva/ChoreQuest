@@ -150,7 +150,7 @@ export default function PinOverlay({
           {loading && (
             <ActivityIndicator
               size="small"
-              color="#1555E8"
+              color="#65F3FF"
               style={styles.loader}
             />
           )}
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#121219',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 32,
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#EEF6FF',
+    backgroundColor: '#060609',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   childName: {
     fontFamily: 'Inter_700Bold',
     fontSize: 22,
-    color: '#16244D',
+    color: '#F7F5FF',
   },
   dotsRow: {
     flexDirection: 'row',
@@ -267,20 +267,20 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#1555E8',
+    borderColor: '#65F3FF',
     backgroundColor: 'transparent',
   },
   dotFilled: {
-    backgroundColor: '#1555E8',
+    backgroundColor: '#65F3FF',
   },
   dotError: {
-    backgroundColor: '#9B1C1C',
-    borderColor: '#9B1C1C',
+    backgroundColor: '#FF92A7',
+    borderColor: '#FF92A7',
   },
   errorText: {
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
-    color: '#9B1C1C',
+    color: '#FF92A7',
     marginBottom: 8,
   },
   loader: {
@@ -291,14 +291,14 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 24,
   },
-  lockedIcon: {
+  lockedIcon: {color:'#F7F5FF',
     fontSize: 48,
     marginBottom: 12,
   },
   lockedText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 16,
-    color: '#4B5875',
+    color: '#C0BDCF',
   },
   numPad: {
     marginTop: 8,
@@ -312,14 +312,14 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#F5F8FF',
+    backgroundColor: '#23232F',
     justifyContent: 'center',
     alignItems: 'center',
   },
   numKeyText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 28,
-    color: '#16244D',
+    color: '#F7F5FF',
   },
   cancelButton: {
     marginTop: 20,
@@ -329,6 +329,6 @@ const styles = StyleSheet.create({
   cancelText: {
     fontFamily: 'Inter_500Medium',
     fontSize: 16,
-    color: '#2563EB',
+    color: '#65F3FF',
   },
 });

@@ -38,24 +38,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 48,
   },
-  emoji: { fontSize: 56, marginBottom: 16 },
+  emoji: {color:'#F7F5FF', fontSize: 56, marginBottom: 16 },
   title: {
     fontFamily: 'Inter_700Bold',
     fontSize: 20,
-    color: '#16244D',
+    color: '#F7F5FF',
     marginBottom: 8,
     textAlign: 'center',
   },
   description: {
     fontFamily: 'Inter_400Regular',
     fontSize: 15,
-    color: '#4B5875',
+    color: '#C0BDCF',
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
   },
   actionButton: {
-    backgroundColor: '#1555E8',
+    backgroundColor: '#65F3FF',
     paddingVertical: 14,
     paddingHorizontal: 32,
     borderRadius: 12,
@@ -63,6 +63,6 @@ const styles = StyleSheet.create({
   actionText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 16,
-    color: '#FFFFFF',
+    color: '#17200C',
   },
 });

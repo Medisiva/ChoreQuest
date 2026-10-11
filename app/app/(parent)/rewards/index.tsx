@@ -27,8 +27,8 @@ const REWARD_TYPE_COLORS: Record<RewardType, string> = {
   ScreenTime: colors.navy500,
   Gift: colors.softPurple,
   GiftCard: colors.softPurple,
-  Money: '#0D7377',
-  Special: '#B85C00',
+  Money: '#CDFF65',
+  Special: '#FFBA82',
 };
 
 const REWARD_TYPE_ICONS: Record<RewardType, string> = {
@@ -337,7 +337,7 @@ export default function ParentRewardsScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   centered: {
     flex: 1,
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     ...shadows.elevation1,
   },
-  balanceStar: {
+  balanceStar: {color:'#F7F5FF',
     fontSize: 16,
     marginRight: spacing[1],
   },
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: spacing[1],
     borderRadius: radius.lg,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     overflow: 'hidden',
     ...shadows.elevation2,
   },
@@ -398,13 +398,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[2],
   },
-  rewardTypeIcon: {
+  rewardTypeIcon: {color:'#F7F5FF',
     fontSize: 14,
     marginRight: spacing[1],
   },
   rewardTypeLabel: {
     ...typography.label,
-    color: colors.white,
+    color: colors.onAccent,
     fontSize: 11,
   },
   rewardBody: {
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing[4],
     marginBottom: spacing[2],
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
   },
   approveBtnText: {
     ...typography.label,
-    color: colors.white,
+    color: colors.onAccent,
   },
   declineBtn: {
     backgroundColor: colors.dangerLight,
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[1],
     borderRadius: radius.full,
   },
-  statusBadgeText: {
+  statusBadgeText: {color:'#F7F5FF',
     ...typography.label,
     fontSize: 11,
   },

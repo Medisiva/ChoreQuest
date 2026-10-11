@@ -281,7 +281,7 @@ export default function MilestoneDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   notFound: {
     ...typography.body1,
@@ -303,11 +303,11 @@ const styles = StyleSheet.create({
   },
   backText: {
     fontSize: 24,
-    color: colors.white,
+    color: colors.onAccent,
   },
   headerTitle: {
     ...typography.childHeading2,
-    color: colors.white,
+    color: colors.onAccent,
     flex: 1,
   },
 
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.ink50,
   },
-  stepText: {
+  stepText: {color:'#F7F5FF',
     ...typography.childHeading1,
   },
   percentText: {
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   stepIconText: {
-    color: colors.white,
+    color: colors.onAccent,
     fontSize: 16,
     fontFamily: 'Nunito_700Bold',
   },
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
     right: 0,
     padding: spacing[4],
     paddingBottom: spacing[8],
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   completeBtn: {
     borderRadius: radius.md,
@@ -477,6 +477,6 @@ const styles = StyleSheet.create({
   },
   completeBtnText: {
     ...typography.childButton,
-    color: colors.white,
+    color: colors.onAccent,
   },
 });

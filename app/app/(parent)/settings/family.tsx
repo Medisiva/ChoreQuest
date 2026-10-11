@@ -19,18 +19,18 @@ export default function FamilySettings() {
    else setMessage('Family settings saved.');
   }catch(e){setMessage(errorMessage(e));}finally{pending.current=false;setBusy(false);}
  }
- return <SafeAreaView style={{flex:1,backgroundColor:'#F5F8FF'}}><KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':'height'}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{padding:24,gap:16}}>
- <TouchableOpacity onPress={()=>router.replace('/(parent)/settings')} accessibilityRole="button"><Text>← Settings</Text></TouchableOpacity>
- <Text style={{fontSize:28,fontWeight:'700',color:'#16244D'}}>Your family</Text>
- <Text>Family name</Text><TextInput accessibilityLabel="Family name" value={name} onChangeText={setName} maxLength={80} style={input}/>
- <Text>Timezone</Text><TextInput accessibilityLabel="Family timezone" value={timezone} onChangeText={setTimezone} autoCapitalize="none" style={input}/><Text>Use a timezone such as America/New_York, Europe/London or Asia/Kolkata. This controls quest and target periods.</Text>
- <TouchableOpacity accessibilityRole="button" disabled={busy} onPress={()=>void run('settings')} style={button}><Text style={{color:'white'}}>Save family settings</Text></TouchableOpacity>
- <Text style={{fontSize:22,fontWeight:'700'}}>Invite another parent</Text><Text>The family owner can invite a second parent to the same shared family.</Text>
- <TextInput accessibilityLabel="Invited parent email" placeholder="Parent email" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} style={input}/>
- <TouchableOpacity accessibilityRole="button" disabled={busy} onPress={()=>void run('invite')} style={button}><Text style={{color:'white'}}>Create parent invitation</Text></TouchableOpacity>
- {code?<Text selectable accessibilityLabel="Parent invitation code">{code}</Text>:null}
- {message?<Text accessibilityRole="alert">{message}</Text>:null}
+ return <SafeAreaView style={{flex:1,backgroundColor:'#23232F'}}><KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':'height'}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{padding:24,gap:16}}>
+ <TouchableOpacity onPress={()=>router.replace('/(parent)/settings')} accessibilityRole="button"><Text style={{color:'#F7F5FF'}}>← Settings</Text></TouchableOpacity>
+ <Text style={{fontSize:28,fontWeight:'700',color:'#F7F5FF'}}>Your family</Text>
+ <Text style={{color:'#F7F5FF'}}>Family name</Text><TextInput placeholderTextColor="#A9A7BA" accessibilityLabel="Family name" value={name} onChangeText={setName} maxLength={80} style={input}/>
+ <Text style={{color:'#F7F5FF'}}>Timezone</Text><TextInput placeholderTextColor="#A9A7BA" accessibilityLabel="Family timezone" value={timezone} onChangeText={setTimezone} autoCapitalize="none" style={input}/><Text style={{color:'#F7F5FF'}}>Use a timezone such as America/New_York, Europe/London or Asia/Kolkata. This controls quest and target periods.</Text>
+ <TouchableOpacity accessibilityRole="button" disabled={busy} onPress={()=>void run('settings')} style={button}><Text style={{color:'#17200C'}}>Save family settings</Text></TouchableOpacity>
+ <Text style={{color:'#F7F5FF',fontSize:22,fontWeight:'700'}}>Invite another parent</Text><Text style={{color:'#F7F5FF'}}>The family owner can invite a second parent to the same shared family.</Text>
+ <TextInput placeholderTextColor="#A9A7BA" accessibilityLabel="Invited parent email" placeholder="Parent email" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} style={input}/>
+ <TouchableOpacity accessibilityRole="button" disabled={busy} onPress={()=>void run('invite')} style={button}><Text style={{color:'#17200C'}}>Create parent invitation</Text></TouchableOpacity>
+ {code?<Text style={{color:'#F7F5FF'}} selectable accessibilityLabel="Parent invitation code">{code}</Text>:null}
+ {message?<Text style={{color:'#F7F5FF'}} accessibilityRole="alert">{message}</Text>:null}
  </ScrollView></KeyboardAvoidingView></SafeAreaView>;
 }
-const input={backgroundColor:'white',padding:14,borderRadius:12,borderWidth:1,borderColor:'#6C7893'};
-const button={backgroundColor:'#1555E8',padding:16,borderRadius:12,alignItems:'center' as const};
+const input={color:'#F7F5FF',backgroundColor:'#121219',padding:14,borderRadius:12,borderWidth:1,borderColor:'#A9A7BA'};
+const button={backgroundColor:'#65F3FF',padding:16,borderRadius:12,alignItems:'center' as const};

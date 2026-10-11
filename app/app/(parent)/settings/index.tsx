@@ -114,8 +114,8 @@ export default function SettingsScreen() {
           <Text style={styles.cardArrow}>→</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={()=>router.push('/(parent)/children/manage')}><Text style={styles.cardLabel}>Child profiles, stars and consequences</Text><Text>→</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.card} onPress={()=>router.push('/(parent)/settings/family')}><Text style={styles.cardLabel}>Family settings and parent invitation</Text><Text>→</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.card} onPress={()=>router.push('/(parent)/children/manage')}><Text style={styles.cardLabel}>Child profiles, stars and consequences</Text><Text style={{color:'#F7F5FF'}}>→</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.card} onPress={()=>router.push('/(parent)/settings/family')}><Text style={styles.cardLabel}>Family settings and parent invitation</Text><Text style={{color:'#F7F5FF'}}>→</Text></TouchableOpacity>
         {/* Preferences */}
         <Text style={styles.sectionLabel}>PREFERENCES</Text>
         <View style={styles.card}>
@@ -123,7 +123,7 @@ export default function SettingsScreen() {
           <Switch
             value={leaderboardEnabled}
             onValueChange={(value) => { if (family) void setDoc(doc(db, "families", family.id, "settings", "config"), { leaderboardEnabled: value }, { merge: true }).catch(() => Alert.alert("Could not save", "Reconnect and try again.")); }}
-            trackColor={{ true: '#1555E8', false: '#E5EFFF' }}
+            trackColor={{ true: '#65F3FF', false: '#17363A' }}
             thumbColor="#FFFFFF"
           />
         </View>
@@ -133,7 +133,7 @@ export default function SettingsScreen() {
             value={notificationsEnabled}
             disabled={Platform.OS === "web"}
             onValueChange={async (value) => { if (!family) return; if (!value) { choose(family.id, false); return; } try { const granted = await requestDeviceAlertsPermission(); choose(family.id, granted); if (!granted) Alert.alert("Device alerts off", "Allow notifications in your phone settings to enable device alerts."); } catch { Alert.alert("Could not enable alerts", "Please try again on your Android phone."); } }}
-            trackColor={{ true: '#1555E8', false: '#E5EFFF' }}
+            trackColor={{ true: '#65F3FF', false: '#17363A' }}
             thumbColor="#FFFFFF"
           />
         </View>
@@ -142,7 +142,7 @@ export default function SettingsScreen() {
         <Text style={styles.sectionLabel}>YOUR DATA</Text>
         <TouchableOpacity style={styles.card} onPress={handleExportData} disabled={exporting}>
           <Text style={styles.cardLabel}>Export family data</Text>
-          {exporting ? <ActivityIndicator size="small" color="#1555E8" /> : <Text style={styles.cardArrow}>↓</Text>}
+          {exporting ? <ActivityIndicator size="small" color="#65F3FF" /> : <Text style={styles.cardArrow}>↓</Text>}
         </TouchableOpacity>
         <TouchableOpacity style={[styles.card, styles.dangerCard]} onPress={handleDeleteAccount}>
           <Text style={styles.dangerLabel}>Delete family data</Text>
@@ -161,18 +161,18 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F8FF' },
+  container: { flex: 1, backgroundColor: '#23232F' },
   content: { padding: 24, paddingBottom: 48 },
-  heading: { fontFamily: 'Inter_700Bold', fontSize: 28, color: '#16244D', marginBottom: 24 },
-  sectionLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 12, color: '#6C7893', letterSpacing: 1, marginTop: 24, marginBottom: 8 },
-  card: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, marginBottom: 8 },
-  cardLabel: { fontFamily: 'Inter_500Medium', fontSize: 15, color: '#16244D' },
-  cardValue: { fontFamily: 'Inter_400Regular', fontSize: 15, color: '#4B5875' },
-  cardArrow: { fontSize: 18, color: '#6C7893' },
-  dangerCard: { borderWidth: 1, borderColor: '#FEE2E2' },
-  dangerLabel: { fontFamily: 'Inter_500Medium', fontSize: 15, color: '#9B1C1C' },
-  dangerArrow: { fontSize: 18, color: '#9B1C1C' },
-  signOutButton: { marginTop: 32, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5EFFF', borderRadius: 12, paddingVertical: 16, alignItems: 'center' },
-  signOutText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#1555E8' },
-  version: { fontFamily: 'Inter_400Regular', fontSize: 12, color: '#6C7893', textAlign: 'center', marginTop: 24 },
+  heading: { fontFamily: 'Inter_700Bold', fontSize: 28, color: '#F7F5FF', marginBottom: 24 },
+  sectionLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 12, color: '#A9A7BA', letterSpacing: 1, marginTop: 24, marginBottom: 8 },
+  card: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#121219', borderRadius: 12, padding: 16, marginBottom: 8 },
+  cardLabel: { fontFamily: 'Inter_500Medium', fontSize: 15, color: '#F7F5FF' },
+  cardValue: { fontFamily: 'Inter_400Regular', fontSize: 15, color: '#C0BDCF' },
+  cardArrow: { fontSize: 18, color: '#A9A7BA' },
+  dangerCard: { borderWidth: 1, borderColor: '#391D2B' },
+  dangerLabel: { fontFamily: 'Inter_500Medium', fontSize: 15, color: '#FF92A7' },
+  dangerArrow: { fontSize: 18, color: '#FF92A7' },
+  signOutButton: { marginTop: 32, backgroundColor: '#121219', borderWidth: 1, borderColor: '#17363A', borderRadius: 12, paddingVertical: 16, alignItems: 'center' },
+  signOutText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#65F3FF' },
+  version: { fontFamily: 'Inter_400Regular', fontSize: 12, color: '#A9A7BA', textAlign: 'center', marginTop: 24 },
 });

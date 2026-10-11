@@ -1,18 +1,19 @@
+import { Home, Flag, Gift, UserRound } from 'lucide-react-native';
 // S1-Tab: Child mode bottom tab navigator (WFB-001)
 // 4 tabs: Home, Quests, Rewards, Me
 // Uses Expo Router Tabs with design tokens from DS-001
 // Active color varies per tab, no labels, larger icons, 48dp tap targets
 
 import { Tabs, Redirect } from 'expo-router';
-import { Text, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useEffect } from 'react';
 import { useChildSessionStore } from '@/stores/childSessionStore';
 import { colors, layout } from '@/constants/tokens';
 
 const TAB_COLORS = {
-  home: colors.starGold,
-  tasks: colors.coral,
-  rewards: colors.softPurple,
+  home: colors.lime,
+  tasks: colors.skyBlue,
+  rewards: colors.coral,
   profile: colors.skyBlue,
 } as const;
 
@@ -30,7 +31,7 @@ function ChildTabIcon({ emoji, focused, activeColor }: ChildTabIconProps) {
         focused && { backgroundColor: activeColor + '20' },
       ]}
     >
-      <Text accessible={false} style={[styles.icon, focused && styles.iconActive]}>{emoji}</Text>
+      {(() => { const Icon = emoji === '⭐' ? Home : emoji === '📜' ? Flag : emoji === '🎁' ? Gift : UserRound; return <Icon size={25} color={focused ? activeColor : colors.ink400} />; })()}
     </View>
   );
 }
@@ -48,7 +49,8 @@ export default function ChildLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: styles.tabBar,
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
+        tabBarLabelStyle: { fontFamily: 'Nunito_700Bold', fontSize: 11 },
         tabBarInactiveTintColor: colors.ink400,
       }}
     >
@@ -128,9 +130,9 @@ export default function ChildLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     height: layout.tabBarHeight,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: colors.ink50,
+    borderTopColor: colors.border,
     paddingTop: 8,
     paddingBottom: 16,
   },

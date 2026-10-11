@@ -1,3 +1,4 @@
+import GameArt from '@/components/shared/GameArt';
 // S5: Child Reward Store (C-05)
 // 2-column reward grid with type-colored headers. Affordable items show "Redeem",
 // unaffordable show "Need X more stars". Confirmation bottom sheet before redeeming.
@@ -35,17 +36,10 @@ const REWARD_TYPE_COLORS: Record<RewardType, string> = {
   ScreenTime: colors.navy500,
   Gift: colors.softPurple,
   GiftCard: colors.softPurple,
-  Money: '#0D7377',
-  Special: '#B85C00',
+  Money: '#CDFF65',
+  Special: '#FFBA82',
 };
 
-const REWARD_TYPE_ICONS: Record<RewardType, string> = {
-  ScreenTime: '📱',
-  Gift: '🎁',
-  GiftCard: '💳',
-  Money: '💰',
-  Special: '🌟',
-};
 
 const STATUS_CONFIG: Record<RedemptionStatus, { label: string; bg: string; fg: string }> = {
   pending: { label: 'Pending', bg: colors.warningLight, fg: colors.warning },
@@ -152,12 +146,11 @@ export default function ChildRewardsScreen() {
       const canAfford = starBalance >= item.starCost;
       const deficit = item.starCost - starBalance;
       const typeColor = REWARD_TYPE_COLORS[item.rewardType] ?? colors.navy500;
-      const typeIcon = REWARD_TYPE_ICONS[item.rewardType] ?? '🎁';
 
       return (
         <View style={styles.rewardCard}>
-          <View style={[styles.rewardHeader, { backgroundColor: typeColor }]}>
-            <Text style={styles.rewardTypeIcon}>{typeIcon}</Text>
+          <View style={[styles.rewardHeader, { backgroundColor: typeColor + '24' }]}>
+            <GameArt kind={item.rewardType==='ScreenTime'?'paint':item.rewardType==='Special'?'book':'treasure'} size={64}/>
             <Text style={styles.rewardTypeLabel}>{item.rewardType}</Text>
           </View>
           <View style={styles.rewardBody}>
@@ -225,12 +218,12 @@ export default function ChildRewardsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Star Balance Hero */}
-      <View style={styles.balanceHeader}>
+      <View style={styles.balanceHeader}><Text style={styles.shopEyebrow}>YOU EARNED A LITTLE JOY.</Text><Text style={styles.shopHeading}>Little wins. Sweet rewards.</Text>
         <Animated.View style={[styles.balanceChip, starAnimatedStyle]}>
           <Text style={styles.balanceStar}>{'⭐'}</Text>
           <Text style={styles.balanceAmount}>{starBalance}</Text>
         </Animated.View>
-        <Text style={styles.balanceLabel}>Your Stars</Text>
+        <Text style={styles.balanceLabel}>Your star stash</Text>
       </View>
 
       {childRewards.length === 0 ? (
@@ -244,6 +237,7 @@ export default function ChildRewardsScreen() {
         <FlashList
           data={childRewards}
           renderItem={renderRewardCard}
+          ListHeaderComponent={<View style={styles.treasureBanner}><GameArt kind="treasure" size={124}/><Text style={styles.treasureCopy}>Pick your happy moment.</Text><Text style={styles.treasureNote}>Choose a reward, then ask a parent.</Text></View>}
           numColumns={2}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
@@ -284,7 +278,7 @@ export default function ChildRewardsScreen() {
           <View style={styles.sheetContainer}>
             <TouchableOpacity activeOpacity={1}>
               <View style={styles.sheetHandle} />
-              <Text style={styles.sheetTitle}>Redeem Reward?</Text>
+              <Text style={styles.sheetTitle}>Ask for this reward?</Text>
 
               {selectedReward && (
                 <>
@@ -335,6 +329,11 @@ export default function ChildRewardsScreen() {
 }
 
 const styles = StyleSheet.create({
+ shopEyebrow: {fontFamily:'Nunito_800ExtraBold',fontSize:10,letterSpacing:1,color:colors.ink400,marginBottom:10},
+ shopHeading: {fontFamily:'Nunito_800ExtraBold',fontSize:30,lineHeight:36,color:colors.coral,marginBottom:16,textAlign:'center'},
+ treasureBanner: {alignItems:'center',backgroundColor:colors.hero,borderRadius:26,padding:18,margin:4,marginBottom:20,borderWidth:1,borderColor:'#72528F'},
+ treasureCopy: {fontFamily:'Nunito_800ExtraBold',fontSize:21,color:colors.ink950},
+ treasureNote: {fontSize:14,color:colors.ink600,marginTop:8},
   safe: {
     flex: 1,
     backgroundColor: colors.cloud,
@@ -360,7 +359,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     ...shadows.elevation2,
   },
-  balanceStar: {
+  balanceStar: {color:'#F7F5FF',
     fontSize: 28,
     marginRight: spacing[2],
   },
@@ -382,12 +381,12 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: spacing[1],
     borderRadius: radius.lg,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     overflow: 'hidden',
     ...shadows.elevation2,
   },
   rewardHeader: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[2],
@@ -398,8 +397,8 @@ const styles = StyleSheet.create({
   },
   rewardTypeLabel: {
     ...typography.childLabel,
-    color: colors.white,
-    fontSize: 11,
+    color: colors.ink950,
+    fontSize: 12,
   },
   rewardBody: {
     padding: spacing[3],
@@ -425,7 +424,7 @@ const styles = StyleSheet.create({
   redeemButtonText: {
     ...typography.childButton,
     fontSize: 14,
-    color: colors.white,
+    color: colors.onAccent,
   },
   redeemButtonDisabled: {
     backgroundColor: colors.ink50,
@@ -454,7 +453,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[1],
   },
   redemptionRow: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing[4],
     marginBottom: spacing[2],
@@ -476,12 +475,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[1],
     borderRadius: radius.full,
   },
-  statusBadgeText: {
+  statusBadgeText: {color:'#F7F5FF',
     ...typography.childLabel,
     fontSize: 11,
   },
   // ── Empty State ─────────────────────────────────────────────────────────────
-  emptyEmoji: {
+  emptyEmoji: {color:'#F7F5FF',
     fontSize: 48,
     marginBottom: spacing[4],
   },
@@ -498,7 +497,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheetContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
     padding: spacing[6],
@@ -564,7 +563,7 @@ const styles = StyleSheet.create({
   },
   sheetConfirmText: {
     ...typography.childButton,
-    color: colors.white,
+    color: colors.onAccent,
   },
   sheetCancelButton: {
     paddingVertical: spacing[3],

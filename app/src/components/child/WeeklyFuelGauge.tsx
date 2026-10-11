@@ -29,7 +29,7 @@ const THEME_CONFIG: Record<GaugeTheme, { emoji: string; label: string; fillColor
     emoji: '🧪',
     label: 'Magic Potion',
     fillColor: colors.softPurple,
-    trackColor: '#EDE9FE',
+    trackColor: '#302445',
   },
   treasure: {
     emoji: '💰',
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[3],
   },
-  emoji: {
+  emoji: {color:'#F7F5FF',
     fontSize: 36,
     marginBottom: spacing[1],
   },
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   },
   fullText: {
     ...typography.childHeading2,
-    color: colors.white,
+    color: colors.onAccent,
     textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,

@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  badgeEmoji: {
+  badgeEmoji: {color:'#F7F5FF',
     fontSize: 64,
   },
   textContainer: {

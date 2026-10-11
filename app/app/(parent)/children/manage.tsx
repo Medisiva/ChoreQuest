@@ -32,25 +32,25 @@ export default function ManageChildren() {
    if(action==='archiveChild')setId('');
   }catch(e){setMessage(errorMessage(e));}finally{pending.current=false;setBusy(false);}
  }
- const button=(label:string,action:()=>void)=><TouchableOpacity accessibilityRole="button" disabled={busy} onPress={action} style={btn}><Text style={{color:'white',fontWeight:'600'}}>{label}</Text></TouchableOpacity>;
- const field=(label:string,value:string,set:(s:string)=>void,max=80,numeric=false)=><View><Text>{label}</Text><TextInput accessibilityLabel={label} value={value} onChangeText={set} maxLength={max} keyboardType={numeric?'number-pad':'default'} style={input}/></View>;
- return <SafeAreaView style={{flex:1,backgroundColor:'#F5F8FF'}}><KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':'height'}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{padding:24,gap:16}}>
- {button('← Settings',()=>router.replace('/(parent)/settings'))}<Text style={{fontSize:28,fontWeight:'700',color:'#16244D'}}>Manage your children</Text>
- <View style={{flexDirection:'row',flexWrap:'wrap',gap:12}}>{children.map(c=><TouchableOpacity accessibilityRole="button" key={c.id} onPress={()=>{setId(c.id);setMessage('');}} style={{padding:8,backgroundColor:c.id===id?'#FFF5B0':'white',borderRadius:16}}><KidAvatar avatarId={c.avatarId} size={56}/><Text>{c.nickname}</Text></TouchableOpacity>)}</View>
+ const button=(label:string,action:()=>void)=><TouchableOpacity accessibilityRole="button" disabled={busy} onPress={action} style={btn}><Text style={{color:'#17200C',fontWeight:'600'}}>{label}</Text></TouchableOpacity>;
+ const field=(label:string,value:string,set:(s:string)=>void,max=80,numeric=false)=><View><Text style={{color:'#F7F5FF'}}>{label}</Text><TextInput placeholderTextColor="#A9A7BA" accessibilityLabel={label} value={value} onChangeText={set} maxLength={max} keyboardType={numeric?'number-pad':'default'} style={input}/></View>;
+ return <SafeAreaView style={{flex:1,backgroundColor:'#23232F'}}><KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':'height'}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{padding:24,gap:16}}>
+ {button('← Settings',()=>router.replace('/(parent)/settings'))}<Text style={{fontSize:28,fontWeight:'700',color:'#F7F5FF'}}>Manage your children</Text>
+ <View style={{flexDirection:'row',flexWrap:'wrap',gap:12}}>{children.map(c=><TouchableOpacity accessibilityRole="button" key={c.id} onPress={()=>{setId(c.id);setMessage('');}} style={{padding:8,backgroundColor:c.id===id?'#302445':'#121219',borderRadius:16}}><KidAvatar avatarId={c.avatarId} size={56}/><Text style={{color:'#F7F5FF'}}>{c.nickname}</Text></TouchableOpacity>)}</View>
  {id?<>
  {field('Nickname',nickname,setNickname,20)}<AvatarPicker selectedId={avatar} onSelect={setAvatar}/>
- <View style={{flexDirection:'row',flexWrap:'wrap',gap:12}}>{(['3-5','6-8','9-11','12-14','15-17'] as AgeGroup[]).map(a=><TouchableOpacity key={a} accessibilityRole="button" onPress={()=>setAge(a)}><Text style={{padding:12,backgroundColor:a===age?'#FFF5B0':'white'}}>Age {a}</Text></TouchableOpacity>)}</View>
+ <View style={{flexDirection:'row',flexWrap:'wrap',gap:12}}>{(['3-5','6-8','9-11','12-14','15-17'] as AgeGroup[]).map(a=><TouchableOpacity key={a} accessibilityRole="button" onPress={()=>setAge(a)}><Text style={{color:'#F7F5FF',padding:12,backgroundColor:a===age?'#302445':'#121219'}}>Age {a}</Text></TouchableOpacity>)}</View>
  {field('Weekly target',weekly,setWeekly,5,true)}{field('Monthly target',monthly,setMonthly,5,true)}{button('Save child profile',()=>void run('editChild'))}
- <Text style={{fontSize:22,fontWeight:'700'}}>Bonus or deduction</Text>{field('Star adjustment amount',amount,setAmount,5,true)}{field('Adjustment reason',reason,setReason,500)}
+ <Text style={{color:'#F7F5FF',fontSize:22,fontWeight:'700'}}>Bonus or deduction</Text>{field('Star adjustment amount',amount,setAmount,5,true)}{field('Adjustment reason',reason,setReason,500)}
  {button('Give bonus stars',()=>void run('bonus'))}{button('Deduct stars',()=>Alert.alert('Deduct stars?', 'This records the reason and never reduces the balance below zero.',[{text:'Cancel',style:'cancel'},{text:'Deduct',onPress:()=>void run('deduction')}]))}
- <Text style={{fontSize:22,fontWeight:'700'}}>Consequences for missed targets</Text><Text>Yellow: first missed period. Orange: second. Red: third or later. Choose a calm, age-appropriate consequence together.</Text>
- <View style={{flexDirection:'row',gap:12}}>{(['Yellow','Orange','Red'] as ConsequenceLevel[]).map(l=><TouchableOpacity accessibilityRole="button" key={l} onPress={()=>setLevel(l)}><Text style={{padding:12,backgroundColor:l===level?'#FFF5B0':'white'}}>{l}</Text></TouchableOpacity>)}</View>
+ <Text style={{color:'#F7F5FF',fontSize:22,fontWeight:'700'}}>Consequences for missed targets</Text><Text style={{color:'#F7F5FF'}}>Yellow: first missed period. Orange: second. Red: third or later. Choose a calm, age-appropriate consequence together.</Text>
+ <View style={{flexDirection:'row',gap:12}}>{(['Yellow','Orange','Red'] as ConsequenceLevel[]).map(l=><TouchableOpacity accessibilityRole="button" key={l} onPress={()=>setLevel(l)}><Text style={{color:'#F7F5FF',padding:12,backgroundColor:l===level?'#302445':'#121219'}}>{l}</Text></TouchableOpacity>)}</View>
  {field('Consequence name',consequence,setConsequence,80)}{field('Consequence description',description,setDescription,500)}{button('Save consequence',()=>void run('consequence'))}
  {button('Remove child profile',()=>Alert.alert('Remove child profile?', 'The profile will be hidden and child sessions ended. Quest, reward and accountability history stays available to parents.',[{text:'Cancel',style:'cancel'},{text:'Remove profile',style:'destructive',onPress:()=>void run('archiveChild')}]))}
- </>:<Text>Select a child above.</Text>}
- {archivedChildren.length>0 && <View><Text>Removed profiles (history retained)</Text>{archivedChildren.map(c=><TouchableOpacity accessibilityRole="button" disabled={busy} key={c.id} onPress={()=>void manageFamily({action:'restoreChild',familyId:family?.id,childId:c.id}).then(()=>setMessage('Profile restored.')).catch(e=>setMessage(errorMessage(e)))}><Text style={{padding:16}}>Restore {c.nickname}</Text></TouchableOpacity>)}</View>}
- {message?<Text accessibilityRole="alert">{message}</Text>:null}
+ </>:<Text style={{color:'#F7F5FF'}}>Select a child above.</Text>}
+ {archivedChildren.length>0 && <View><Text style={{color:'#F7F5FF'}}>Removed profiles (history retained)</Text>{archivedChildren.map(c=><TouchableOpacity accessibilityRole="button" disabled={busy} key={c.id} onPress={()=>void manageFamily({action:'restoreChild',familyId:family?.id,childId:c.id}).then(()=>setMessage('Profile restored.')).catch(e=>setMessage(errorMessage(e)))}><Text style={{color:'#F7F5FF',padding:16}}>Restore {c.nickname}</Text></TouchableOpacity>)}</View>}
+ {message?<Text style={{color:'#F7F5FF'}} accessibilityRole="alert">{message}</Text>:null}
  </ScrollView></KeyboardAvoidingView></SafeAreaView>;
 }
-const input={backgroundColor:'white',padding:14,borderRadius:12,borderWidth:1,borderColor:'#6C7893',marginTop:8};
-const btn={backgroundColor:'#1555E8',padding:16,borderRadius:12,alignItems:'center' as const};
+const input={color:'#F7F5FF',backgroundColor:'#121219',padding:14,borderRadius:12,borderWidth:1,borderColor:'#A9A7BA',marginTop:8};
+const btn={backgroundColor:'#65F3FF',padding:16,borderRadius:12,alignItems:'center' as const};

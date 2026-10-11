@@ -33,19 +33,19 @@ export default function ResetPinScreen() {
       <Text style={styles.label}>{child.nickname}{childId === child.id ? ' ✓' : ''}</Text>
     </TouchableOpacity>)}
     <Text style={styles.label}>New PIN</Text>
-    <TextInput style={styles.input} value={pin} onChangeText={(value) => setPin(value.replace(/\D/g, ''))} keyboardType="number-pad" secureTextEntry maxLength={4} editable={!saving} accessibilityLabel="New four digit PIN" />
+    <TextInput placeholderTextColor="#A9A7BA" style={styles.input} value={pin} onChangeText={(value) => setPin(value.replace(/\D/g, ''))} keyboardType="number-pad" secureTextEntry maxLength={4} editable={!saving} accessibilityLabel="New four digit PIN" />
     <Text style={styles.label}>Confirm PIN</Text>
-    <TextInput style={styles.input} value={confirmation} onChangeText={(value) => setConfirmation(value.replace(/\D/g, ''))} keyboardType="number-pad" secureTextEntry maxLength={4} editable={!saving} accessibilityLabel="Confirm four digit PIN" />
+    <TextInput placeholderTextColor="#A9A7BA" style={styles.input} value={confirmation} onChangeText={(value) => setConfirmation(value.replace(/\D/g, ''))} keyboardType="number-pad" secureTextEntry maxLength={4} editable={!saving} accessibilityLabel="Confirm four digit PIN" />
     <TouchableOpacity style={styles.button} onPress={save} disabled={saving || !childId} accessibilityRole="button">
       {saving ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Update PIN</Text>}
     </TouchableOpacity>
   </ScrollView></SafeAreaView>;
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F5F8FF' }, content: { padding: 24, gap: 16 },
-  link: { color: '#1555E8', fontSize: 16, paddingVertical: 8 }, title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#1555E8' },
-  description: { fontSize: 16, color: '#555', lineHeight: 24 }, label: { fontSize: 16, color: '#16244D' },
-  choice: { padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#DCE4ED', backgroundColor: '#FFF' }, selected: { borderColor: '#1555E8', backgroundColor: '#E5EFFF' },
-  input: { padding: 16, borderWidth: 1, borderColor: '#DCE4ED', borderRadius: 12, backgroundColor: '#FFF', fontSize: 22 },
-  button: { backgroundColor: '#1555E8', padding: 18, borderRadius: 12, alignItems: 'center' }, buttonText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+  screen: { flex: 1, backgroundColor: '#23232F' }, content: { padding: 24, gap: 16 },
+  link: { color: '#65F3FF', fontSize: 16, paddingVertical: 8 }, title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#65F3FF' },
+  description: { fontSize: 16, color: '#555', lineHeight: 24 }, label: { fontSize: 16, color: '#F7F5FF' },
+  choice: { padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#333240', backgroundColor:'#121219' }, selected: { borderColor: '#65F3FF', backgroundColor: '#17363A' },
+  input: {color:'#F7F5FF', padding: 16, borderWidth: 1, borderColor: '#333240', borderRadius: 12, backgroundColor:'#121219', fontSize: 22 },
+  button: { backgroundColor: '#65F3FF', padding: 18, borderRadius: 12, alignItems: 'center' }, buttonText: { color: '#17200C', fontSize: 16, fontWeight: '600' },
 });

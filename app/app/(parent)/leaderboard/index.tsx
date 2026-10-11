@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginHorizontal: layout.screenPadding,
     marginBottom: spacing[4],
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: radius.lg,
     padding: spacing[1],
     ...shadows.elevation1,
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   },
   tabTextActive: {
     ...typography.label,
-    color: colors.white,
+    color: colors.onAccent,
   },
 
   // List
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: radius.lg,
     padding: spacing[4],
     marginBottom: spacing[2],
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     ...typography.heading2,
     color: colors.ink400,
   },
-  crownIcon: {
+  crownIcon: {color:'#F7F5FF',
     fontSize: 24,
   },
 
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: spacing[3],
   },
-  avatarEmoji: {
+  avatarEmoji: {color:'#F7F5FF',
     fontSize: 24,
   },
 

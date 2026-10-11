@@ -8,6 +8,7 @@ function fixture(screen){
  const router={replace(){},push(){}};let Screen;
  function load(file){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText,{module,exports:module.exports,console,require:name=>{
   if(['react','react/jsx-runtime','react-hook-form'].includes(name))return require(name);
+  if(name==='expo-status-bar')return {StatusBar:()=>null};
   if(name==='react-native')return native;
   if(name==='react-native-safe-area-context')return{SafeAreaView:'SafeAreaView',SafeAreaProvider:'SafeAreaProvider'};
   if(name==='expo-router')return{router,useRouter:()=>router,useSegments:()=>['(auth)',screen],Slot:()=>React.createElement(Screen)};

@@ -64,7 +64,7 @@ export default function ProfileSelector() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#1555E8" />
+        <ActivityIndicator size="large" color="#65F3FF" />
       </SafeAreaView>
     );
   }
@@ -72,7 +72,7 @@ export default function ProfileSelector() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        {error && <Text accessibilityRole="alert" style={{ color: "#9B1C1C", padding: 16 }}>{error}</Text>}
+        {error && <Text accessibilityRole="alert" style={{ color: "#FF92A7", padding: 16 }}>{error}</Text>}
         {/* Header */}
         <PlaygroundHero title="Pick your player!" subtitle="A little helping. A lot of happy." />
         {family && (
@@ -108,7 +108,7 @@ export default function ProfileSelector() {
               {children.map((child) => (
                 <TouchableOpacity
                   key={child.id}
-                  style={[styles.tile, { backgroundColor: children.indexOf(child) % 2 ? '#FFF1B8' : '#D9F7EC' }]}
+                  style={[styles.tile, { backgroundColor: children.indexOf(child) % 2 ? '#302445' : '#17363A' }]}
                   onPress={() => handleChildTap(child)}
                   activeOpacity={0.7}
                 >
@@ -159,7 +159,7 @@ export default function ProfileSelector() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F8FF', // ink50
+    backgroundColor: '#23232F', // ink50
   },
   content: {
     padding: 20,
@@ -172,21 +172,21 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     fontSize: 28,
     lineHeight: 35,
-    color: '#16244D', // ink950
+    color: '#F7F5FF', // ink950
     marginTop: 32,
     textAlign: 'center',
   },
   familyName: {
     fontFamily: 'Inter_400Regular',
     fontSize: 16,
-    color: '#4B5875', // ink600
+    color: '#C0BDCF', // ink600
     marginTop: 8,
     marginBottom: 32,
   },
   sectionLabel: {
     fontFamily: 'Nunito_800ExtraBold',
     fontSize: 14,
-    color: '#6C7893', // ink400
+    color: '#A9A7BA', // ink400
     textTransform: 'uppercase',
     letterSpacing: 1,
     alignSelf: 'flex-start',
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   },
   tile: {
     width: 150,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#121219',
     borderRadius: 24,
     padding: 20,
     alignItems: 'center',
@@ -215,27 +215,27 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#E5EFFF', // navy50
+    backgroundColor: '#17363A', // navy50
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
   },
   childAvatar: {
-    backgroundColor: '#EEF6FF', // cloud
+    backgroundColor: '#060609', // cloud
   },
-  avatarEmoji: {
+  avatarEmoji: {color:'#F7F5FF',
     fontSize: 28,
   },
   tileName: {
     fontFamily: 'Nunito_800ExtraBold',
     fontSize: 16,
-    color: '#16244D', // ink950
+    color: '#F7F5FF', // ink950
     marginBottom: 4,
   },
   tileLabel: {
     fontFamily: 'Inter_400Regular',
     fontSize: 12,
-    color: '#6C7893', // ink400
+    color: '#A9A7BA', // ink400
     marginBottom: 8,
   },
   tileFooter: {
@@ -245,12 +245,12 @@ const styles = StyleSheet.create({
   tileStars: {
     fontFamily: 'Inter_500Medium',
     fontSize: 14,
-    color: '#1555E8', // navy900
+    color: '#65F3FF', // navy900
   },
   tileStreak: {
     fontFamily: 'Inter_500Medium',
     fontSize: 14,
-    color: '#FF6688', // coral
+    color: '#FF76C5', // coral
   },
   addChildButton: {
     flexDirection: 'row',
@@ -260,18 +260,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#E5EFFF', // navy50
+    borderColor: '#17363A', // navy50
     borderStyle: 'dashed',
     marginTop: 8,
   },
   addChildIcon: {
     fontSize: 20,
-    color: '#2563EB', // blue500
+    color: '#65F3FF', // blue500
     fontWeight: '700',
   },
   addChildText: {
     fontFamily: 'Inter_500Medium',
     fontSize: 14,
-    color: '#2563EB', // blue500
+    color: '#65F3FF', // blue500
   },
 });

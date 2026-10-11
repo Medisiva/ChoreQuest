@@ -105,7 +105,7 @@ export default function CreateChildScreen() {
               <TextInput
                 style={[styles.input, errors.nickname && styles.inputError]}
                 placeholder="What do they like to be called?"
-                placeholderTextColor="#6C7893"
+                placeholderTextColor="#A9A7BA"
                 onBlur={onBlur}
                 onChangeText={onChange}
                 value={value}
@@ -170,7 +170,7 @@ export default function CreateChildScreen() {
               <TextInput
                 style={[styles.input, errors.pin && styles.inputError]}
                 placeholder="Enter 4-digit PIN"
-                placeholderTextColor="#6C7893"
+                placeholderTextColor="#A9A7BA"
                 keyboardType="number-pad"
                 maxLength={4}
                 secureTextEntry
@@ -197,7 +197,7 @@ export default function CreateChildScreen() {
               <TextInput
                 style={[styles.input, errors.confirmPin && styles.inputError]}
                 placeholder="Re-enter 4-digit PIN"
-                placeholderTextColor="#6C7893"
+                placeholderTextColor="#A9A7BA"
                 keyboardType="number-pad"
                 maxLength={4}
                 secureTextEntry
@@ -232,41 +232,41 @@ export default function CreateChildScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F8FF' },
+  container: { flex: 1, backgroundColor: '#23232F' },
   flex: { flex: 1 },
   content: { padding: 24, paddingBottom: 48 },
   backButton: { marginBottom: 16 },
-  backText: { fontFamily: 'Inter_500Medium', fontSize: 16, color: '#2563EB' },
+  backText: { fontFamily: 'Inter_500Medium', fontSize: 16, color: '#65F3FF' },
   heading: {
     fontFamily: 'Inter_700Bold',
     fontSize: 28,
     lineHeight: 35,
-    color: '#16244D',
+    color: '#F7F5FF',
     marginBottom: 24,
   },
   label: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 14,
-    color: '#16244D',
+    color: '#F7F5FF',
     marginTop: 20,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#121219',
     borderWidth: 1,
-    borderColor: '#E5EFFF',
+    borderColor: '#17363A',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontFamily: 'Inter_400Regular',
     fontSize: 16,
-    color: '#16244D',
+    color: '#F7F5FF',
   },
-  inputError: { borderColor: '#9B1C1C' },
+  inputError: {color:'#F7F5FF', borderColor: '#FF92A7' },
   errorText: {
     fontFamily: 'Inter_400Regular',
     fontSize: 12,
-    color: '#9B1C1C',
+    color: '#FF92A7',
     marginTop: 4,
   },
   ageRow: {
@@ -278,22 +278,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#121219',
     borderWidth: 1,
-    borderColor: '#E5EFFF',
+    borderColor: '#17363A',
   },
   ageChipSelected: {
-    backgroundColor: '#1555E8',
-    borderColor: '#1555E8',
+    backgroundColor: '#65F3FF',
+    borderColor: '#65F3FF',
   },
   ageChipText: {
     fontFamily: 'Inter_500Medium',
     fontSize: 14,
-    color: '#4B5875',
+    color: '#C0BDCF',
   },
-  ageChipTextSelected: { color: '#FFFFFF' },
+  ageChipTextSelected: { color: '#17200C' },
   submitButton: {
-    backgroundColor: '#1555E8',
+    backgroundColor: '#65F3FF',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
@@ -303,6 +303,6 @@ const styles = StyleSheet.create({
   submitText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 16,
-    color: '#FFFFFF',
+    color: '#17200C',
   },
 });

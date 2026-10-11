@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing[2],
   },
-  icon: {
+  icon: {color:'#F7F5FF',
     fontSize: 20,
     marginRight: spacing[2],
   },
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.danger,
   },
-  footerIcon: {
+  footerIcon: {color:'#F7F5FF',
     fontSize: 16,
     marginRight: spacing[2],
   },

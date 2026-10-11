@@ -14,13 +14,13 @@ import { useChildSessionStore } from '@/stores/childSessionStore';
 import type { FamilyRequest } from '@/types';
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
-  pending: { label: 'Waiting', bg: '#FEF3C7', color: '#B45309' },
-  accepted: { label: 'Accepted', bg: '#D1FAE5', color: '#1B7A34' },
-  declined: { label: 'Declined', bg: '#FEE2E2', color: '#9B1C1C' },
-  snoozed: { label: 'Snoozed', bg: '#EDE9FE', color: '#7B2D8B' },
-  completed: { label: 'Done by parent', bg: '#DBEAFE', color: '#1B6CA8' },
-  confirmed: { label: 'Confirmed', bg: '#D1FAE5', color: '#1B7A34' },
-  'auto-confirmed': { label: 'Auto-confirmed', bg: '#D1FAE5', color: '#1B7A34' },
+  pending: { label: 'Waiting', bg: '#302719', color: '#FFE177' },
+  accepted: { label: 'Accepted', bg: '#26351D', color: '#CDFF65' },
+  declined: { label: 'Declined', bg: '#391D2B', color: '#FF92A7' },
+  snoozed: { label: 'Snoozed', bg: '#302445', color: '#B7A1FF' },
+  completed: { label: 'Done by parent', bg: '#17363A', color: '#65F3FF' },
+  confirmed: { label: 'Confirmed', bg: '#26351D', color: '#CDFF65' },
+  'auto-confirmed': { label: 'Auto-confirmed', bg: '#26351D', color: '#CDFF65' },
 };
 
 export default function RequestHistoryScreen() {
@@ -101,7 +101,7 @@ export default function RequestHistoryScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Text style={styles.heading}>My Requests</Text>{actionError && <Text accessibilityRole="alert" style={{color:"#9B1C1C",padding:16}}>{actionError}</Text>}
+      <Text style={styles.heading}>My Requests</Text>{actionError && <Text accessibilityRole="alert" style={{color:"#FF92A7",padding:16}}>{actionError}</Text>}
       {myRequests.length > 0 ? (
         <FlashList
           data={myRequests}
@@ -122,28 +122,28 @@ export default function RequestHistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  heading: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#16244D', paddingHorizontal: 16, paddingVertical: 12 },
+  container: { flex: 1, backgroundColor: '#121219' },
+  heading: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#F7F5FF', paddingHorizontal: 16, paddingVertical: 12 },
   listContent: { paddingHorizontal: 16, paddingBottom: 100 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#EEF6FF' },
+  card: { backgroundColor: '#121219', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#060609' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-  cardTitle: { fontFamily: 'Nunito_700Bold', fontSize: 16, color: '#16244D', flex: 1, marginRight: 8 },
+  cardTitle: { fontFamily: 'Nunito_700Bold', fontSize: 16, color: '#F7F5FF', flex: 1, marginRight: 8 },
   statusChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  statusText: { fontFamily: 'Inter_600SemiBold', fontSize: 11 },
+  statusText: {color:'#F7F5FF', fontFamily: 'Inter_600SemiBold', fontSize: 11 },
   cardMeta: { flexDirection: 'row', gap: 12, marginBottom: 8 },
-  starValue: { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: '#16244D' },
-  category: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#4B5875' },
-  declineReason: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#9B1C1C', fontStyle: 'italic', marginTop: 4 },
-  acceptedText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#1B7A34', marginTop: 4 },
+  starValue: { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: '#F7F5FF' },
+  category: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#C0BDCF' },
+  declineReason: { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#FF92A7', fontStyle: 'italic', marginTop: 4 },
+  acceptedText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#CDFF65', marginTop: 4 },
   confirmRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  confirmPrompt: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#16244D', flex: 1 },
-  yesButton: { backgroundColor: '#1B7A34', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
-  yesText: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: '#FFFFFF' },
-  notYetButton: { backgroundColor: '#F5F8FF', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
-  notYetText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#4B5875' },
+  confirmPrompt: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#F7F5FF', flex: 1 },
+  yesButton: { backgroundColor: '#CDFF65', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
+  yesText: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: '#17200C' },
+  notYetButton: { backgroundColor: '#23232F', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
+  notYetText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#C0BDCF' },
   resubmitButton: { marginTop: 8, paddingVertical: 8 },
-  resubmitText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#FF6688' },
+  resubmitText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: '#FF76C5' },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 48 },
-  emptyEmoji: { fontSize: 48, marginBottom: 16 },
-  emptyText: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#4B5875', textAlign: 'center', lineHeight: 24 },
+  emptyEmoji: {color:'#F7F5FF', fontSize: 48, marginBottom: 16 },
+  emptyText: { fontFamily: 'Inter_400Regular', fontSize: 16, color: '#C0BDCF', textAlign: 'center', lineHeight: 24 },
 });

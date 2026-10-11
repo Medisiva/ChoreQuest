@@ -19,8 +19,8 @@ export default function ParentUnlock() {
     <TouchableOpacity onPress={() => router.replace('/profiles')}><Text style={styles.link}>← Profiles</Text></TouchableOpacity>
     <Text style={styles.title}>Parent access</Text>
     <Text style={styles.description}>Enter your parent account password to manage the family.</Text>
-    <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="Parent email" autoCapitalize="none" autoCorrect={false} keyboardType="email-address" accessibilityLabel="Parent email" editable={!loading} />
-    <TextInput style={styles.input} secureTextEntry value={password} onChangeText={setPassword} placeholder="Password" autoCapitalize="none" autoCorrect={false} textContentType="password" accessibilityLabel="Parent account password" editable={!loading} onSubmitEditing={() => { void unlock(); }} />
+    <TextInput placeholderTextColor="#A9A7BA" style={styles.input} value={email} onChangeText={setEmail} placeholder="Parent email" autoCapitalize="none" autoCorrect={false} keyboardType="email-address" accessibilityLabel="Parent email" editable={!loading} />
+    <TextInput placeholderTextColor="#A9A7BA" style={styles.input} secureTextEntry value={password} onChangeText={setPassword} placeholder="Password" autoCapitalize="none" autoCorrect={false} textContentType="password" accessibilityLabel="Parent account password" editable={!loading} onSubmitEditing={() => { void unlock(); }} />
     <TouchableOpacity style={styles.button} onPress={() => { void unlock(); }} disabled={loading || !password} accessibilityRole="button">
       {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Unlock parent mode</Text>}
     </TouchableOpacity>
@@ -28,8 +28,8 @@ export default function ParentUnlock() {
   </KeyboardAvoidingView></SafeAreaView>;
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F5F8FF' }, content: { padding: 24, gap: 20 },
-  title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#1555E8' }, description: { fontSize: 16, lineHeight: 24, color: '#555' },
-  input: { padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#DCE4ED', backgroundColor: '#FFF', fontSize: 16 },
-  button: { padding: 18, alignItems: 'center', backgroundColor: '#1555E8', borderRadius: 12 }, buttonText: { color: '#FFF', fontSize: 16, fontWeight: '600' }, link: { color: '#1555E8', fontSize: 16, paddingVertical: 8 },
+  screen: { flex: 1, backgroundColor: '#23232F' }, content: { padding: 24, gap: 20 },
+  title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#65F3FF' }, description: { fontSize: 16, lineHeight: 24, color: '#555' },
+  input: {color:'#F7F5FF', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#333240', backgroundColor:'#121219', fontSize: 16 },
+  button: { padding: 18, alignItems: 'center', backgroundColor: '#65F3FF', borderRadius: 12 }, buttonText: { color: '#17200C', fontSize: 16, fontWeight: '600' }, link: { color: '#65F3FF', fontSize: 16, paddingVertical: 8 },
 });

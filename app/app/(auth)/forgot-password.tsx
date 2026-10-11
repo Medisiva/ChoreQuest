@@ -16,15 +16,15 @@ import { router } from 'expo-router';
 import { resetPassword } from '@/services/auth';
 
 // Brand colors
-const navy900 = '#1555E8';
-const blue500 = '#2563EB';
-const ink950 = '#16244D';
-const ink600 = '#4B5875';
-const ink400 = '#6C7893';
-const ink50 = '#F5F8FF';
+const navy900 = '#65F3FF';
+const blue500 = '#65F3FF';
+const ink950 = '#F7F5FF';
+const ink600 = '#C0BDCF';
+const ink400 = '#A9A7BA';
+const ink50 = '#060609';
 const white = '#FFFFFF';
-const danger = '#9B1C1C';
-const dangerLight = '#FEE2E2';
+const danger = '#FF92A7';
+const dangerLight = '#391D2B';
 
 type ForgotPasswordFormData = {
   email: string;
@@ -180,7 +180,7 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: white,
+    backgroundColor: '#121219',
   },
   flex: {
     flex: 1,
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     color: ink950,
     backgroundColor: ink50,
   },
-  inputError: {
+  inputError: {color:'#F7F5FF',
     borderColor: danger,
     backgroundColor: dangerLight,
   },
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 17,
     fontWeight: '700',
-    color: white,
+    color: '#17200C',
   },
   footer: {
     alignItems: 'center',
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 24,
   },
-  successIconText: {
+  successIconText: {color:'#F7F5FF',
     fontSize: 36,
   },
   successHeading: {

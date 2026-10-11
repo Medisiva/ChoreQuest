@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   starContainer: {
     marginBottom: spacing[6],
   },
-  starEmoji: {
+  starEmoji: {color:'#F7F5FF',
     fontSize: 80,
   },
   textContainer: {

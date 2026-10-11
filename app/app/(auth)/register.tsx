@@ -17,16 +17,16 @@ import { router } from 'expo-router';
 import { signUp } from '@/services/auth';
 
 // Brand colors
-const navy900 = '#1555E8';
-const blue500 = '#2563EB';
-const coral = '#FF6688';
-const ink950 = '#16244D';
-const ink600 = '#4B5875';
-const ink400 = '#6C7893';
-const ink50 = '#F5F8FF';
+const navy900 = '#65F3FF';
+const blue500 = '#65F3FF';
+const coral = '#FF76C5';
+const ink950 = '#F7F5FF';
+const ink600 = '#C0BDCF';
+const ink400 = '#A9A7BA';
+const ink50 = '#060609';
 const white = '#FFFFFF';
-const danger = '#9B1C1C';
-const dangerLight = '#FEE2E2';
+const danger = '#FF92A7';
+const dangerLight = '#391D2B';
 
 type RegisterFormData = {
   displayName: string;
@@ -113,7 +113,7 @@ export default function RegisterScreen() {
 
           {/* Form */}
           <View style={styles.form}>
-            <Controller control={control} name="displayName" rules={{required:'Your name is required',validate:value=>value.trim().length>0 || 'Enter your name',maxLength:{value:80,message:'Use at most 80 characters'}}} render={({field:{onChange,value}})=><View style={styles.fieldWrapper}><Text style={styles.label}>Your name</Text><TextInput accessibilityLabel="Your name" placeholder="Your parent name" value={value} onChangeText={onChange} maxLength={80} style={styles.input}/>{errors.displayName && <Text style={styles.fieldError}>{errors.displayName.message}</Text>}</View>}/>
+            <Controller control={control} name="displayName" rules={{required:'Your name is required',validate:value=>value.trim().length>0 || 'Enter your name',maxLength:{value:80,message:'Use at most 80 characters'}}} render={({field:{onChange,value}})=><View style={styles.fieldWrapper}><Text style={styles.label}>Your name</Text><TextInput placeholderTextColor="#A9A7BA" accessibilityLabel="Your name" placeholder="Your parent name" value={value} onChangeText={onChange} maxLength={80} style={styles.input}/>{errors.displayName && <Text style={styles.fieldError}>{errors.displayName.message}</Text>}</View>}/>
 
             <Controller
               control={control}
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     borderColor: ink400,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: white,
+    backgroundColor: '#121219',
   },
   socialButtonText: {
     fontSize: 16,
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     borderColor: ink950,
   },
   appleButtonText: {
-    color: white,
+    color: '#17200C',
   },
   divider: {
     flexDirection: 'row',
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     color: ink400,
   },
   form: {
-    backgroundColor: white,
+    backgroundColor: '#121219',
     padding: 20,
     borderRadius: 26,
     gap: 16,
@@ -386,14 +386,14 @@ const styles = StyleSheet.create({
     color: ink950,
     backgroundColor: ink50,
   },
-  inputError: {
+  inputError: {color:'#F7F5FF',
     borderColor: danger,
     backgroundColor: dangerLight,
   },
   passwordContainer: {
     position: 'relative',
   },
-  passwordInput: {
+  passwordInput: {color:'#F7F5FF',
     paddingRight: 64,
   },
   showHideToggle: {
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 2,
   },
-  strengthLabel: {
+  strengthLabel: {color:'#F7F5FF',
     fontSize: 12,
     fontWeight: '600',
     minWidth: 60,
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 17,
     fontWeight: '700',
-    color: white,
+    color: '#17200C',
   },
   footer: {
     alignItems: 'center',

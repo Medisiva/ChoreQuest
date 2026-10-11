@@ -1,282 +1,35 @@
-import { questRewardLabel } from '@/services/questPresentation';
+import { View,Text,ScrollView,TouchableOpacity,StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useChildProgress } from '@/hooks/useChildProgress';
 import { useDisplayPreferences } from '@/stores/displayPreferences';
+import { useChildSessionStore } from '@/stores/childSessionStore';
+import { useFamilyStore } from '@/stores/familyStore';
+import { useTaskStore } from '@/stores/taskStore';
+import { questRewardLabel } from '@/services/questPresentation';
 import WeeklyProgressBar from '@/components/child/WeeklyProgressBar';
 import WeeklyCountdown from '@/components/child/WeeklyCountdown';
 import WeeklyFuelGauge from '@/components/child/WeeklyFuelGauge';
 import PlaygroundHero from '@/components/shared/PlaygroundHero';
-// C-01: Child Home Screen
-// Hero greeting, weekly progress, active quest, streak, consequences, badges, quick actions.
-// Uses childSessionStore to identify active child, familyStore for profile, taskStore for claims.
-
-import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { useChildSessionStore } from '@/stores/childSessionStore';
-import { useFamilyStore } from '@/stores/familyStore';
-import { useTaskStore } from '@/stores/taskStore';
-import {
-  colors,
-  spacing,
-  radius,
-  typography,
-  layout,
-  shadows,
-} from '@/constants/tokens';
-
-// ── Main Screen ──────────────────────────────────────────────────────────────
-
-export default function ChildHome() {
-  const router = useRouter();
-  const activeChildId = useChildSessionStore((s) => s.activeChildId);
-  const children = useFamilyStore((s) => s.children);
-  const family = useFamilyStore((s) => s.family);
-  const progress = useChildProgress(family?.id, activeChildId ?? undefined, family?.timezone);
-  const preferredStyle = useDisplayPreferences((s) => activeChildId ? s.styles[activeChildId] : undefined);
-  const claims = useTaskStore((s) => s.claims);
-  const tasks = useTaskStore((s) => s.tasks);
-
-  const child = children.find((c) => c.id === activeChildId);
-
-  // Find active claimed task for this child
-  const activeClaim = claims.find(
-    (c) => c.childProfileId === activeChildId && ['claimed','submitted','rejected'].includes(c.status)
-  );
-  const activeTask = activeClaim
-    ? tasks.find((t) => t.id === activeClaim.taskId)
-    : null;
-
-  const nickname = child?.nickname ?? 'Adventurer';
-  const starBalance = child?.starBalance ?? 0;
-  const streakWeeks = child?.currentStreakWeeks ?? 0;
-
-  return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── Hero ──────────────────────────────────────────────────── */}
-        <PlaygroundHero title={`Hi, ${nickname}!`} subtitle="You’ve got this. Every little help counts!" avatarId={child?.avatarId} />
-        <View style={[styles.card, { backgroundColor: colors.starGold }]}>
-          <Text style={styles.sectionTitle}>★ {starBalance} stars to spend</Text>
-          <Text style={{ ...typography.childBody, color: colors.ink950 }}>Your weekly goal: {child?.weeklyTargetStars ?? 0} stars</Text>
-        </View>
-        <View style={styles.card}><Text style={styles.sectionTitle}>Your weekly wins</Text>
-          {progress.loading ? <Text>Loading your progress…</Text> : progress.error ? <Text accessibilityRole="alert">{progress.error}</Text> : (preferredStyle ?? child?.progressDisplayStyle) === 'Countdown' ? <WeeklyCountdown current={progress.weekly} target={child?.weeklyTargetStars ?? 0} /> : (preferredStyle ?? child?.progressDisplayStyle) === 'FuelGauge' ? <WeeklyFuelGauge current={progress.weekly} target={child?.weeklyTargetStars ?? 0} /> : <WeeklyProgressBar current={progress.weekly} target={child?.weeklyTargetStars ?? 0} />}
-        </View>
-        {/* ── Active Quest Banner ───────────────────────────────────── */}
-        {activeTask && activeClaim && (
-          <TouchableOpacity
-            style={styles.questBanner}
-            activeOpacity={0.8}
-            onPress={() =>
-              router.push(`/(child)/tasks/${activeClaim.taskId}`)
-            }
-          >
-            <Text style={styles.questBannerLabel}>{activeClaim.status === 'rejected' ? 'Try again' : activeClaim.status === 'submitted' ? 'Waiting for parent review' : 'Active Quest'}</Text>
-            {activeClaim.status==='rejected' && <Text style={{color:'#16244D'}}>Try again: {activeClaim.rejectionReason || 'Ask your parent what needs another look.'}</Text>}
-            <Text style={styles.questBannerTitle}>{activeTask.title}</Text>
-            <Text style={styles.questBannerStars}>
-              ⭐ {questRewardLabel(activeTask)}
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        {/* ── Streak Badge ──────────────────────────────────────────── */}
-        {streakWeeks > 0 && (
-          <View style={styles.streakCard}>
-            <Text style={styles.streakText}>
-              🔥 {streakWeeks} week streak!
-            </Text>
-          </View>
-        )}
-
-        {!activeTask && <View style={styles.card}><Text style={styles.sectionTitle}>Ready for your next little win?</Text><Text style={{ ...typography.childBody, color: colors.ink600 }}>Pick a quest, help out, and ask a parent to cheer you on.</Text></View>}
-        <View style={styles.quickActions}>
-          <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.white }]} onPress={() => router.push('/(child)/requests')}><Text style={{ ...typography.childButton, color: colors.navy900 }}>My requests</Text></TouchableOpacity>
-          <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.white }]} onPress={() => router.push('/(child)/leaderboard')}><Text style={{ ...typography.childButton, color: colors.navy900 }}>Family leaderboard</Text></TouchableOpacity>
-        </View>
-        {/* ── Quick Actions ─────────────────────────────────────────── */}
-        <View style={styles.quickActions}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.actionQuests]}
-            activeOpacity={0.8}
-            onPress={() => router.push('/(child)/tasks')}
-          >
-            <Text style={styles.actionEmoji}>📋</Text>
-            <Text style={styles.actionLabel}>View Quests</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionButton, styles.actionRequest]}
-            activeOpacity={0.8}
-            onPress={() => router.push('/(child)/requests/create')}
-          >
-            <Text style={styles.actionEmoji}>💬</Text>
-            <Text style={styles.actionLabel}>Ask a Parent</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+import KidAvatar from '@/components/shared/KidAvatar';
+import GameArt from '@/components/shared/GameArt';
+import {colors,layout} from '@/constants/tokens';
+export default function ChildHome(){
+ const router=useRouter();const activeChildId=useChildSessionStore(s=>s.activeChildId);const children=useFamilyStore(s=>s.children);const family=useFamilyStore(s=>s.family);const claims=useTaskStore(s=>s.claims);const tasks=useTaskStore(s=>s.tasks);
+ const child=children.find(c=>c.id===activeChildId);const progress=useChildProgress(family?.id,activeChildId??undefined,family?.timezone);const preferred=useDisplayPreferences(s=>activeChildId?s.styles[activeChildId]:undefined);
+ const activeClaim=claims.find(c=>c.childProfileId===activeChildId&&['claimed','submitted','rejected'].includes(c.status));const activeTask=activeClaim?tasks.find(t=>t.id===activeClaim.taskId):null;
+ const nextTask=tasks.find(t=>!t.templateOnly&&!t.activeClaimId);const featured=activeTask??nextTask;
+ return <SafeAreaView style={styles.safe}><ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+ <View style={styles.player}><KidAvatar avatarId={child?.avatarId} size={46}/><View style={{flex:1}}><Text style={styles.eyebrow}>LET’S MAKE TODAY COUNT</Text><Text style={styles.greeting}>Hey, {child?.nickname??'Adventurer'}!</Text></View><View style={styles.wallet}><Text style={styles.walletText}>✦ {child?.starBalance??0}</Text></View></View>
+ <PlaygroundHero title={'Small chores.\nBIG magic.'} subtitle="You’ve got a whole world of little wins ahead." avatarId={child?.avatarId}/>
+ <Text style={styles.section}>Your next mission</Text>
+ <TouchableOpacity accessibilityRole="button" style={styles.mission} onPress={()=>featured?router.push(`/(child)/tasks/${featured.id}`):router.push('/(child)/tasks')}>
+ <GameArt kind={featured?.category==='Learning'?'book':featured?.category==='LifeSkills'?'plant':featured?.category==='Hobbies'?'paint':'toys'} size={88}/><View style={{flex:1}}><Text style={styles.missionTag}>{activeClaim?.status==='rejected'?'TRY AGAIN':activeClaim?.status==='submitted'?'WAITING FOR REVIEW':activeTask?'YOUR ACTIVE QUEST':'LET’S GO'}</Text><Text style={styles.missionTitle}>{featured?.title??'Find a little adventure'}</Text><Text style={styles.missionCopy}>{activeClaim?.status==='rejected'?activeClaim.rejectionReason||'Ask your parent what needs another look.':featured?.description||'A little help can make someone smile.'}</Text>{featured&&<Text style={styles.reward}>✦ {questRewardLabel(featured)}</Text>}</View><Text style={styles.arrow}>↗</Text></TouchableOpacity>
+ <View style={styles.progressCard}><Text style={styles.section}>This week’s adventure</Text>{progress.loading?<Text style={styles.copy}>Loading your progress…</Text>:progress.error?<Text style={styles.copy} accessibilityRole="alert">{progress.error}</Text>:(preferred??child?.progressDisplayStyle)==='Countdown'?<WeeklyCountdown current={progress.weekly} target={child?.weeklyTargetStars??0}/>:(preferred??child?.progressDisplayStyle)==='FuelGauge'?<WeeklyFuelGauge current={progress.weekly} target={child?.weeklyTargetStars??0}/>:<WeeklyProgressBar current={progress.weekly} target={child?.weeklyTargetStars??0}/>}<Text style={styles.copy}>Every little help counts. You’ve got this!</Text></View>
+ {(child?.currentStreakWeeks??0)>0&&<View style={styles.streak}><Text style={styles.reward}>🔥 {child?.currentStreakWeeks} week streak!</Text></View>}
+ <View style={styles.tiles}><View style={styles.stash}><Text style={styles.stars}>✦ {child?.starBalance??0}</Text><Text style={styles.stashLabel}>STARS TO SPEND</Text></View><TouchableOpacity accessibilityRole="button" style={styles.shop} onPress={()=>router.push('/(child)/rewards')}><GameArt kind="treasure" size={58}/><View style={{flex:1}}><Text style={styles.shopTitle}>Your treasure{ '\n'}is waiting</Text></View><Text style={{color:colors.coral,fontSize:24}}>↗</Text></TouchableOpacity></View>
+ <View style={styles.actions}><TouchableOpacity style={styles.secondary} onPress={()=>router.push('/(child)/tasks')}><Text style={styles.actionText}>⚑ View quests</Text></TouchableOpacity><TouchableOpacity style={styles.secondary} onPress={()=>router.push('/(child)/requests/create')}><Text style={styles.actionText}>♡ Ask a parent</Text></TouchableOpacity></View>
+ <View style={styles.actions}><TouchableOpacity style={styles.link} onPress={()=>router.push('/(child)/requests')}><Text style={styles.copy}>My requests →</Text></TouchableOpacity><TouchableOpacity style={styles.link} onPress={()=>router.push('/(child)/leaderboard')}><Text style={styles.copy}>Family leaderboard →</Text></TouchableOpacity></View>
+ </ScrollView></SafeAreaView>;
 }
-
-// ── Styles ──────────────────────────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.cloud,
-  },
-  scroll: {
-    flex: 1,
-  },
-  content: {
-    padding: layout.screenPadding,
-    paddingBottom: layout.tabBarHeight + spacing[4],
-  },
-
-  // Hero
-  heroSection: {
-    marginBottom: layout.sectionGap,
-  },
-  greeting: {
-    ...typography.childDisplay,
-    color: colors.navy900,
-  },
-  starRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing[2],
-  },
-  starEmoji: {
-    fontSize: 32,
-    marginRight: spacing[2],
-  },
-  starCount: {
-    ...typography.childHeading1,
-    color: colors.starGold,
-  },
-
-  // Card
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    padding: spacing[4],
-    marginBottom: layout.cardGap,
-    ...shadows.elevation2,
-  },
-
-  // Section title
-  sectionHeader: {
-    marginTop: spacing[4],
-    marginBottom: spacing[2],
-  },
-  sectionTitle: {
-    ...typography.childHeading2,
-    color: colors.ink950,
-    marginBottom: spacing[2],
-  },
-
-  // Active Quest Banner
-  questBanner: {
-    backgroundColor: colors.navy900,
-    borderRadius: radius.lg,
-    padding: spacing[4],
-    marginBottom: layout.cardGap,
-    ...shadows.elevation3,
-  },
-  questBannerLabel: {
-    ...typography.childLabel,
-    color: colors.starGold,
-    marginBottom: spacing[1],
-  },
-  questBannerTitle: {
-    ...typography.childHeading2,
-    color: colors.white,
-  },
-  questBannerStars: {
-    ...typography.childBody,
-    color: colors.starGold,
-    marginTop: spacing[1],
-  },
-
-  // Streak
-  streakCard: {
-    backgroundColor: colors.cream,
-    borderRadius: radius.lg,
-    borderWidth: 2,
-    borderColor: colors.starGold,
-    padding: spacing[4],
-    marginBottom: layout.cardGap,
-    alignItems: 'center',
-  },
-  streakText: {
-    ...typography.childHeading2,
-    color: colors.amber,
-  },
-
-  // Badges
-  badgeRow: {
-    paddingBottom: spacing[4],
-    gap: spacing[2],
-  },
-  badgeChip: {
-    backgroundColor: colors.white,
-    borderRadius: radius.xl,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
-    alignItems: 'center',
-    minWidth: 80,
-    ...shadows.elevation1,
-  },
-  badgeEmoji: {
-    fontSize: 28,
-    marginBottom: spacing[1],
-  },
-  badgeLabel: {
-    ...typography.caption,
-    color: colors.ink950,
-    textAlign: 'center',
-  },
-
-  // Quick Actions
-  quickActions: {
-    flexDirection: 'row',
-    gap: layout.cardGap,
-    marginTop: spacing[4],
-  },
-  actionButton: {
-    flex: 1,
-    borderRadius: radius.lg,
-    padding: spacing[5],
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 100,
-    ...shadows.elevation2,
-  },
-  actionQuests: {
-    backgroundColor: colors.starGold,
-  },
-  actionRequest: {
-    backgroundColor: '#A6EDD5',
-  },
-  actionEmoji: {
-    fontSize: 36,
-    marginBottom: spacing[2],
-  },
-  actionLabel: {
-    ...typography.childButton,
-    color: colors.ink950,
-    textAlign: 'center',
-  },
-});
+const styles=StyleSheet.create({safe:{flex:1,backgroundColor:colors.background},content:{padding:20,paddingBottom:layout.tabBarHeight+30,width:'100%',maxWidth:680,alignSelf:'center'},player:{flexDirection:'row',alignItems:'center',gap:10,marginBottom:24},eyebrow:{fontFamily:'Nunito_800ExtraBold',fontSize:10,color:colors.ink400,letterSpacing:1},greeting:{fontFamily:'Nunito_800ExtraBold',fontSize:23,color:colors.ink950,marginTop:4},wallet:{backgroundColor:colors.cream,padding:10,borderRadius:20},walletText:{fontFamily:'Nunito_800ExtraBold',fontSize:16,color:colors.starGold},section:{fontFamily:'Nunito_800ExtraBold',fontSize:19,color:colors.ink950,marginBottom:14},mission:{backgroundColor:'#202C1E',borderWidth:1,borderColor:'#56683C',borderRadius:24,padding:16,flexDirection:'row',alignItems:'center',gap:12,marginBottom:24},missionTag:{fontFamily:'Nunito_800ExtraBold',fontSize:10,letterSpacing:1,color:colors.lime},missionTitle:{fontFamily:'Nunito_800ExtraBold',fontSize:21,color:colors.ink950,marginVertical:8},missionCopy:{fontSize:13,lineHeight:19,color:colors.ink600},reward:{fontFamily:'Nunito_800ExtraBold',fontSize:16,color:colors.starGold,marginTop:10},arrow:{position:'absolute',right:10,bottom:10,fontSize:24,color:colors.lime},progressCard:{marginBottom:24},copy:{fontSize:14,lineHeight:21,color:colors.ink600},streak:{backgroundColor:colors.cream,borderRadius:18,padding:12,marginBottom:20},tiles:{flexDirection:'row',gap:12,marginBottom:20},stash:{flex:1,backgroundColor:colors.cream,borderRadius:22,padding:16,justifyContent:'center'},stars:{fontFamily:'Nunito_800ExtraBold',fontSize:28,color:colors.starGold},stashLabel:{fontFamily:'Nunito_800ExtraBold',fontSize:10,letterSpacing:.7,color:colors.starGold,marginTop:7},shop:{flex:1.7,backgroundColor:colors.blush,borderRadius:22,padding:12,flexDirection:'row',alignItems:'center',gap:6},shopTitle:{fontFamily:'Nunito_800ExtraBold',fontSize:15,lineHeight:21,color:colors.ink950},actions:{flexDirection:'row',gap:10,marginBottom:12},secondary:{flex:1,backgroundColor:colors.surfaceRaised,borderRadius:16,minHeight:52,justifyContent:'center',alignItems:'center',padding:10},actionText:{fontFamily:'Nunito_800ExtraBold',fontSize:15,color:colors.skyBlue},link:{flex:1,minHeight:48,justifyContent:'center',alignItems:'center'}});

@@ -375,7 +375,7 @@ export default function Accountability() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   scroll: {
     flex: 1,
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   tabActive: {
     backgroundColor: colors.navy900,
   },
-  tabEmoji: {
+  tabEmoji: {color:'#F7F5FF',
     fontSize: 18,
     marginRight: spacing[2],
   },
@@ -424,12 +424,12 @@ const styles = StyleSheet.create({
     color: colors.navy900,
   },
   tabNameActive: {
-    color: colors.white,
+    color: colors.onAccent,
   },
 
   // ── Cards ──
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: radius.lg,
     padding: spacing[4],
     borderWidth: 1,
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  streakEmoji: {
+  streakEmoji: {color:'#F7F5FF',
     fontSize: 32,
     marginRight: spacing[3],
   },
@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
   },
   levelBadgeText: {
     ...typography.caption,
-    color: colors.white,
+    color: colors.onAccent,
     fontWeight: '600',
   },
   markDoneButton: {
@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
   },
   markDoneText: {
     ...typography.button,
-    color: colors.white,
+    color: colors.onAccent,
   },
 
   // ── 13-week grid ──

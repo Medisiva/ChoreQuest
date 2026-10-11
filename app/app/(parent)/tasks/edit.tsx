@@ -36,16 +36,16 @@ function QuestForm({ task }: { task: Task }) {
   return <SafeAreaView style={styles.screen}><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
     <TouchableOpacity onPress={() => router.back()} disabled={saving}><Text style={styles.link}>← Back</Text></TouchableOpacity>
     <Text style={styles.title}>Edit quest</Text>
-    <Text style={styles.label}>Title</Text><TextInput style={styles.input} value={title} onChangeText={setTitle} maxLength={120} editable={!saving} accessibilityLabel="Quest title" />
-    <Text style={styles.label}>Description</Text><TextInput style={[styles.input, styles.multiline]} value={description} onChangeText={setDescription} maxLength={1000} multiline editable={!saving} accessibilityLabel="Quest description" />
-    <Text style={styles.label}>Stars</Text><TextInput style={styles.input} value={stars} onChangeText={setStars} keyboardType="number-pad" editable={!saving && !locked && !task.isMilestone} accessibilityLabel="Quest star reward" />
+    <Text style={styles.label}>Title</Text><TextInput placeholderTextColor="#A9A7BA" style={styles.input} value={title} onChangeText={setTitle} maxLength={120} editable={!saving} accessibilityLabel="Quest title" />
+    <Text style={styles.label}>Description</Text><TextInput placeholderTextColor="#A9A7BA" style={[styles.input, styles.multiline]} value={description} onChangeText={setDescription} maxLength={1000} multiline editable={!saving} accessibilityLabel="Quest description" />
+    <Text style={styles.label}>Stars</Text><TextInput placeholderTextColor="#A9A7BA" style={styles.input} value={stars} onChangeText={setStars} keyboardType="number-pad" editable={!saving && !locked && !task.isMilestone} accessibilityLabel="Quest star reward" />
     {(locked || task.isMilestone) && <Text style={styles.description}>{locked ? 'This quest is claimed. Its reward and completion requirements stay fixed.' : 'This quest uses milestone rewards. Its step rewards stay fixed.'}</Text>}
     <TouchableOpacity style={styles.button} disabled={saving} onPress={() => { void save(); }} accessibilityRole="button">{saving ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Save quest</Text>}</TouchableOpacity>
   </ScrollView></SafeAreaView>;
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F5F8FF' }, content: { padding: 24, gap: 16 },
-  title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#1555E8' }, label: { fontSize: 16, color: '#16244D' }, description: { fontSize: 15, lineHeight: 22, color: '#555', padding: 16 },
-  input: { padding: 16, borderWidth: 1, borderColor: '#DCE4ED', borderRadius: 12, fontSize: 16, backgroundColor: '#FFF' }, multiline: { minHeight: 120, textAlignVertical: 'top' },
-  button: { padding: 18, alignItems: 'center', backgroundColor: '#1555E8', borderRadius: 12 }, buttonText: { color: '#FFF', fontSize: 16, fontWeight: '600' }, link: { fontSize: 16, color: '#1555E8', paddingVertical: 8 },
+  screen: { flex: 1, backgroundColor: '#23232F' }, content: { padding: 24, gap: 16 },
+  title: { fontFamily: 'Nunito_700Bold', fontSize: 28, color: '#65F3FF' }, label: { fontSize: 16, color: '#F7F5FF' }, description: { fontSize: 15, lineHeight: 22, color: '#555', padding: 16 },
+  input: {color:'#F7F5FF', padding: 16, borderWidth: 1, borderColor: '#333240', borderRadius: 12, fontSize: 16, backgroundColor:'#121219' }, multiline: {color:'#F7F5FF', minHeight: 120, textAlignVertical: 'top' },
+  button: { padding: 18, alignItems: 'center', backgroundColor: '#65F3FF', borderRadius: 12 }, buttonText: { color: '#17200C', fontSize: 16, fontWeight: '600' }, link: { fontSize: 16, color: '#65F3FF', paddingVertical: 8 },
 });

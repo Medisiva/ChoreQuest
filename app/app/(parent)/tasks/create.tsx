@@ -48,19 +48,19 @@ interface TaskFormData {
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const CATEGORIES: { key: Category; emoji: string; deep: string; light: string }[] = [
-  { key: 'Household', emoji: '🏠', deep: '#1B6CA8', light: '#DBEAFE' },
-  { key: 'Learning', emoji: '📚', deep: '#7B2D8B', light: '#EDE9FE' },
-  { key: 'LifeSkills', emoji: '🌱', deep: '#0D7377', light: '#CCFBF1' },
-  { key: 'Hobbies', emoji: '🎨', deep: '#B85C00', light: '#FFEDD5' },
+  { key: 'Household', emoji: '🏠', deep: '#65F3FF', light: '#17363A' },
+  { key: 'Learning', emoji: '📚', deep: '#B7A1FF', light: '#302445' },
+  { key: 'LifeSkills', emoji: '🌱', deep: '#CDFF65', light: '#26351D' },
+  { key: 'Hobbies', emoji: '🎨', deep: '#FFBA82', light: '#392719' },
 ];
 
 const AGE_GROUPS: AgeGroup[] = ['3-5', '6-8', '9-11', '12-14', '15-17'];
 
 const DIFFICULTIES: { key: Difficulty; label: string; color: string }[] = [
-  { key: 'Easy', label: 'Easy', color: '#1B7A34' },
-  { key: 'Medium', label: 'Medium', color: '#B45309' },
-  { key: 'Hard', label: 'Hard', color: '#9B1C1C' },
-  { key: 'AdultSupervised', label: 'Adult Supervised', color: '#AC8BFA' },
+  { key: 'Easy', label: 'Easy', color: '#CDFF65' },
+  { key: 'Medium', label: 'Medium', color: '#FFE177' },
+  { key: 'Hard', label: 'Hard', color: '#FF92A7' },
+  { key: 'AdultSupervised', label: 'Adult Supervised', color: '#B7A1FF' },
 ];
 
 const RECURRENCE_OPTIONS: { key: Recurrence; label: string }[] = [
@@ -207,7 +207,7 @@ export default function CreateTaskScreen() {
             <TextInput
               style={[styles.textInput, errors.title && styles.textInputError]}
               placeholder="e.g. Make your bed"
-              placeholderTextColor="#6C7893"
+              placeholderTextColor="#A9A7BA"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -230,7 +230,7 @@ export default function CreateTaskScreen() {
             <TextInput
               style={[styles.textInput, styles.textArea]}
               placeholder="Optional details about this task..."
-              placeholderTextColor="#6C7893"
+              placeholderTextColor="#A9A7BA"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -261,7 +261,7 @@ export default function CreateTaskScreen() {
               activeOpacity={0.7}
             >
               <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
-              <Text style={[styles.categoryLabel, { color: selected ? '#FFFFFF' : cat.deep }]}>
+              <Text style={[styles.categoryLabel, { color: selected ? '#17200C' : cat.deep }]}>
                 {cat.key}
               </Text>
             </TouchableOpacity>
@@ -342,7 +342,7 @@ export default function CreateTaskScreen() {
               <Text
                 style={[
                   styles.difficultyLabel,
-                  { color: selected ? '#FFFFFF' : d.color },
+                  { color: selected ? '#17200C' : d.color },
                 ]}
                 numberOfLines={1}
               >
@@ -366,8 +366,8 @@ export default function CreateTaskScreen() {
             <Switch
               value={value}
               onValueChange={onChange}
-              trackColor={{ false: '#6C7893', true: '#2563EB' }}
-              thumbColor={value ? '#1555E8' : '#FFFFFF'}
+              trackColor={{ false: '#A9A7BA', true: '#65F3FF' }}
+              thumbColor={value ? '#65F3FF' : '#FFFFFF'}
             />
           )}
         />
@@ -383,7 +383,7 @@ export default function CreateTaskScreen() {
                 control={control}
                 name="milestoneSteps"
                 render={({ field: { onChange, value } }) => (
-                  <TextInput
+                  <TextInput placeholderTextColor="#A9A7BA"
                     style={styles.textInput}
                     value={String(value)}
                     onChangeText={(t) => onChange(Number(t.replace(/[^0-9]/g, '')) || 0)}
@@ -398,7 +398,7 @@ export default function CreateTaskScreen() {
                 control={control}
                 name="starsPerStep"
                 render={({ field: { onChange, value } }) => (
-                  <TextInput
+                  <TextInput placeholderTextColor="#A9A7BA"
                     style={styles.textInput}
                     value={String(value)}
                     onChangeText={(t) => onChange(Number(t.replace(/[^0-9]/g, '')) || 0)}
@@ -413,7 +413,7 @@ export default function CreateTaskScreen() {
             control={control}
             name="milestoneBonus"
             render={({ field: { onChange, value } }) => (
-              <TextInput
+              <TextInput placeholderTextColor="#A9A7BA"
                 style={styles.textInput}
                 value={String(value)}
                 onChangeText={(t) => onChange(Number(t.replace(/[^0-9]/g, '')) || 0)}
@@ -465,8 +465,8 @@ export default function CreateTaskScreen() {
             <Switch
               value={value}
               onValueChange={onChange}
-              trackColor={{ false: '#6C7893', true: '#2563EB' }}
-              thumbColor={value ? '#1555E8' : '#FFFFFF'}
+              trackColor={{ false: '#A9A7BA', true: '#65F3FF' }}
+              thumbColor={value ? '#65F3FF' : '#FFFFFF'}
             />
           )}
         />
@@ -485,8 +485,8 @@ export default function CreateTaskScreen() {
             <Switch
               value={value}
               onValueChange={onChange}
-              trackColor={{ false: '#6C7893', true: '#2563EB' }}
-              thumbColor={value ? '#1555E8' : '#FFFFFF'}
+              trackColor={{ false: '#A9A7BA', true: '#65F3FF' }}
+              thumbColor={value ? '#65F3FF' : '#FFFFFF'}
             />
           )}
         />
@@ -495,7 +495,7 @@ export default function CreateTaskScreen() {
       {watchAll.hasDeadline && (
         <View style={styles.deadlinePlaceholder}>
           <Controller control={control} name="deadlineDate" render={({ field: { value, onChange } }) => (
-            <TextInput accessibilityLabel="Quest deadline, YYYY-MM-DD" style={styles.textInput} value={value} onChangeText={onChange} placeholder="YYYY-MM-DD" maxLength={10} />
+            <TextInput placeholderTextColor="#A9A7BA" accessibilityLabel="Quest deadline, YYYY-MM-DD" style={styles.textInput} value={value} onChangeText={onChange} placeholder="YYYY-MM-DD" maxLength={10} />
           )} />
         </View>
       )}
@@ -521,7 +521,7 @@ export default function CreateTaskScreen() {
           ) : null}
 
           {/* Category Badge */}
-          <View style={[styles.categoryBadge, { backgroundColor: catInfo?.deep ?? '#1B6CA8' }]}>
+          <View style={[styles.categoryBadge, { backgroundColor: catInfo?.deep ?? '#65F3FF' }]}>
             <Text style={styles.categoryBadgeText}>
               {catInfo?.emoji} {watchAll.category}
             </Text>
@@ -656,7 +656,7 @@ export default function CreateTaskScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F8FF',
+    backgroundColor: '#23232F',
   },
   flex: {
     flex: 1,
@@ -672,7 +672,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#121219',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
@@ -681,13 +681,13 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#2563EB',
+    color: '#65F3FF',
     fontWeight: '600',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#16244D',
+    color: '#F7F5FF',
   },
   headerSpacer: {
     minWidth: 60,
@@ -707,10 +707,10 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   dotActive: {
-    backgroundColor: '#1555E8',
+    backgroundColor: '#65F3FF',
   },
   dotInactive: {
-    backgroundColor: '#6C7893',
+    backgroundColor: '#A9A7BA',
   },
 
   // Step Content
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#16244D',
+    color: '#F7F5FF',
     marginBottom: 20,
   },
 
@@ -728,35 +728,35 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#4B5875',
+    color: '#C0BDCF',
     marginBottom: 8,
     marginTop: 16,
   },
   textInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#121219',
     borderWidth: 1,
     borderColor: '#E5E7EB',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#16244D',
+    color: '#F7F5FF',
   },
-  textInputError: {
-    borderColor: '#9B1C1C',
+  textInputError: {color:'#F7F5FF',
+    borderColor: '#FF92A7',
   },
-  textArea: {
+  textArea: {color:'#F7F5FF',
     minHeight: 80,
   },
   charCounter: {
     fontSize: 12,
-    color: '#6C7893',
+    color: '#A9A7BA',
     textAlign: 'right',
     marginTop: 4,
   },
   errorText: {
     fontSize: 12,
-    color: '#9B1C1C',
+    color: '#FF92A7',
     marginTop: 4,
   },
 
@@ -781,11 +781,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  categoryEmoji: {
+  categoryEmoji: {color:'#F7F5FF',
     fontSize: 32,
     marginBottom: 6,
   },
-  categoryLabel: {
+  categoryLabel: {color:'#F7F5FF',
     fontSize: 14,
     fontWeight: '700',
   },
@@ -801,41 +801,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#121219',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
   ageGroupSelected: {
-    borderColor: '#1555E8',
-    backgroundColor: '#DBEAFE',
+    borderColor: '#65F3FF',
+    backgroundColor: '#17363A',
   },
   radioOuter: {
     width: 20,
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#6C7893',
+    borderColor: '#A9A7BA',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
   },
   radioOuterSelected: {
-    borderColor: '#1555E8',
+    borderColor: '#65F3FF',
   },
   radioInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#1555E8',
+    backgroundColor: '#65F3FF',
   },
   ageGroupLabel: {
     fontSize: 14,
-    color: '#4B5875',
+    color: '#C0BDCF',
     fontWeight: '500',
   },
   ageGroupLabelSelected: {
-    color: '#1555E8',
+    color: '#65F3FF',
     fontWeight: '700',
   },
 
@@ -851,14 +851,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#1555E8',
+    backgroundColor: '#65F3FF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   starButtonText: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#17200C',
   },
   starDisplay: {
     alignItems: 'center',
@@ -866,9 +866,9 @@ const styles = StyleSheet.create({
   starValueText: {
     fontSize: 48,
     fontWeight: '800',
-    color: '#1555E8',
+    color: '#65F3FF',
   },
-  starEmoji: {
+  starEmoji: {color:'#F7F5FF',
     fontSize: 20,
     marginTop: 2,
   },
@@ -887,7 +887,7 @@ const styles = StyleSheet.create({
     minWidth: 70,
     alignItems: 'center',
   },
-  difficultyLabel: {
+  difficultyLabel: {color:'#F7F5FF',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -897,7 +897,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#121219',
     borderRadius: 12,
     padding: 16,
     marginTop: 20,
@@ -911,17 +911,17 @@ const styles = StyleSheet.create({
   toggleLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#16244D',
+    color: '#F7F5FF',
   },
   toggleHint: {
     fontSize: 12,
-    color: '#6C7893',
+    color: '#A9A7BA',
     marginTop: 2,
   },
 
   // Milestone Fields
   milestoneFields: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#121219',
     borderRadius: 12,
     padding: 16,
     marginTop: 12,
@@ -948,24 +948,24 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 2,
     borderColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#121219',
   },
   recurrenceButtonSelected: {
-    borderColor: '#1555E8',
-    backgroundColor: '#1555E8',
+    borderColor: '#65F3FF',
+    backgroundColor: '#65F3FF',
   },
   recurrenceLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#4B5875',
+    color: '#C0BDCF',
   },
   recurrenceLabelSelected: {
-    color: '#FFFFFF',
+    color: '#17200C',
   },
 
   // Deadline Placeholder
   deadlinePlaceholder: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#121219',
     borderRadius: 12,
     padding: 20,
     marginTop: 12,
@@ -976,13 +976,13 @@ const styles = StyleSheet.create({
   },
   deadlinePlaceholderText: {
     fontSize: 14,
-    color: '#6C7893',
+    color: '#A9A7BA',
     fontStyle: 'italic',
   },
 
   // Review Card
   reviewCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#121219',
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
@@ -996,12 +996,12 @@ const styles = StyleSheet.create({
   reviewTaskTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#16244D',
+    color: '#F7F5FF',
     marginBottom: 4,
   },
   reviewDescription: {
     fontSize: 14,
-    color: '#4B5875',
+    color: '#C0BDCF',
     marginBottom: 12,
   },
   categoryBadge: {
@@ -1014,7 +1014,7 @@ const styles = StyleSheet.create({
   categoryBadgeText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#17200C',
   },
   reviewStarContainer: {
     alignItems: 'center',
@@ -1028,11 +1028,11 @@ const styles = StyleSheet.create({
   reviewStarValue: {
     fontSize: 40,
     fontWeight: '800',
-    color: '#1555E8',
+    color: '#65F3FF',
   },
   reviewStarLabel: {
     fontSize: 16,
-    color: '#4B5875',
+    color: '#C0BDCF',
     marginTop: 2,
   },
   reviewGrid: {
@@ -1045,16 +1045,16 @@ const styles = StyleSheet.create({
   },
   reviewGridLabel: {
     fontSize: 12,
-    color: '#6C7893',
+    color: '#A9A7BA',
     marginBottom: 2,
   },
   reviewGridValue: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#16244D',
+    color: '#F7F5FF',
   },
   reviewMilestone: {
-    backgroundColor: '#EDE9FE',
+    backgroundColor: '#302445',
     borderRadius: 10,
     padding: 12,
     marginTop: 12,
@@ -1062,15 +1062,15 @@ const styles = StyleSheet.create({
   reviewMilestoneTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#7B2D8B',
+    color: '#B7A1FF',
   },
   reviewMilestoneDetail: {
     fontSize: 13,
-    color: '#7B2D8B',
+    color: '#B7A1FF',
     marginTop: 4,
   },
   reviewDeadlineNote: {
-    backgroundColor: '#FFEDD5',
+    backgroundColor: '#392719',
     borderRadius: 10,
     padding: 12,
     marginTop: 12,
@@ -1078,19 +1078,19 @@ const styles = StyleSheet.create({
   reviewDeadlineText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#B85C00',
+    color: '#FFBA82',
   },
 
   // Bottom Bar
   bottomBar: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#121219',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
   nextButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#65F3FF',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
@@ -1101,10 +1101,10 @@ const styles = StyleSheet.create({
   nextButtonText: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#17200C',
   },
   postButton: {
-    backgroundColor: '#1555E8',
+    backgroundColor: '#65F3FF',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
@@ -1112,6 +1112,6 @@ const styles = StyleSheet.create({
   postButtonText: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#17200C',
   },
 });

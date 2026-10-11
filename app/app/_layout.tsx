@@ -1,3 +1,4 @@
+import { StatusBar } from 'expo-status-bar';
 import OfflineBanner from '@/components/shared/OfflineBanner';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { registerFamilySubscriptions } from '@/services/familySubscriptions';
@@ -98,13 +99,13 @@ function RootLayoutNav() {
 
   if (error && user) {
     return <View style={[styles.splash, { padding: 24 }]}>
-      <Text style={{ color: '#FFFFFF', fontSize: 20, textAlign: 'center', marginBottom: 16 }}>{error}</Text>
-      <TouchableOpacity accessibilityRole="button" onPress={() => setRetry(value => value + 1)} style={{ backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12 }}>
-        <Text style={{ color: '#1555E8' }}>Retry loading my family</Text>
+      <Text style={{ color: '#F7F5FF', fontSize: 20, textAlign: 'center', marginBottom: 16 }}>{error}</Text>
+      <TouchableOpacity accessibilityRole="button" onPress={() => setRetry(value => value + 1)} style={{ backgroundColor: '#121219', padding: 16, borderRadius: 12 }}>
+        <Text style={{ color: '#65F3FF' }}>Retry loading my family</Text>
       </TouchableOpacity>
     </View>;
   }
-  return <View style={{flex:1}}><Slot /><OfflineBanner isOnline={isOnline} /></View>;
+  return <View style={{flex:1}}><StatusBar style="light" /><Slot /><OfflineBanner isOnline={isOnline} /></View>;
 }
 
 export default function RootLayout() {
@@ -139,6 +140,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1555E8', // navy900
+    backgroundColor: '#060609', // dark arcade splash
   },
 });
