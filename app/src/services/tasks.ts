@@ -12,6 +12,7 @@ import {
 import { db, functions } from './firebase';
 import { httpsCallable } from 'firebase/functions';
 import { useChildSessionStore } from '../stores/childSessionStore';
+import { requireOnline } from './network';
 import { taskDocRef } from './firestore';
 import type {
   Task,
@@ -51,6 +52,7 @@ export async function createTask(
   familyId: string,
   taskData: CreateTaskData
 ): Promise<string> {
+  await requireOnline();
   const batch = writeBatch(db);
 
   const newTaskRef = doc(collection(db, 'families', familyId, 'tasks'));
@@ -92,6 +94,7 @@ export async function updateTask(
   taskId: string,
   updates: Partial<Omit<Task, 'id' | 'familyAccountId' | 'createdAt' | 'createdByParentId'>>
 ): Promise<void> {
+  await requireOnline();
   const ref = taskDocRef(familyId, taskId);
   await runTransaction(db, async (transaction) => {
     const snapshot = await transaction.get(ref);
@@ -110,6 +113,7 @@ export async function deleteTask(
   familyId: string,
   taskId: string
 ): Promise<void> {
+  await requireOnline();
   const ref = taskDocRef(familyId, taskId);
   await updateDoc(ref, { isActive: false });
 }
@@ -127,6 +131,7 @@ function childSession(childId?: string): { childId: string; sessionToken: string
   return { childId: session.activeChildId, sessionToken: session.sessionToken };
 }
 export async function claimTask(familyId: string, taskId: string, childProfileId: string): Promise<string> {
+  await requireOnline();
   try {
     const result = await httpsCallable<Record<string, unknown>, { claimId: string }>(functions, 'claimChildQuest')({ familyId, taskId, ...childSession(childProfileId), operationId: doc(collection(db, 'operationIds')).id });
     return result.data.claimId;
@@ -136,12 +141,15 @@ export async function claimTask(familyId: string, taskId: string, childProfileId
   }
 }
 export async function releaseTask(familyId: string, claimId: string): Promise<void> {
+  await requireOnline();
   await httpsCallable(functions, 'updateChildQuest')({ familyId, claimId, ...childSession(), status: 'released' });
 }
 export async function submitTaskCompletion(familyId: string, claimId: string, photoProofUrl?: string): Promise<void> {
+  await requireOnline();
   await httpsCallable(functions, 'updateChildQuest')({ familyId, claimId, ...childSession(), status: 'submitted', ...(photoProofUrl ? { photoProofUrl } : {}) });
 }
 export async function reviewTaskClaims(familyId: string, claimIds: string[], decision: 'approved' | 'rejected', reason?: string): Promise<void> {
   if (!claimIds.length) return;
+  await requireOnline();
   await httpsCallable(functions, 'reviewChildQuests')({ familyId, claimIds, decision, ...(reason ? { reason } : {}) });
 }

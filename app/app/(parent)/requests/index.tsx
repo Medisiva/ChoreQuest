@@ -165,17 +165,17 @@ export default function RequestInboxScreen() {
 
                 <Text style={styles.starEditLabel}>Suggested: ⭐ {selectedRequest.suggestedStars} — is this right?</Text>
                 <View style={styles.starEditor}>
-                  <TouchableOpacity style={styles.starEditBtn} onPress={() => setEditedStars(Math.max(1, editedStars - 5))}>
+                  <TouchableOpacity style={styles.starEditBtn} onPress={() => setEditedStars(Math.max(1, editedStars - 1))}>
                     <Text style={styles.starEditBtnText}>-</Text>
                   </TouchableOpacity>
                   <Text style={styles.starEditValue}>⭐ {editedStars}</Text>
-                  <TouchableOpacity style={styles.starEditBtn} onPress={() => setEditedStars(Math.min(100, editedStars + 5))}>
+                  <TouchableOpacity style={styles.starEditBtn} onPress={() => setEditedStars(Math.min(100, editedStars + 1))}>
                     <Text style={styles.starEditBtnText}>+</Text>
                   </TouchableOpacity>
                 </View>
 
                 <TouchableOpacity style={styles.acceptFullBtn} onPress={handleAccept} disabled={loading}>
-                  {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.acceptFullText}>Accept with {editedStars} stars</Text>}
+                  {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.acceptFullText}>Accept with {editedStars} {editedStars === 1 ? 'star' : 'stars'}</Text>}
                 </TouchableOpacity>
 
                 <TextInput style={styles.declineInput} placeholder="Reason for declining..." placeholderTextColor="#6C7893" value={declineReason} onChangeText={setDeclineReason} maxLength={120} />

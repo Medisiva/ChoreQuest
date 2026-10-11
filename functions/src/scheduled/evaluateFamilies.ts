@@ -1,3 +1,4 @@
+import { logger } from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { FieldPath, Timestamp } from 'firebase-admin/firestore';
 import { closedPeriod, evaluationOutcome, EvaluationPeriod } from '../utils/evaluation';
@@ -11,9 +12,11 @@ export async function evaluateFamilies(type: EvaluationPeriod, now = new Date())
     if (families.empty) return;
     for (const family of families.docs) {
       if (family.data().isDeleted) continue;
+      try {
       const period = closedPeriod(type, now, family.data().timezone || 'UTC');
       const children = await family.ref.collection('childProfiles').get();
       for (const child of children.docs) {
+        try {
         const id = `${type}-${period.key}-${child.id}`;
         const log = family.ref.collection('accountabilityLogs').doc(id);
         await db.runTransaction(async (tx) => {
@@ -21,7 +24,7 @@ export async function evaluateFamilies(type: EvaluationPeriod, now = new Date())
           if (!freshFamily.exists || freshFamily.data()?.isDeleted || !freshChild.exists || existing.exists) return;
           // Children created during/after this period begin evaluation next period.
           const data = freshChild.data()!;
-          if (!data.createdAt || data.createdAt.toMillis() >= period.start.getTime()) return;
+          if (data.isArchived || !data.createdAt || data.createdAt.toMillis() >= period.start.getTime()) return;
           const ledger = await tx.get(family.ref.collection('starTransactions').where('createdAt', '>=', Timestamp.fromDate(period.start)).where('createdAt', '<', Timestamp.fromDate(period.end)));
           const earned = ledger.docs.reduce((sum, entry) => {
             const record = entry.data();
@@ -46,7 +49,9 @@ export async function evaluateFamilies(type: EvaluationPeriod, now = new Date())
           tx.update(child.ref, updates);
           tx.create(log, { familyAccountId: family.id, childProfileId: child.id, periodType: type, periodKey: period.key, periodStart: Timestamp.fromDate(period.start), periodEnd: Timestamp.fromMillis(period.end.getTime() - 1), starsEarned: earned, targetStars: outcome.target, met: outcome.met, ...(outcome.level ? { missLevel: outcome.level } : {}), consequenceActivated: Boolean(definition), streakWeeksAtEval: outcome.streak, bonusAwarded: outcome.bonus, createdAt });
         });
+        } catch (error) { logger.error('Child evaluation failed', { familyId: family.id, childId: child.id, type, error }); }
       }
+      } catch (error) { logger.error('Family evaluation failed', { familyId: family.id, type, error }); }
     }
     cursor = families.docs[families.docs.length - 1];
     if (families.size < 10) return;

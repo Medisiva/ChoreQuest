@@ -1,3 +1,4 @@
+import { questRewardLabel } from '@/services/questPresentation';
 // S2-06: Task Pool Manager (P-02)
 // FlashList task list, category filter chips, swipe-to-delete, FAB to create.
 
@@ -37,9 +38,10 @@ export default function TaskPoolManager() {
   const [filter, setFilter] = useState<Category | 'All'>('All');
 
   const filteredTasks = useMemo(() => {
-    if (filter === 'All') return tasks;
-    return tasks.filter((t) => t.category === filter);
-  }, [tasks, filter]);
+    const visible = tasks.filter(task=>!task.templateOnly || claims.some(claim=>claim.taskId===task.id && ['claimed','submitted','rejected'].includes(claim.status)));
+    if (filter === 'All') return visible;
+    return visible.filter(t=>t.category===filter);
+  }, [tasks, claims, filter]);
 
   const getClaimStatus = useCallback(
     (taskId: string): string => {
@@ -85,7 +87,7 @@ export default function TaskPoolManager() {
               {item.recurrenceType !== 'none' && <Text style={styles.recurrenceTag}>🔄</Text>}
             </View>
             <View style={styles.taskMeta}>
-              <Text style={styles.starValue}>⭐ {item.starValue}</Text>
+              <Text style={styles.starValue}>⭐ {questRewardLabel(item)}</Text>
               <Text style={[styles.statusChip, status === 'Unclaimed' ? styles.statusOpen : styles.statusActive]}>
                 {status}
               </Text>

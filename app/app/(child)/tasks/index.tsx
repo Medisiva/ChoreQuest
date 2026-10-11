@@ -1,3 +1,4 @@
+import { questRewardLabel } from '@/services/questPresentation';
 // S2-07: Task Feed screen (C-02)
 // FlashList with category filter chips. Claimed-by-sibling cards greyed with lock.
 // Active claim banner pinned at top.
@@ -33,9 +34,9 @@ export default function TaskFeedScreen() {
 
   const filteredTasks = useMemo(() => {
     // Completed recurring templates keep their lock and are replaced by fresh instances.
-    const available = tasks.filter((task) => !task.activeClaimId || claims.some((claim) => claim.id === task.activeClaimId));
+    const available = tasks.filter(task => !task.templateOnly || claims.some(claim=>claim.taskId===task.id && claim.childProfileId===activeChildId && ['claimed','submitted','rejected'].includes(claim.status)));
     return selectedCategory === 'All' ? available : available.filter((task) => task.category === selectedCategory);
-  }, [tasks, claims, selectedCategory]);
+  }, [tasks, claims, selectedCategory, activeChildId]);
 
   const activeClaim = useMemo(
     () => claims.find((c) => c.childProfileId === activeChildId && (c.status === 'claimed' || c.status === 'submitted' || c.status === 'rejected')),
@@ -78,7 +79,8 @@ export default function TaskFeedScreen() {
             <Text style={[styles.taskTitle, isClaimedBySibling && styles.taskTitleClaimed]}>{item.title}</Text>
             {item.description && <Text style={styles.taskDescription} numberOfLines={1}>{item.description}</Text>}
             <View style={styles.taskFooter}>
-              <Text style={styles.starValue}>⭐ {item.starValue}</Text>
+              {item.deadline && <Text>Due {item.deadline.toDate().toLocaleDateString()}{item.deadline.toMillis() < Date.now() ? " · Expired" : ""}</Text>}
+              <Text style={styles.starValue}>⭐ {questRewardLabel(item)}</Text>
               <View style={[styles.difficultyBadge, getDifficultyBg(item.difficulty)]}>
                 <Text style={styles.difficultyText}>{item.difficulty}</Text>
               </View>

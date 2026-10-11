@@ -13,6 +13,7 @@ interface CreateRequestParams {
   description?: string;
   category: 'Household' | 'Learning' | 'LifeSkills' | 'Hobbies';
   suggestedStars: number;
+  operationId?: string;
 }
 
 function sessionToken(childId?: string): string {
@@ -21,7 +22,7 @@ function sessionToken(childId?: string): string {
   return session.sessionToken;
 }
 export async function createRequest(familyId: string, params: CreateRequestParams): Promise<string> {
-  const result = await httpsCallable<Record<string, unknown>, { requestId: string }>(functions, 'createFamilyRequest')({ familyId, childId: params.requestedByChildId, title: params.title, category: params.category, suggestedStars: params.suggestedStars, ...(params.description ? { description: params.description } : {}), operationId: doc(collection(db, 'operationIds')).id, sessionToken: sessionToken(params.requestedByChildId) });
+  const result = await httpsCallable<Record<string, unknown>, { requestId: string }>(functions, 'createFamilyRequest')({ familyId, childId: params.requestedByChildId, title: params.title, category: params.category, suggestedStars: params.suggestedStars, ...(params.description ? { description: params.description } : {}), operationId: params.operationId || doc(collection(db, 'operationIds')).id, sessionToken: sessionToken(params.requestedByChildId) });
   return result.data.requestId;
 }
 async function update(familyId: string, requestId: string, status: string, fields: Record<string, unknown> = {}): Promise<void> {
@@ -45,4 +46,11 @@ export function confirmRequestComplete(familyId: string, requestId: string): Pro
 export async function getWeeklyRequestCount(familyId: string, childId: string): Promise<number> {
   const result = await httpsCallable<Record<string, unknown>, { count: number }>(functions, 'getChildRequestCount')({ familyId, childId, sessionToken: sessionToken(childId) });
   return result.data.count;
+}
+
+export function returnRequestIncomplete(familyId: string, requestId: string): Promise<void> { return update(familyId, requestId, 'returned', {sessionToken:sessionToken()}); }
+
+export async function getWeeklyRequestAllowance(familyId:string,childId:string):Promise<{count:number;limit:number}>{
+ const result=await httpsCallable<Record<string,unknown>,{count:number;limit:number}>(functions,'getChildRequestCount')({familyId,childId,sessionToken:sessionToken(childId)});
+ return result.data;
 }

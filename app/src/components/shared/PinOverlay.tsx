@@ -181,6 +181,7 @@ export default function PinOverlay({
                       return (
                         <TouchableOpacity
                           key="delete"
+                          accessibilityRole="button" accessibilityLabel="Delete last PIN digit"
                           style={styles.numKey}
                           onPress={handleDelete}
                           activeOpacity={0.6}
@@ -192,6 +193,7 @@ export default function PinOverlay({
                     return (
                       <TouchableOpacity
                         key={digit}
+                        accessibilityRole="button" accessibilityLabel={`PIN digit ${digit}`}
                         style={styles.numKey}
                         onPress={() => handleDigitPress(digit)}
                         activeOpacity={0.6}

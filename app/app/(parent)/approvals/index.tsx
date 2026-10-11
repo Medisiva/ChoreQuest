@@ -1,3 +1,5 @@
+import { questRewardLabel } from '@/services/questPresentation';
+import { errorMessage } from '@/services/errorMessage';
 // S2-09: Parent Approval Queue (P-05)
 // Pending submissions. Approve/reject bottom sheet. Photo display. Batch approve.
 
@@ -43,7 +45,7 @@ export default function ApprovalQueueScreen() {
   );
 
   const getTaskStars = useCallback(
-    (taskId: string) => tasks.find((t) => t.id === taskId)?.starValue ?? 0,
+    (taskId: string) => {const task=tasks.find(t=>t.id===taskId);return task ? questRewardLabel(task) : 'Reward unavailable';},
     [tasks]
   );
 
@@ -59,8 +61,8 @@ export default function ApprovalQueueScreen() {
       await reviewTaskClaims(family.id, [claim.id], 'approved');
       Alert.alert('Approved!', `Quest approved for ${getChildName(claim.childProfileId)}. Stars will update shortly.`);
       setSelectedClaim(null);
-    } catch {
-      Alert.alert('Error', 'Could not approve. Try again.');
+    } catch(error) {
+      Alert.alert('Could not approve', errorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -180,7 +182,7 @@ export default function ApprovalQueueScreen() {
               <>
                 <Text style={styles.modalTitle}>{getTaskTitle(selectedClaim.taskId)}</Text>
                 <Text style={styles.modalChild}>Submitted by {getChildName(selectedClaim.childProfileId)}</Text>
-                <Text style={styles.modalStars}>⭐ {getTaskStars(selectedClaim.taskId)} stars</Text>
+                <Text style={styles.modalStars}>⭐ {getTaskStars(selectedClaim.taskId)}</Text>
 
                 {selectedClaim.photoProofUrl && (
                   <Image source={{ uri: selectedClaim.photoProofUrl }} style={{ width: '100%', height: 140, borderRadius: 12, marginBottom: 16 }} resizeMode="contain" accessibilityLabel="Quest proof photo" />

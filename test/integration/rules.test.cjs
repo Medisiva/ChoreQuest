@@ -17,7 +17,7 @@ test.beforeEach(async () => {
     await setDoc(doc(db, 'families/f/childCredentials/c'), { pinHash: 'private' });
     await setDoc(doc(db, 'parentProfiles/p'), { familyAccountId: 'f' });
     await setDoc(doc(db, 'families/f/settings/config'), { leaderboardEnabled: true });
-    await setDoc(doc(db, 'families/f/tasks/t'), { title: 'Tidy', isActive: true, activeClaimId: 'claim' });
+    await setDoc(doc(db, 'families/f/tasks/t'), { familyAccountId:'f',title: 'Tidy',category:'Household',starValue:5,isMilestone:false, isActive: true, activeClaimId: 'claim' });
   });
 });
 test('parents read their mapping and family; anonymous and other-family users cannot', async () => {
@@ -31,7 +31,8 @@ test('parents read their mapping and family; anonymous and other-family users ca
 });
 test('profile appearance edits succeed; credentials, balances and membership are server-owned', async () => {
   const db = env.authenticatedContext('p').firestore();
-  await assertSucceeds(updateDoc(doc(db, 'families/f/childProfiles/c'), { nickname: 'New name' }));
+  await assertFails(updateDoc(doc(db, 'families/f/childProfiles/c'), { nickname: 'New name' })); // Names go through canonical server uniqueness checks.
+  await assertSucceeds(updateDoc(doc(db, 'families/f/childProfiles/c'), { progressDisplayStyle: 'Countdown' }));
   await assertFails(updateDoc(doc(db, 'families/f/childProfiles/c'), { starBalance: 999 }));
   await assertFails(updateDoc(doc(db, 'families/f/childProfiles/c'), { pinHash: 'fake' }));
   await assertFails(getDoc(doc(db, 'families/f/childCredentials/c')));

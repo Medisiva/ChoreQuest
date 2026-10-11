@@ -26,9 +26,12 @@ export default function OfflineBanner({ isOnline }: OfflineBannerProps) {
     transform: [{ translateY: translateY.value }],
   }));
 
+  // Remove the hidden announcement from the web accessibility tree as well.
+  if (isOnline) return null;
+
   return (
-    <Animated.View style={[styles.banner, animatedStyle]}>
-      <Text style={styles.text}>You&apos;re offline — changes will sync when you reconnect</Text>
+    <Animated.View pointerEvents="none" accessibilityRole="alert" accessibilityElementsHidden={isOnline} importantForAccessibility={isOnline ? "no-hide-descendants" : "yes"} style={[styles.banner, animatedStyle]}>
+      <Text style={styles.text}>You&apos;re offline. Reconnect before sending or saving.</Text>
     </Animated.View>
   );
 }

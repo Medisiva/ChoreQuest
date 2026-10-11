@@ -43,9 +43,9 @@ test('scheduler retries leave one canonical log and one atomic streak award', as
   } };
   const moduleFixture = { exports: {} };
   const timestamp = { fromDate: (date) => date, fromMillis: (millis) => new Date(millis) };
-  vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname, '../lib/scheduled/evaluateFamilies.js'), 'utf8'), { module: moduleFixture, exports: moduleFixture.exports, Date, require: (name) => name === 'firebase-admin' ? { firestore: () => db } : name === 'firebase-admin/firestore' ? { FieldPath: { documentId: () => 'id' }, Timestamp: timestamp } : require('../lib/utils/evaluation') });
+  vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname, '../lib/scheduled/evaluateFamilies.js'), 'utf8'), { module: moduleFixture, exports: moduleFixture.exports, Date, require: (name) => name === 'firebase-functions' ? {logger:{error(){}}} : name === 'firebase-admin' ? { firestore: () => db } : name === 'firebase-admin/firestore' ? { FieldPath: { documentId: () => 'id' }, Timestamp: timestamp } : require('../lib/utils/evaluation') });
   const run = () => moduleFixture.exports.evaluateFamilies('weekly', new Date('2026-10-05T12:00:00Z'));
-  await assert.rejects(run(), /commit failure/);
+  await run(); // Bad family is isolated; retry can complete it later.
   assert.equal(records.get('families/f/childProfiles/c').starBalance, 2);
   await run(); await run();
   assert.equal(records.get('families/f/childProfiles/c').starBalance, 7);

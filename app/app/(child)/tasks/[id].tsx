@@ -1,3 +1,5 @@
+import { errorMessage } from '@/services/errorMessage';
+import { questRewardLabel } from '@/services/questPresentation';
 // S2-08: Task Detail screen (C-03)
 // Full task info. Claim button uses claimTask transaction.
 // Submitted state shows waiting message. Release with 15-min cooldown.
@@ -10,6 +12,8 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Linking,
+  Platform,
 } from 'react-native';
 import Alert from '@/services/dialogs';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -57,7 +61,7 @@ export default function TaskDetailScreen() {
       if (err.code === 'ALREADY_CLAIMED') {
         Alert.alert('Oops!', 'Someone else just grabbed this quest!');
       } else {
-        Alert.alert('Error', 'Could not claim this quest. Try again.');
+        Alert.alert('Could not claim quest', errorMessage(error));
       }
     } finally {
       setLoading(false);
@@ -77,7 +81,8 @@ export default function TaskDetailScreen() {
         }
         await submitTaskCompletion(family.id, myClaim.id, photoProofUrl);
       } catch (error) {
-        Alert.alert('Could not submit', error instanceof Error ? error.message : 'Please try again.');
+        if ((error as {code?:string}).code === 'CAMERA_PERMISSION_DENIED') Alert.alert('Camera access needed','Enable camera permission in device Settings, then return and try again. You can also choose a photo from your gallery.', Platform.OS === 'web' ? [{text:'OK'}] : [{text:'Cancel',style:'cancel'},{text:'Open Settings',onPress:()=>{void Linking.openSettings();}}]);
+        else Alert.alert('Could not submit', errorMessage(error));
       } finally { setLoading(false); }
     };
     if (task.requiresPhoto) {
@@ -125,7 +130,8 @@ export default function TaskDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Category banner */}
+      {task.deadline && <Text accessibilityLabel="Quest deadline">Due {task.deadline.toDate().toLocaleDateString()}</Text>}
+        {/* Category banner */}
       <View style={[styles.banner, { backgroundColor: catConfig?.deep ?? '#1555E8' }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>←</Text>
@@ -141,7 +147,7 @@ export default function TaskDetailScreen() {
 
         {/* Star value */}
         <View style={styles.starBlock}>
-          <Text style={styles.starBig}>⭐ {task.starValue}</Text>
+          <Text style={styles.starBig}>⭐ {questRewardLabel(task)}</Text>
           <Text style={styles.starLabel}>stars</Text>
         </View>
 

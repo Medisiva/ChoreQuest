@@ -26,7 +26,7 @@ export async function requireChildSession(transaction: admin.firestore.Transacti
   const family = await transaction.get(db.doc(`families/${familyId}`));
   const parent = data?.parentUid ? await transaction.get(db.doc(`families/${familyId}/parentUsers/${data.parentUid}`)) : null;
   if (!family.exists || family.data()?.isDeleted || !parent?.exists) throw new HttpsError("permission-denied", "Family unavailable");
-  if (!child.exists || !session.exists || (data?.childAuthUid !== uid && data?.parentUid !== uid) || !family.exists || family.data()?.isDeleted || !parent?.exists || data?.childProfileId !== childId ||
+  if (!child.exists || child.data()?.isArchived || !session.exists || (data?.childAuthUid !== uid && data?.parentUid !== uid) || !family.exists || family.data()?.isDeleted || !parent?.exists || data?.childProfileId !== childId ||
       !data.expiresAt || data.expiresAt.toMillis() <= Date.now() ||
       (child.data()?.sessionsRevokedAt && (!data.createdAt || data.createdAt.toMillis() <= child.data()!.sessionsRevokedAt.toMillis()))) {
     throw new HttpsError("unauthenticated", "Enter your PIN again");

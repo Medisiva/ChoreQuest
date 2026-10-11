@@ -33,11 +33,11 @@ function schedulerFixture() {
   const fs = require('node:fs'); const vm = require('node:vm');
   const instances = new Map();
   const templates = [
-    { id: 'template', data: () => ({ title: 'Clean room', starValue: 5, recurrenceType: 'daily', isActive: true, createdAt: { toDate: () => new Date('2020-01-01') } }) },
+    { id: 'template', ref:{update:async()=>{}}, data: () => ({ title: 'Clean room', category:'Household', starValue: 5, recurrenceType: 'daily', isActive: true, createdAt: { toDate: () => new Date('2020-01-01') } }) },
     { id: 'legacy', data: () => ({ title: 'Copy', starValue: 5, isInstance: true, recurrenceType: 'daily', isActive: true }) },
     { id: 'new', data: () => ({ title: 'New', starValue: 5, recurrenceType: 'daily', isActive: true, createdAt: { toDate: () => new Date() } }) },
   ];
-  const tasks = { where: () => ({ where: () => ({ get: async () => ({ docs: templates }) }) }), doc: (id) => ({ id, get: async () => ({ exists: instances.has(id) }) }) };
+  const tasks = { where: field => ({ where: () => ({ get: async () => ({ docs: field==='sourceTaskId' ? [] : templates }) }) }), doc: (id) => ({ id, get: async () => ({ exists: instances.has(id) }) }) };
   const db = {
     collection: (path) => path === 'families' ? { where: () => ({ get: async () => ({ docs: [{ id: 'f', data: () => ({ timezone: 'UTC' }) }] }) }) } : tasks,
     batch: () => { let pending; return { create: (ref, data) => { pending = [ref.id, data]; }, commit: async () => {
@@ -54,6 +54,7 @@ function schedulerFixture() {
       if (name === 'firebase-admin/firestore') return firestore;
       if (name === 'firebase-admin') return { firestore };
       if (name === 'crypto') return require('node:crypto');
+      if (name === '../utils/validation') return require('../lib/utils/validation');
       if (name === '../utils/recurrence') return require('../lib/utils/recurrence');
       throw new Error(name);
     },

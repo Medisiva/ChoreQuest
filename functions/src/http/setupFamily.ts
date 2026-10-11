@@ -1,3 +1,6 @@
+import { createHash } from 'crypto';
+import { manageFamily } from './manageFamily';
+import { nameKey } from '../utils/validation';
 import { FieldValue } from "firebase-admin/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
@@ -24,8 +27,11 @@ export async function childData(input: Record<string, unknown>): Promise<{ profi
   if (typeof input.pin !== "string" || !/^\d{4}$/.test(input.pin)) {
     throw new HttpsError("invalid-argument", "PIN must contain four digits");
   }
+  const weekly = integer(input.weeklyTargetStars ?? 20, 'weekly target');
+  const monthly = integer(input.monthlyTargetStars ?? 80, 'monthly target');
+  if (monthly < weekly) throw new HttpsError('invalid-argument','Monthly target must be at least the weekly target.');
   return { credentials: { pinHash: await bcrypt.hash(input.pin, 12), failedPinAttempts: 0, lockedUntil: null }, profile: {
-    nickname, avatarId, ageGroup: input.ageGroup, credentialsPrivate: true,
+    nickname, nicknameKey: nameKey(nickname), avatarId, ageGroup: input.ageGroup, credentialsPrivate: true,
     starBalance: 0, totalStarsEarned: 0, totalStarsRedeemed: 0,
     weeklyTargetStars: integer(input.weeklyTargetStars ?? 20, "weekly target"),
     monthlyTargetStars: integer(input.monthlyTargetStars ?? 80, "monthly target"),
@@ -44,6 +50,7 @@ function rewards(input: unknown): Record<string, unknown>[] {
 export const setupFamily = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Sign in first");
   if (request.auth.token?.role === 'child' || request.auth.uid.startsWith('child-')) throw new HttpsError('permission-denied', 'Parent sign-in required');
+  if (request.data?.action) return manageFamily.run(request);
   const uid = request.auth.uid;
   const input = request.data as Record<string, unknown>;
   if (!input || typeof input !== "object") throw new HttpsError("invalid-argument", "Invalid setup");
@@ -65,12 +72,12 @@ export const setupFamily = onCall(async (request) => {
   const result = await db.runTransaction(async (transaction) => {
     const existing = await transaction.get(mapping);
     // Concurrent retries and a lost HTTP response must not create a second family.
-    if (existing.exists) return { familyId: existing.data()!.familyAccountId, parentId: uid };
+    if (existing.exists && !existing.data()?.familyDeleted) return { familyId: existing.data()!.familyAccountId, parentId: uid };
     const now = FieldValue.serverTimestamp();
-    const parent = { familyAccountId: family.id, firebaseUid: uid, displayName: typeof request.auth!.token.name === "string" ? request.auth!.token.name : "Parent", avatarId: "default-parent", starBalance: 0, totalStarsEarned: 0, totalStarsRedeemed: 0, createdAt: now };
+    const parent = { familyAccountId: family.id, firebaseUid: uid, displayName: input.displayName ? text(input.displayName,"your name") : typeof request.auth!.token.name === "string" ? request.auth!.token.name : "Parent", avatarId: "default-parent", starBalance: 0, totalStarsEarned: 0, totalStarsRedeemed: 0, createdAt: now };
     transaction.create(family, { familyName, ownerUid: uid, memberIds: [uid], createdAt: now, timezone, isDeleted: false });
     transaction.create(family.collection("parentUsers").doc(uid), parent);
-    transaction.create(mapping, parent);
+    transaction.set(mapping, parent);
     if (child) {
       transaction.create(childRef, { ...child.profile, familyAccountId: family.id });
       transaction.create(family.collection("childCredentials").doc(childRef.id), child.credentials);
@@ -102,6 +109,12 @@ export const createChildProfile = onCall({ invoker: "public" }, async (request) 
     const familySnap = await transaction.get(family);
     const parentSnap = await transaction.get(parent.ref);
     if (!familySnap.exists || familySnap.data()?.isDeleted || !parentSnap.exists) throw new HttpsError("permission-denied", "Family unavailable");
+    const nameRef=family.collection('childNames').doc(createHash('sha256').update(nameKey(String(profile.profile.nickname))).digest('hex'));
+    const reserved=await transaction.get(nameRef);
+    const children = await transaction.get(family.collection('childProfiles'));
+    if(reserved.exists)throw new HttpsError('already-exists','Choose a different nickname; this family already has that name.');
+    if(children.docs.some(c=>!c.data().isArchived && nameKey(c.data().nickname)===nameKey(String(profile.profile.nickname))))throw new HttpsError('already-exists','Choose a different nickname; this family already has that name.');
+    transaction.create(nameRef,{childId:child.id});
     transaction.create(child, { ...profile.profile, familyAccountId: familyId });
     transaction.create(family.collection("childCredentials").doc(child.id), profile.credentials);
   });

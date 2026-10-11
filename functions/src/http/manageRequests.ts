@@ -16,7 +16,7 @@ export const createFamilyRequest = onCall(async (request) => {
     const existing = await transaction.get(ref); const family = await transaction.get(db.doc(`families/${familyId}`));
     const settings = await transaction.get(db.doc(`families/${familyId}/settings/config`));
     if (existing.exists) {
-      if (existing.data()?.requestedByChildId !== childId) throw new HttpsError("already-exists", "Request ID already used");
+      if (existing.data()?.requestedByChildId !== childId || existing.data()?.title !== input.title.trim() || existing.data()?.category !== input.category || existing.data()?.suggestedStars !== input.suggestedStars) throw new HttpsError("already-exists", "Request ID already used");
       return;
     }
     const period = getPeriodKey("weekly", new Date(), family.data()?.timezone || "UTC");
@@ -33,15 +33,15 @@ export const createFamilyRequest = onCall(async (request) => {
 export const updateFamilyRequest = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Sign in first");
   const input = request.data; const familyId = documentId(input?.familyId); const requestId = documentId(input?.requestId);
-  if (!["accepted", "declined", "snoozed", "completed", "confirmed"].includes(input.status)) throw new HttpsError("invalid-argument", "Invalid request action");
+  if (!["accepted", "declined", "snoozed", "completed", "confirmed", "returned"].includes(input.status)) throw new HttpsError("invalid-argument", "Invalid request action");
   const db = admin.firestore(); const ref = db.doc(`families/${familyId}/familyRequests/${requestId}`);
   await db.runTransaction(async (transaction) => {
-    if (input.status !== "confirmed") await requireParent(transaction, familyId, request.auth!.uid);
+    if (!["confirmed", "returned"].includes(input.status)) await requireParent(transaction, familyId, request.auth!.uid);
     const snapshot = await transaction.get(ref);
     if (!snapshot.exists) throw new HttpsError("not-found", "Request not found");
     const data = snapshot.data()!;
     // Child confirmation is bound to the child that created the request.
-    if (input.status === "confirmed") await requireChildSession(transaction, familyId, documentId(data.requestedByChildId), request.auth!.uid, input.sessionToken);
+    if (["confirmed", "returned"].includes(input.status)) await requireChildSession(transaction, familyId, documentId(data.requestedByChildId), request.auth!.uid, input.sessionToken);
     const now = FieldValue.serverTimestamp();
     const updates: Record<string, unknown> = { status: input.status };
     if (input.status === "accepted") {
@@ -56,12 +56,13 @@ export const updateFamilyRequest = onCall(async (request) => {
     } else if (input.status === "completed") {
       if (data.acceptedByParentId !== request.auth!.uid) throw new HttpsError("permission-denied", "Only the accepting parent can mark this done");
       updates.completedAt = now;
-    } else updates.confirmedAt = now;
+    } else if (input.status === "returned") { updates.status = "accepted"; updates.completedAt = FieldValue.delete(); updates.returnedAt = now; } else updates.confirmedAt = now;
+    if(input.status==='returned' && data.status==='accepted' && data.returnedAt && !data.completedAt)return;
     if (data.status === input.status) {
       if (input.status === "accepted" && (data.acceptedByParentId !== request.auth!.uid || data.agreedStars !== input.agreedStars)) throw new HttpsError("failed-precondition", "Request already accepted");
       return;
     }
-    const allowed = input.status === "confirmed" ? ["completed"] : input.status === "completed" ? ["accepted"] : ["pending", "snoozed"];
+    const allowed = ["confirmed", "returned"].includes(input.status) ? ["completed"] : input.status === "completed" ? ["accepted"] : ["pending", "snoozed"];
     if (!allowed.includes(data.status)) throw new HttpsError("failed-precondition", "Request has changed. Refresh and try again");
     transaction.update(ref, updates);
   });
@@ -75,6 +76,9 @@ export const getChildRequestCount = onCall(async (request) => {
     const child = await requireChildSession(transaction, familyId, childId, request.auth!.uid, input.sessionToken);
     const family = await transaction.get(admin.firestore().doc(`families/${familyId}`));
     const period = getPeriodKey("weekly", new Date(), family.data()?.timezone || "UTC");
-    return { count: child.data()?.requestCountPeriod === period ? child.data()?.weeklyRequestCount || 0 : 0 };
+    const settings = await transaction.get(admin.firestore().doc(`families/${familyId}/settings/config`));
+    const limit = settings.data()?.weeklyRequestLimitPerChild?.[childId] ?? 3;
+    if(!Number.isSafeInteger(limit) || limit<0 || limit>100)throw new HttpsError('failed-precondition','Invalid request limit');
+    return { count: child.data()?.requestCountPeriod === period ? child.data()?.weeklyRequestCount || 0 : 0, limit };
   });
 });

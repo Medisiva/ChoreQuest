@@ -1,7 +1,10 @@
+import { useFamilyStore } from '@/stores/familyStore';
+import { confirmRequestComplete, returnRequestIncomplete } from '@/services/requests';
+import { errorMessage } from '@/services/errorMessage';
 // S7-05: Request History screen (C-07)
 // All requests with status chips. Decline reason shown. Re-submit with cooldown.
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
@@ -22,6 +25,17 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }
 
 export default function RequestHistoryScreen() {
   const router = useRouter();
+  const {family} = useFamilyStore();
+  const pending = useRef(new Set<string>());
+  const [busy,setBusy] = useState<string[]>([]);
+  const [actionError,setActionError] = useState<string | null>(null);
+  const respond = useCallback(async (id:string, completed:boolean) => {
+    if(!family || pending.current.has(id))return;
+    pending.current.add(id);setBusy([...pending.current]);setActionError(null);
+    try {await (completed ? confirmRequestComplete : returnRequestIncomplete)(family.id,id);}
+    catch(error){setActionError(errorMessage(error,'Could not update the request. Please try again.'));}
+    finally{pending.current.delete(id);setBusy([...pending.current]);}
+  },[family]);
   const { requests } = useRequestStore();
   const { activeChildId } = useChildSessionStore();
 
@@ -65,10 +79,10 @@ export default function RequestHistoryScreen() {
           {item.status === 'completed' && (
             <View style={styles.confirmRow}>
               <Text style={styles.confirmPrompt}>Did your parent do this?</Text>
-              <TouchableOpacity style={styles.yesButton}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Confirm parent finished" disabled={busy.includes(item.id)} style={styles.yesButton} onPress={() => void respond(item.id,true)}>
                 <Text style={styles.yesText}>Yes!</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.notYetButton}>
+              <TouchableOpacity accessibilityRole="button" disabled={busy.includes(item.id)} style={styles.notYetButton} onPress={() => void respond(item.id,false)}>
                 <Text style={styles.notYetText}>Not yet</Text>
               </TouchableOpacity>
             </View>
@@ -82,12 +96,12 @@ export default function RequestHistoryScreen() {
         </View>
       );
     },
-    [canResubmit, router]
+    [canResubmit, router, busy, respond]
   );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Text style={styles.heading}>My Requests</Text>
+      <Text style={styles.heading}>My Requests</Text>{actionError && <Text accessibilityRole="alert" style={{color:"#9B1C1C",padding:16}}>{actionError}</Text>}
       {myRequests.length > 0 ? (
         <FlashList
           data={myRequests}

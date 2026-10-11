@@ -1,3 +1,4 @@
+import { errorMessage } from '@/services/errorMessage';
 import PlaygroundHero from '@/components/shared/PlaygroundHero';
 // S1-10: Onboarding Wizard — 8-step flow shown on first launch after account creation
 // Collects form data and sends one authenticated server-owned setup request.
@@ -19,7 +20,7 @@ import Alert from '@/services/dialogs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { setupFamily } from '@/services/families';
+import { manageFamily, setupFamily } from '@/services/families';
 import { DEFAULT_VALUES, loadOnboardingDraft, saveOnboardingDraft, clearOnboardingDraft } from '@/services/onboardingDraft';
 import type { OnboardingFormData } from '@/services/onboardingDraft';
 import { useAuthStore } from '@/stores/authStore';
@@ -54,7 +55,7 @@ const CATEGORIES: { key: Category; label: string; icon: string }[] = [
 
 export default function OnboardingWizard() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, parentProfile } = useAuthStore();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [draftReady, setDraftReady] = useState(false);
@@ -128,6 +129,7 @@ export default function OnboardingWizard() {
 
     switch (step) {
       case 0: // Family Name
+        if (!(values.parentName?.trim() || user?.displayName)) { Alert.alert('Your name', 'Please enter your parent name.'); return false; }
         if (!values.familyName.trim()) {
           Alert.alert('Required', 'Please enter your family name.');
           return false;
@@ -154,8 +156,8 @@ export default function OnboardingWizard() {
         return true;
 
       case 2: // Weekly Target
-        if (values.weeklyTarget < 1) {
-          Alert.alert('Invalid', 'Weekly target must be at least 1.');
+        if (!Number.isSafeInteger(values.weeklyTarget) || values.weeklyTarget < 1 || values.weeklyTarget > 10000 || !Number.isSafeInteger(values.monthlyTarget) || values.monthlyTarget < values.weeklyTarget || values.monthlyTarget > 10000) {
+          Alert.alert('Invalid', 'Weekly target must be 1–10,000. Monthly target must be at least the weekly target and at most 10,000.');
           return false;
         }
         return true;
@@ -191,6 +193,7 @@ export default function OnboardingWizard() {
       const data = getValues();
       await setupFamily({
         familyName: data.familyName.trim(),
+        displayName: data.parentName?.trim() || user.displayName,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         weeklyRequestLimit: data.weeklyRequestLimit,
         ...(!skippedSteps.has(1) && data.childNickname.trim() ? { child: {
@@ -211,7 +214,7 @@ export default function OnboardingWizard() {
       router.replace('/profiles');
     } catch (error) {
       console.error('[Onboarding] Setup failed:', error);
-      Alert.alert('Error', 'Failed to save your setup. Please try again.');
+      Alert.alert('Could not save setup', errorMessage(error,'Please check your setup and try again.'));
     } finally {
       setSaving(false);
     }
@@ -241,6 +244,8 @@ export default function OnboardingWizard() {
       <Text style={styles.subheading}>
         What do you call your family? (e.g. The Smiths)
       </Text>
+      <Text>Your parent name</Text><Controller control={control} name="parentName" render={({field:{onChange,value}})=><TextInput accessibilityLabel="Your parent name" value={value || user?.displayName || ''} onChangeText={onChange} maxLength={80} style={styles.textInput}/>}/>
+      <TouchableOpacity accessibilityRole="button" onPress={()=>router.push('/join-family')}><Text style={{color:colors.navy900,paddingVertical:12}}>Have a parent invitation? Join an existing family</Text></TouchableOpacity>
       <Controller
         control={control}
         name="familyName"
@@ -355,7 +360,7 @@ export default function OnboardingWizard() {
         <TouchableOpacity style={styles.secondaryButton} onPress={skipStep}>
           <Text style={styles.secondaryButtonText}>Skip</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.primaryButton} onPress={goNext}>
+        <TouchableOpacity style={[styles.primaryButton,{flex:1,marginTop:0}]} onPress={goNext}>
           <Text style={styles.primaryButtonText}>Next</Text>
         </TouchableOpacity>
       </View>
@@ -383,7 +388,7 @@ export default function OnboardingWizard() {
                 onPress={() => {
                   const next = Math.max(1, value - 5);
                   onChange(next);
-                  setValue('monthlyTarget', next * 4);
+                  setValue('monthlyTarget', Math.min(10000,next * 4));
                 }}
               >
                 <Text style={styles.numberButtonText}>-</Text>
@@ -394,16 +399,16 @@ export default function OnboardingWizard() {
                 onChangeText={(text) => {
                   const num = parseInt(text, 10) || 0;
                   onChange(num);
-                  setValue('monthlyTarget', num * 4);
+                  setValue('monthlyTarget', Math.min(10000,num * 4));
                 }}
                 keyboardType="number-pad"
               />
               <TouchableOpacity
                 style={styles.numberButton}
                 onPress={() => {
-                  const next = value + 5;
+                  const next = Math.min(10000,value + 5);
                   onChange(next);
-                  setValue('monthlyTarget', next * 4);
+                  setValue('monthlyTarget', Math.min(10000,next * 4));
                 }}
               >
                 <Text style={styles.numberButtonText}>+</Text>
@@ -444,7 +449,7 @@ export default function OnboardingWizard() {
           <TouchableOpacity style={styles.secondaryButton} onPress={skipStep}>
             <Text style={styles.secondaryButtonText}>Skip</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.primaryButton} onPress={goNext}>
+          <TouchableOpacity style={[styles.primaryButton,{flex:1,marginTop:0}]} onPress={goNext}>
             <Text style={styles.primaryButtonText}>Next</Text>
           </TouchableOpacity>
         </View>
@@ -537,7 +542,7 @@ export default function OnboardingWizard() {
         <TouchableOpacity style={styles.secondaryButton} onPress={skipStep}>
           <Text style={styles.secondaryButtonText}>Skip</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.primaryButton} onPress={goNext}>
+        <TouchableOpacity style={[styles.primaryButton,{flex:1,marginTop:0}]} onPress={goNext}>
           <Text style={styles.primaryButtonText}>Post this Quest</Text>
         </TouchableOpacity>
       </View>
@@ -611,7 +616,7 @@ export default function OnboardingWizard() {
           <TouchableOpacity style={styles.secondaryButton} onPress={skipStep}>
             <Text style={styles.secondaryButtonText}>Skip</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.primaryButton} onPress={goNext}>
+          <TouchableOpacity style={[styles.primaryButton,{flex:1,marginTop:0}]} onPress={goNext}>
             <Text style={styles.primaryButtonText}>Next</Text>
           </TouchableOpacity>
         </View>
@@ -757,6 +762,7 @@ export default function OnboardingWizard() {
       >
         <View style={{ paddingHorizontal: 16, paddingTop: 12 }}><PlaygroundHero compact title={step === 0 ? "Let’s build your team!" : step === 1 ? "Meet your little hero" : "Little steps, big wins"} subtitle={`Family setup · ${step + 1} of 8`} avatarId={watch("childAvatarId") || "avatar-06"} /></View>
         {renderProgressDots()}
+        {parentProfile?.familyDeleted && <View style={{padding:16}}><Text>This family is scheduled for deletion. Adult sign-ins remain active. The owner can restore it within 30 days, or you can start a new family below.</Text><TouchableOpacity accessibilityRole="button" onPress={()=>void manageFamily({action:'restore',familyId:parentProfile.familyAccountId}).catch(error=>Alert.alert('Could not restore family',error instanceof Error?error.message:'Try again.'))}><Text style={{padding:16,color:colors.navy900}}>Restore deleted family</Text></TouchableOpacity></View>}
         {draftNotice && <Text style={{ paddingHorizontal: spacing[4], paddingVertical: spacing[2], color: colors.ink600 }}>{draftNotice}</Text>}
 
         {step > 0 && (
@@ -1061,6 +1067,7 @@ const styles = StyleSheet.create({
 
   // Buttons
   primaryButton: {
+    minWidth: 0,
     backgroundColor: colors.navy500,
     paddingVertical: spacing[4],
     borderRadius: radius.md,
@@ -1072,6 +1079,8 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   secondaryButton: {
+    minWidth: 0,
+    flex: 1,
     paddingVertical: spacing[4],
     paddingHorizontal: spacing[6],
     borderRadius: radius.md,

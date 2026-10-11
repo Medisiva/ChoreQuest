@@ -1,9 +1,10 @@
 const test = require('node:test'); const assert = require('node:assert/strict');
 const fs = require('node:fs'); const path = require('node:path'); const vm = require('node:vm'); const ts = require('typescript');
-function fixture(valid = true, task = { isActive: true }) {
+function fixture(valid = true, task = { isActive: true }, online = true) {
   const calls = []; const module = { exports: {} };
   const source = ts.transpileModule(fs.readFileSync(path.join(__dirname, '../src/services/tasks.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
   vm.runInNewContext(source, { module, exports: module.exports, require: (name) => {
+    if (name === './network') return {requireOnline:async()=>{if(!online)throw new Error('You’re offline. Reconnect before sending or saving.');}};
     if (name === './firebase') return { db: {}, functions: {} };
     if (name === './firestore') return { taskDocRef: () => ({}) };
     if (name === 'firebase/firestore') return { doc: () => ({ id: 'operation' }), collection: () => ({}), runTransaction: async (_db, callback) => callback({ get: async () => ({ exists: () => true, data: () => task }), update: (_ref, data) => calls.push({ name: 'write', data }) }) };
@@ -27,4 +28,10 @@ test('editing a claimed quest cannot change its reward but can clarify its title
   assert.equal(f.calls.length, 0);
   await f.services.updateTask('f', 't', { title: 'Clearer instructions' });
   assert.equal(f.calls[0].data.title, 'Clearer instructions');
+});
+
+test('offline quest mutations do not call the backend or write Firestore', async()=>{
+ const f=fixture(true,{isActive:true},false);
+ for(const call of [()=>f.services.claimTask('f','t','c'),()=>f.services.updateTask('f','t',{title:'Offline'}),()=>f.services.deleteTask('f','t'),()=>f.services.releaseTask('f','claim'),()=>f.services.submitTaskCompletion('f','claim'),()=>f.services.reviewTaskClaims('f',['claim'],'approved')])await assert.rejects(call(),/offline/);
+ assert.equal(f.calls.length,0);
 });

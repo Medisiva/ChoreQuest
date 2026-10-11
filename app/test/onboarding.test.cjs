@@ -9,7 +9,7 @@ const { create, act } = require('react-test-renderer');
 global.IS_REACT_ACT_ENVIRONMENT = true;
 const transpile = (file) => ts.transpileModule(fs.readFileSync(path.join(__dirname, file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
 function fixture() {
-  const calls = [], storage = new Map(), user = { uid: "test-parent" };
+  const calls = [], storage = new Map(), user = { uid: "test-parent", displayName: "Alex Test" };
   const load = (file) => {
     const module = { exports: {} };
     vm.runInNewContext(transpile(file), { module, exports: module.exports, console, setTimeout, clearTimeout, Intl, require: (name) => {
@@ -17,6 +17,7 @@ function fixture() {
       if (name === 'react-native') return { ...Object.fromEntries(['View','Text','TextInput','TouchableOpacity','ScrollView','KeyboardAvoidingView','ActivityIndicator'].map(n => [n,n])), Platform: { OS: 'android' }, StyleSheet: { create: x => x }, Alert: { alert: (title, message) => calls.push({ alert: title, message }) } };
       if (name === 'react-native-safe-area-context') return { SafeAreaView: 'SafeAreaView' };
       if (name === 'expo-router') return { useRouter: () => ({ replace: route => calls.push({ route }) }) };
+      if(name==='@/services/errorMessage')return{errorMessage:e=>e.message};
       if (name === '@/services/dialogs') return { default: { alert: (title, message) => calls.push({ alert: title, message }) } };
       if (name === '@/services/families') return { setupFamily: async payload => calls.push({ payload }) };
       if (name === '@/stores/authStore') return { useAuthStore: () => ({ user }) };
@@ -79,4 +80,13 @@ test('changing accounts does not restore or write another parent’s setup',asyn
   const draft=JSON.parse(f.storage.get('chorequest:onboarding:v1:different-parent'));
   assert.equal(draft.values.childNickname,'');assert.equal(draft.values.familyName,'');
  }finally{if(renderer)await act(async()=>renderer.unmount());}
+});
+
+test('target step rejects oversized and inconsistent targets before continuing',async()=>{
+ const f=fixture();let r;try{
+  await act(async()=>{r=create(React.createElement(f.Screen));});await enterChild(r);
+  const inputs=()=>r.root.findAllByType('TextInput').filter(n=>n.props.keyboardType==='number-pad');
+  await act(async()=>inputs()[0].props.onChangeText('99999'));await press(r,'Next');assert.equal(f.calls.at(-1).alert,'Invalid');assert.equal(inputs()[0].props.value,'99999');
+  await act(async()=>inputs()[0].props.onChangeText('20'));await act(async()=>inputs()[1].props.onChangeText('10'));await press(r,'Next');assert.equal(f.calls.at(-1).alert,'Invalid');assert.equal(inputs()[1].props.value,'10');assert.equal(f.calls.filter(v=>v.payload).length,0);
+ }finally{if(r)await act(async()=>r.unmount());}
 });

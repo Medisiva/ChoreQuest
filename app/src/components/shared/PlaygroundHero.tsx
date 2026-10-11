@@ -12,7 +12,7 @@ export default function PlaygroundHero({ title, subtitle, avatarId = 'avatar-06'
 }
 const styles = StyleSheet.create({
  hero: { backgroundColor: colors.navy900, borderRadius: 28, padding: 22, minHeight: 166, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 22 },
- copy: { flex: 1 }, eyebrow: { fontFamily: 'Nunito_800ExtraBold', fontSize: 10, color: colors.starGold, letterSpacing: 1, marginBottom: 9 },
+ copy: { flex: 1 }, eyebrow: { fontFamily: 'Nunito_800ExtraBold', fontSize: 10, color: '#FFF5B0', letterSpacing: 1, marginBottom: 9 },
  title: { fontFamily: 'Nunito_800ExtraBold', fontSize: 30, lineHeight: 35, color: colors.white },
  subtitle: { fontFamily: 'Nunito_600SemiBold', fontSize: 14, lineHeight: 20, color: colors.white, marginTop: 8 },
  portrait: { padding: 4, borderRadius: 80, backgroundColor: colors.starGold },

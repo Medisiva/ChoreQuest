@@ -64,7 +64,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         if (!snapshot.exists() && snapshot.metadata.fromCache) return;
         clearTimeout(profileTimeout);
         set({
-          familyId: snapshot.exists() ? snapshot.data().familyAccountId : null,
+          familyId: snapshot.exists() && !snapshot.data().familyDeleted ? snapshot.data().familyAccountId : null,
           parentProfile: snapshot.exists()
             ? { ...snapshot.data(), id: user.uid, firebaseUid: user.uid } as ParentUser
             : null,

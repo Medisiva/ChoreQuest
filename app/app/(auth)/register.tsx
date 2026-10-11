@@ -29,6 +29,7 @@ const danger = '#9B1C1C';
 const dangerLight = '#FEE2E2';
 
 type RegisterFormData = {
+  displayName: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -69,6 +70,7 @@ export default function RegisterScreen() {
   } = useForm<RegisterFormData>({
     mode: 'onBlur',
     defaultValues: {
+      displayName: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -82,7 +84,7 @@ export default function RegisterScreen() {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await signUp(data.email.trim(), data.password);
+      const result = await signUp(data.email.trim(), data.password, data.displayName.trim());
       if (!result.success) {
         setError(result.message);
         return;
@@ -111,6 +113,8 @@ export default function RegisterScreen() {
 
           {/* Form */}
           <View style={styles.form}>
+            <Controller control={control} name="displayName" rules={{required:'Your name is required',validate:value=>value.trim().length>0 || 'Enter your name',maxLength:{value:80,message:'Use at most 80 characters'}}} render={({field:{onChange,value}})=><View style={styles.fieldWrapper}><Text style={styles.label}>Your name</Text><TextInput accessibilityLabel="Your name" placeholder="Your parent name" value={value} onChangeText={onChange} maxLength={80} style={styles.input}/>{errors.displayName && <Text style={styles.fieldError}>{errors.displayName.message}</Text>}</View>}/>
+
             <Controller
               control={control}
               name="email"

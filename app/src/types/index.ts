@@ -14,7 +14,7 @@ export type Difficulty = 'Easy' | 'Medium' | 'Hard' | 'AdultSupervised';
 
 export type TaskStatus = 'active' | 'paused' | 'archived';
 
-export type ClaimStatus = 'claimed' | 'submitted' | 'approved' | 'rejected' | 'released';
+export type ClaimStatus = 'claimed' | 'submitted' | 'approved' | 'rejected' | 'released' | 'awardFailed';
 
 export type RecurrenceType = 'none' | 'daily' | 'weekly' | 'monthly';
 
@@ -66,6 +66,7 @@ export interface FamilyAccount {
 }
 
 export interface ParentUser {
+  familyDeleted?: boolean;
   id: string;
   familyAccountId: string;
   firebaseUid: string;
@@ -78,6 +79,7 @@ export interface ParentUser {
 }
 
 export interface ChildProfile {
+  isArchived?: boolean;
   id: string;
   familyAccountId: string;
   nickname: string;
@@ -99,6 +101,9 @@ export interface ChildProfile {
 }
 
 export interface Task {
+  templateOnly?: boolean;
+  sourceRecurrenceType?: "daily" | "weekly" | "monthly";
+  periodKey?: string;
   activeClaimId?: string;
   id: string;
   familyAccountId: string;

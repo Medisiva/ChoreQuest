@@ -4,6 +4,7 @@ import type { AgeGroup, Category } from '../types';
 export interface OnboardingFormData {
   // OB-01
   familyName: string;
+  parentName: string;
   // OB-02
   childNickname: string;
   childAvatarId: string;
@@ -27,6 +28,7 @@ export interface OnboardingFormData {
 
 export const DEFAULT_VALUES: OnboardingFormData = {
   familyName: '',
+  parentName: '',
   childNickname: '',
   childAvatarId: '',
   childAgeGroup: '6-8',
@@ -48,7 +50,7 @@ export const DEFAULT_VALUES: OnboardingFormData = {
   weeklyRequestLimit: 3,
 };
 
-const fields = ['familyName', 'childNickname', 'childAvatarId', 'childAgeGroup', 'weeklyTarget', 'monthlyTarget', 'taskTitle', 'taskCategory', 'taskStarValue', 'childRewards', 'parentRewards', 'weeklyRequestLimit'] as const;
+const fields = ['parentName', 'familyName', 'childNickname', 'childAvatarId', 'childAgeGroup', 'weeklyTarget', 'monthlyTarget', 'taskTitle', 'taskCategory', 'taskStarValue', 'childRewards', 'parentRewards', 'weeklyRequestLimit'] as const;
 const keyFor = (uid: string) => `chorequest:onboarding:v1:${uid}`;
 const queues = new Map<string, Promise<void>>();
 function enqueue(key: string, operation: () => Promise<void>): Promise<void> {

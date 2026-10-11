@@ -29,9 +29,7 @@ export const purgeDeletedFamilies = onSchedule("every 24 hours", async () => {
     await db.recursiveDelete(family);
     await db.doc(`leaderboard/${familyId}`).delete();
     for (const mapping of mappings.docs) {
-      // Delete Auth first, retaining mapping as a retry marker if Auth deletion fails.
-      try { await admin.auth().deleteUser(mapping.id); }
-      catch (error) { if ((error as { code?: string }).code !== "auth/user-not-found") throw error; }
+      // Family-data deletion never deletes an adult's independent sign-in.
       await mapping.ref.delete();
     }
     await job.ref.delete();

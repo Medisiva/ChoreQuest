@@ -1,3 +1,4 @@
+import { questRewardLabel } from '@/services/questPresentation';
 import { useChildProgress } from '@/hooks/useChildProgress';
 import { useDisplayPreferences } from '@/stores/displayPreferences';
 import WeeklyProgressBar from '@/components/child/WeeklyProgressBar';
@@ -46,7 +47,7 @@ export default function ChildHome() {
 
   // Find active claimed task for this child
   const activeClaim = claims.find(
-    (c) => c.childProfileId === activeChildId && c.status === 'claimed'
+    (c) => c.childProfileId === activeChildId && ['claimed','submitted','rejected'].includes(c.status)
   );
   const activeTask = activeClaim
     ? tasks.find((t) => t.id === activeClaim.taskId)
@@ -81,10 +82,11 @@ export default function ChildHome() {
               router.push(`/(child)/tasks/${activeClaim.taskId}`)
             }
           >
-            <Text style={styles.questBannerLabel}>Active Quest</Text>
+            <Text style={styles.questBannerLabel}>{activeClaim.status === 'rejected' ? 'Try again' : activeClaim.status === 'submitted' ? 'Waiting for parent review' : 'Active Quest'}</Text>
+            {activeClaim.status==='rejected' && <Text style={{color:'#16244D'}}>Try again: {activeClaim.rejectionReason || 'Ask your parent what needs another look.'}</Text>}
             <Text style={styles.questBannerTitle}>{activeTask.title}</Text>
             <Text style={styles.questBannerStars}>
-              ⭐ {activeTask.starValue} stars
+              ⭐ {questRewardLabel(activeTask)}
             </Text>
           </TouchableOpacity>
         )}

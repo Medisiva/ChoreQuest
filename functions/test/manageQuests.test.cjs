@@ -1,7 +1,7 @@
 const test = require('node:test'); const assert = require('node:assert/strict');
 const { fixture } = require('./transactionFixture.cjs');
 const auth = { uid: 'p' };
-function questFixture() { const f = fixture(); f.docs.set('families/f/tasks/t', { title: 'Tidy', isActive: true, starValue: 5 }); return f; }
+function questFixture() { const f = fixture(); f.docs.set('families/f/tasks/t', { title: 'Tidy', category:'Household', isActive: true, starValue: 5 }); return f; }
 const claim = (f, operationId = 'claim') => ({ familyId: 'f', childId: 'c', taskId: 't', operationId, sessionToken: f.token });
 const update = (f, status) => ({ familyId: 'f', childId: 'c', claimId: 'claim', sessionToken: f.token, status });
 
@@ -41,7 +41,7 @@ test('missing PIN sessions and another child cannot change a quest', async () =>
   await assert.rejects(f.updateChildQuest({ auth, data: update(f, 'released') }), { code: 'permission-denied' });
 });
 test('milestone claims start at step one and photo-required quests refuse empty proof', async () => {
-  const f = questFixture(); Object.assign(f.docs.get('families/f/tasks/t'), { isMilestone: true, requiresPhoto: true });
+  const f = questFixture(); Object.assign(f.docs.get('families/f/tasks/t'), { isMilestone: true, milestoneSteps: 3, starsPerStep: 5, milestoneBonus: 0, requiresPhoto: true });
   await f.claimChildQuest({ auth, data: claim(f) });
   assert.equal(f.docs.get('families/f/taskClaims/claim').currentMilestoneStep, 1);
   await assert.rejects(f.updateChildQuest({ auth, data: update(f, 'submitted') }), { code: 'invalid-argument' });

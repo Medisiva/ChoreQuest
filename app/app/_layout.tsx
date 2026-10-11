@@ -1,3 +1,5 @@
+import OfflineBanner from '@/components/shared/OfflineBanner';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { registerFamilySubscriptions } from '@/services/familySubscriptions';
 import { useDeviceRequestAlerts } from '@/hooks/useDeviceRequestAlerts';
 import AppDialog from '@/components/shared/AppDialog';
@@ -29,6 +31,7 @@ function RootLayoutNav() {
   const [retry, setRetry] = useState(0);
   useDeviceRequestAlerts(familyId, role);
 
+  const {isOnline} = useNetworkStatus();
   const switching = useChildSessionStore((state) => state.switching);
   const sessionValid = useChildSessionStore((state) => state.isSessionValid());
   // Initialize Firebase ONCE
@@ -76,15 +79,16 @@ function RootLayoutNav() {
     if (!user && !inAuthGroup) {
       // Not authenticated — redirect to login
       router.replace('/(auth)/login');
-    } else if (user && !parentProfile && !inOnboardingGroup) {
+    } else if (user && (!parentProfile || parentProfile.familyDeleted) && !inOnboardingGroup && segments[0] !== 'join-family') {
       router.replace('/(onboarding)');
-    } else if (user && parentProfile && (inAuthGroup || inOnboardingGroup)) {
+    } else if (user && parentProfile && !parentProfile.familyDeleted && (inAuthGroup || inOnboardingGroup || segments[0] === 'join-family')) {
       router.replace('/profiles');
     }
   }, [user, role, familyId, parentProfile, loading, error, switching, sessionValid, segments, router]);
 
   // Show splash while loading auth state or fonts
-  if (loading || switching) {
+  const isAccessForm = segments.some(segment => ['(auth)', 'parent-unlock'].includes(segment));
+  if ((loading || switching) && !isAccessForm) {
     return (
       <View style={styles.splash}>
         <ActivityIndicator size="large" color="#FFFFFF" />
@@ -100,7 +104,7 @@ function RootLayoutNav() {
       </TouchableOpacity>
     </View>;
   }
-  return <Slot />;
+  return <View style={{flex:1}}><Slot /><OfflineBanner isOnline={isOnline} /></View>;
 }
 
 export default function RootLayout() {

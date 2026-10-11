@@ -1,3 +1,6 @@
+import { createHash } from 'crypto';
+import { validTask } from '../utils/validation';
+import { getPeriodKey } from '../utils/recurrence';
 import { FieldValue } from "firebase-admin/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
@@ -15,12 +18,44 @@ export const claimChildQuest = onCall(async (request) => {
       return;
     }
     if (!snapshot.exists || !snapshot.data()?.isActive) throw new HttpsError("not-found", "Quest unavailable");
+    const data = snapshot.data()!;
+    if (!validTask(data)) throw new HttpsError('failed-precondition', 'A parent needs to correct this quest’s reward details.');
+    if (data.deadline?.toMillis?.() <= Date.now()) throw new HttpsError('failed-precondition', 'This quest’s deadline has passed. Pick another quest.');
+    const family = await transaction.get(db.doc(`families/${familyId}`));
+    const recurrence = data.sourceRecurrenceType || data.recurrenceType;
+    if (['daily','weekly','monthly'].includes(recurrence)) {
+      const period = data.periodKey || (data.createdAt?.toDate ? getPeriodKey(recurrence,data.createdAt.toDate(),family.data()?.timezone || 'UTC') : null);
+      if (period !== getPeriodKey(recurrence,new Date(),family.data()?.timezone || 'UTC')) throw new HttpsError('failed-precondition','This recurring quest has expired. Pick the current one.');
+    }
+    const progressId = createHash('sha256').update(`${childId}/${taskId}`).digest('hex');
+    const progress = await transaction.get(db.doc(`families/${familyId}/milestoneProgress/${progressId}`));
+    const past = await transaction.get(db.collection(`families/${familyId}/taskClaims`).where('taskId','==',taskId).where('childProfileId','==',childId));
+    const legacyPaidSteps = Math.max(0,...(past.docs || []).map(entry=>Math.max(0,(entry.data().currentMilestoneStep || 1)-1)));
+    const nextStep = Math.max(progress.data()?.completedSteps || 0,legacyPaidSteps) + 1;
+    if (data.isMilestone && nextStep > data.milestoneSteps) throw new HttpsError('failed-precondition','You already finished this project.');
     if (snapshot.data()?.activeClaimId) throw new HttpsError("already-exists", "Someone already claimed this quest");
     const legacy = await transaction.get(db.collection(`families/${familyId}/taskClaims`).where("taskId", "==", taskId).where("status", "in", ["claimed", "submitted", "rejected"]).limit(1));
     if (!legacy.empty) throw new HttpsError("already-exists", "Someone already claimed this quest");
     const previous = await transaction.get(db.collection(`families/${familyId}/taskClaims`).where("childProfileId", "==", childId).where("status", "in", ["claimed", "submitted", "rejected"]).limit(1));
-    if (!previous.empty || child.data()?.activeQuestId) throw new HttpsError("failed-precondition", "Finish or release your current quest first");
-    transaction.create(claim, { familyAccountId: familyId, taskId, childProfileId: childId, status: "claimed", ...(snapshot.data()?.isMilestone ? { currentMilestoneStep: 1 } : {}), claimedAt: FieldValue.serverTimestamp() });
+    let stranded: admin.firestore.DocumentSnapshot | undefined;
+    let strandedTask: admin.firestore.DocumentSnapshot | undefined;
+    const activeQuestId = child.data()?.activeQuestId;
+    if (activeQuestId && previous.empty) {
+      stranded = await transaction.get(db.doc(`families/${familyId}/taskClaims/${documentId(activeQuestId)}`));
+      if (stranded.exists && stranded.data()?.childProfileId === childId && stranded.data()?.status === 'approved') {
+        strandedTask = await transaction.get(db.doc(`families/${familyId}/tasks/${documentId(stranded.data()!.taskId)}`));
+        const paid = await transaction.get(db.doc(`families/${familyId}/starTransactions/claim-${stranded.id}-step-${stranded.data()?.currentMilestoneStep ?? 0}`));
+        // Recover only legacy malformed approvals with no payout. A valid approval
+        // may still be awaiting its trigger and must retain the child's lock.
+        if (paid.exists || (strandedTask.exists && validTask(strandedTask.data()!))) stranded = undefined;
+      } else stranded = undefined;
+    }
+    if (!previous.empty || (activeQuestId && !stranded)) throw new HttpsError("failed-precondition", "Finish or release your current quest first");
+    if (stranded) {
+      transaction.update(stranded.ref, { status: 'awardFailed', awardError: 'This old quest had invalid reward details. Choose a new quest.' });
+      if (strandedTask?.exists) transaction.update(strandedTask.ref, { isActive: false, activeClaimId: FieldValue.delete() });
+    }
+    transaction.create(claim, { familyAccountId: familyId, taskId, childProfileId: childId, status: "claimed", ...(snapshot.data()?.isMilestone ? { currentMilestoneStep: nextStep } : {}), claimedAt: FieldValue.serverTimestamp() });
     transaction.update(task, { activeClaimId: operationId });
     transaction.update(child.ref, { activeQuestId: operationId });
   });
@@ -74,6 +109,8 @@ export const reviewChildQuests = onCall(async (request) => {
     const refs = claimIds.map((id) => db.doc(`families/${familyId}/taskClaims/${id}`));
     const snapshots = await Promise.all(refs.map((ref) => transaction.get(ref)));
     for (const snapshot of snapshots) if (!snapshot.exists || !["submitted", input.decision].includes(snapshot.data()!.status)) throw new HttpsError("failed-precondition", "Review queue changed. Refresh and try again");
+    if(input.decision==='approved'){const taskSnapshots=await Promise.all(snapshots.map(snapshot=>transaction.get(db.doc(`families/${familyId}/tasks/${documentId(snapshot.data()!.taskId)}`))));
+      if(taskSnapshots.some(snapshot=>!snapshot.exists || !validTask(snapshot.data()!)))throw new HttpsError('failed-precondition','Correct or replace the quest’s reward details before approving it.');}
     for (let i = 0; i < refs.length; i++) {
       if (snapshots[i].data()?.status === input.decision) continue;
       transaction.update(refs[i], input.decision === "approved" ? { status: "approved", approvedAt: FieldValue.serverTimestamp() } : { status: "rejected", rejectedAt: FieldValue.serverTimestamp(), rejectionReason: input.reason.trim() });

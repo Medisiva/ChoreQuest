@@ -22,7 +22,7 @@ const JPEG_QUALITY = 0.8;
 export async function pickImageFromCamera(): Promise<string | null> {
   const { status } = await ImagePicker.requestCameraPermissionsAsync();
   if (status !== 'granted') {
-    throw new Error('Camera permission not granted');
+    throw Object.assign(new Error('Camera permission is needed. Enable it in device Settings, or choose a photo.'),{code:'CAMERA_PERMISSION_DENIED'});
   }
 
   const result = await ImagePicker.launchCameraAsync({

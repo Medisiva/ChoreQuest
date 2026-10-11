@@ -1,8 +1,12 @@
+import { questRewardLabel } from '@/services/questPresentation';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/services/firebase';
+import { useEffect } from 'react';
 import PlaygroundHero from '@/components/shared/PlaygroundHero';
 import KidAvatar from '@/components/shared/KidAvatar';
 // P-01: Parent Dashboard
 import { useFamilyEarnings } from '@/hooks/useFamilyEarnings';
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,7 +21,7 @@ import { useFamilyStore } from '@/stores/familyStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useRequestStore } from '@/stores/requestStore';
 import { colors, typography, spacing, radius, layout, shadows } from '@/constants/tokens';
-import type { TaskClaim, ChildProfile, FamilyRequest } from '@/types';
+import type { Task, TaskClaim, ChildProfile, FamilyRequest } from '@/types';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -40,6 +44,8 @@ function childName(id: string, children: ChildProfile[]): string {
 
 export default function ParentDashboard() {
   const router = useRouter();
+  const [pendingRewardCount,setPendingRewardCount]=useState(0);
+
   const { parentProfile } = useAuthStore();
   const { family, children } = useFamilyStore();
   const { tasks, claims } = useTaskStore();
@@ -48,8 +54,9 @@ export default function ParentDashboard() {
   const earnings = useFamilyEarnings(family?.id, family?.timezone ?? 'UTC');
 
   // Derived data
-  const activeTasks = useMemo(() => tasks.filter((t) => t.isActive), [tasks]);
+  const activeTasks = useMemo(() => tasks.filter(task=>task.isActive && (!task.templateOnly || claims.some(claim=>claim.taskId===task.id && ['claimed','submitted','rejected'].includes(claim.status)))), [tasks,claims]);
 
+  useEffect(()=>{if(!family){setPendingRewardCount(0);return;}return onSnapshot(query(collection(db,'families',family.id,'redemptions'),where('status','==','pending')),snapshot=>setPendingRewardCount(snapshot.size),()=>setPendingRewardCount(0));},[family?.id]);
   const pendingApprovals = useMemo(
     () => claims.filter((c) => c.status === 'submitted'),
     [claims]
@@ -206,11 +213,14 @@ export default function ParentDashboard() {
                 claim={claim}
                 tasks={tasks}
                 children={children}
+                onReview={()=>router.push('/(parent)/approvals')}
               />
             ))}
           </View>
         )}
 
+        {claims.some(claim=>claim.status==='awardFailed') && <View style={styles.section}><Text accessibilityRole="alert">A quest reward needs attention. The affected quest was retired and the child can choose another. Create a corrected quest to continue.</Text></View>}
+        {pendingRewardCount>0 && <TouchableOpacity accessibilityRole="button" onPress={()=>router.push('/(parent)/rewards')} style={styles.miniCard}><Text>{pendingRewardCount} reward request{pendingRewardCount===1?'':'s'} waiting</Text><Text>Review rewards →</Text></TouchableOpacity>}
         {/* ── Pending Requests Preview ────────────────────────────── */}
         {pendingRequests.length > 0 && (
           <View style={styles.section}>
@@ -285,9 +295,11 @@ function ApprovalMiniCard({
   claim,
   tasks: taskList,
   children: childList,
+  onReview,
 }: {
   claim: TaskClaim;
-  tasks: { id: string; title: string; starValue: number }[];
+  tasks: Task[];
+  onReview: () => void;
   children: ChildProfile[];
 }) {
   const task = taskList.find((t) => t.id === claim.taskId);
@@ -298,13 +310,10 @@ function ApprovalMiniCard({
           {task?.title ?? 'Unknown Quest'}
         </Text>
         <Text style={styles.miniCardSub}>
-          {childName(claim.childProfileId, childList)} · {task?.starValue ?? 0}{' '}
-          stars
+          {childName(claim.childProfileId, childList)} · {task ? questRewardLabel(task) : 'Reward unavailable'}
         </Text>
       </View>
-      <View style={styles.pendingBadge}>
-        <Text style={styles.pendingBadgeText}>Review</Text>
-      </View>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Review pending quest" onPress={onReview} style={styles.pendingBadge}><Text style={styles.pendingBadgeText}>Review</Text></TouchableOpacity>
     </View>
   );
 }

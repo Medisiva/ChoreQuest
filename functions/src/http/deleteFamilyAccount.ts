@@ -25,14 +25,16 @@ export const deleteFamilyAccount = onRequest({ cors: true }, async (req, res) =>
       const data = snapshot.data()!;
       if ((data.ownerUid ?? data.memberIds?.[0]) !== uid) return { status: 403, error: "Only the family creator can delete the whole family." };
       if (pending.exists) return { status: 200, purgeAfter: pending.data()!.purgeAfter.toDate().toISOString() };
+      const parents = await transaction.get(family.collection("parentUsers"));
       const now = Timestamp.now();
       const purgeAfter = Timestamp.fromMillis(now.toMillis() + 30 * 24 * 60 * 60 * 1000);
+      for (const parent of parents.docs) transaction.set(db.doc(`parentProfiles/${parent.id}`), { familyDeleted: true }, { merge: true });
       transaction.update(family, { isDeleted: true, deletedAt: now });
       transaction.create(queue, { familyId, requestedBy: uid, requestedAt: now, purgeAfter });
       return { status: 200, purgeAfter: purgeAfter.toDate().toISOString() };
     });
     if (result.error) { res.status(result.status).json({ error: result.error }); return; }
-    res.status(200).json({ success: true, message: "Family access disabled. Permanent deletion is scheduled within 30 days plus the next daily cleanup run.", purgeAfter: result.purgeAfter });
+    res.status(200).json({ success: true, message: "Family access disabled. Parent sign-ins are preserved. You can restore the family within 30 days. Permanent family-data deletion is scheduled within 30 days plus the next daily cleanup run.", purgeAfter: result.purgeAfter });
   } catch (error) {
     logger.error("Family deletion request failed", { familyId, error });
     res.status(500).json({ error: "Deletion could not be scheduled. Try again." });

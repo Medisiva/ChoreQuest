@@ -53,8 +53,8 @@ export default function SettingsScreen() {
 
   const handleDeleteAccount = useCallback(() => {
     Alert.alert(
-      'Delete Account',
-      'This disables access for everyone in your family. Family data and accounts are permanently removed after 30 days. Only the family creator can continue.',
+      'Delete family data',
+      'This disables access for everyone in your family. Family data is permanently removed after 30 days. Adult sign-ins are preserved; the owner can restore the family during the retention period. Only the family creator can continue.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -63,7 +63,7 @@ export default function SettingsScreen() {
           onPress: () => {
             Alert.alert(
               'Are you absolutely sure?',
-              'Delete the entire family, including all child profiles and parent accounts?',
+              'Disable this family and schedule its data for deletion? Adult sign-ins are preserved.',
               [
                 { text: 'Cancel', style: 'cancel' },
                 {
@@ -74,7 +74,7 @@ export default function SettingsScreen() {
                       await callBackend('deleteFamilyAccount', { familyId: family?.id, confirmText: 'DELETE' });
                       await signOut();
                       router.replace('/(auth)/login');
-                      Alert.alert('Deletion scheduled', 'Family access is disabled. Permanent cleanup runs after 30 days.');
+                      Alert.alert('Deletion scheduled', 'Family access is disabled. Sign in again to restore your family within 30 days, or start a new family. Permanent family-data cleanup runs after 30 days.');
                     } catch (error) {
                       Alert.alert('Could not delete account', error instanceof Error ? error.message : 'Please try again.');
                     }
@@ -114,6 +114,8 @@ export default function SettingsScreen() {
           <Text style={styles.cardArrow}>→</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity style={styles.card} onPress={()=>router.push('/(parent)/children/manage')}><Text style={styles.cardLabel}>Child profiles, stars and consequences</Text><Text>→</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.card} onPress={()=>router.push('/(parent)/settings/family')}><Text style={styles.cardLabel}>Family settings and parent invitation</Text><Text>→</Text></TouchableOpacity>
         {/* Preferences */}
         <Text style={styles.sectionLabel}>PREFERENCES</Text>
         <View style={styles.card}>
@@ -143,7 +145,7 @@ export default function SettingsScreen() {
           {exporting ? <ActivityIndicator size="small" color="#1555E8" /> : <Text style={styles.cardArrow}>↓</Text>}
         </TouchableOpacity>
         <TouchableOpacity style={[styles.card, styles.dangerCard]} onPress={handleDeleteAccount}>
-          <Text style={styles.dangerLabel}>Delete account</Text>
+          <Text style={styles.dangerLabel}>Delete family data</Text>
           <Text style={styles.dangerArrow}>→</Text>
         </TouchableOpacity>
 

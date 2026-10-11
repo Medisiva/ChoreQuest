@@ -1,8 +1,11 @@
+import { doc, collection } from 'firebase/firestore';
+import { db } from '@/services/firebase';
+import { errorMessage } from '@/services/errorMessage';
 // S7-02: Request for Parent Wizard (C-06)
 // 3-step wizard. Category → Title & Description → Star Value.
 // Weekly limit enforcement. Request library chip shortcuts.
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,11 +14,13 @@ import {
   TextInput,
   ScrollView,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import Alert from '@/services/dialogs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { createRequest, getWeeklyRequestCount } from '@/services/requests';
+import { createRequest, getWeeklyRequestAllowance } from '@/services/requests';
 import { useFamilyStore } from '@/stores/familyStore';
 import { useChildSessionStore } from '@/stores/childSessionStore';
 import type { Category } from '@/types';
@@ -39,6 +44,8 @@ export default function RequestWizard() {
   const { family } = useFamilyStore();
   const { activeChildId } = useChildSessionStore();
 
+  const sending = useRef(false);
+  const intentId = useRef(doc(collection(db,'operationIds')).id);
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState<Category | null>(null);
   const [title, setTitle] = useState('');
@@ -46,11 +53,11 @@ export default function RequestWizard() {
   const [starValue, setStarValue] = useState(10);
   const [loading, setLoading] = useState(false);
   const [weeklyCount, setWeeklyCount] = useState(0);
-  const [weeklyLimit] = useState(3);
+  const [weeklyLimit,setWeeklyLimit] = useState(3);
 
   useEffect(() => {
     if (!family || !activeChildId) return;
-    getWeeklyRequestCount(family.id, activeChildId).then(setWeeklyCount);
+    getWeeklyRequestAllowance(family.id, activeChildId).then(({count,limit})=>{setWeeklyCount(count);setWeeklyLimit(limit);}).catch(error => Alert.alert('Could not load request limit',errorMessage(error)));
   }, [family, activeChildId]);
 
   const remainingRequests = weeklyLimit - weeklyCount;
@@ -62,6 +69,8 @@ export default function RequestWizard() {
       return;
     }
 
+    if(sending.current)return;
+    sending.current=true;
     setLoading(true);
     try {
       await createRequest(family.id, {
@@ -71,20 +80,21 @@ export default function RequestWizard() {
         description: description.trim() || undefined,
         category,
         suggestedStars: starValue,
+        operationId: intentId.current,
       });
-      Alert.alert('Request sent!', 'Your parent will let you know.', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
-    } catch {
-      Alert.alert('Error', 'Could not send request. Try again.');
+      router.replace('/(child)/requests');
+      Alert.alert('Request sent!', 'Your parent will let you know.');
+    } catch(error) {
+      sending.current=false;
+      Alert.alert('Could not send request',errorMessage(error));
     } finally {
       setLoading(false);
     }
   }, [family, activeChildId, category, title, description, starValue, remainingRequests, router]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
+    <SafeAreaView style={styles.container}><KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={styles.content}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => (step > 1 ? setStep(step - 1) : router.back())}>
@@ -180,14 +190,14 @@ export default function RequestWizard() {
             <View style={styles.starPicker}>
               <TouchableOpacity
                 style={styles.starBtn}
-                onPress={() => setStarValue(Math.max(1, starValue - 5))}
+                onPress={() => setStarValue(Math.max(1, starValue - 1))}
               >
                 <Text style={styles.starBtnText}>-</Text>
               </TouchableOpacity>
               <Text style={styles.starDisplay}>⭐ {starValue}</Text>
               <TouchableOpacity
                 style={styles.starBtn}
-                onPress={() => setStarValue(Math.min(100, starValue + 5))}
+                onPress={() => setStarValue(Math.min(100, starValue + 1))}
               >
                 <Text style={styles.starBtnText}>+</Text>
               </TouchableOpacity>
@@ -214,7 +224,7 @@ export default function RequestWizard() {
             </Text>
           </View>
         )}
-      </ScrollView>
+      </ScrollView></KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

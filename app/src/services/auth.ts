@@ -2,6 +2,7 @@
 // All auth methods return user or throw typed error with human-readable messages.
 
 import {
+  updateProfile,
   signInWithEmailAndPassword,
   signInWithCustomToken,
   createUserWithEmailAndPassword,
@@ -83,10 +84,15 @@ export async function signIn(
 
 export async function signUp(
   email: string,
-  password: string
+  password: string,
+  displayName?: string
 ): Promise<AuthResponse> {
   try {
-    const credential = await replaceIdentity(() => createUserWithEmailAndPassword(auth, email, password));
+    const credential = await replaceIdentity(async () => {
+      const result = await createUserWithEmailAndPassword(auth,email,password);
+      if(displayName?.trim()){await updateProfile(result.user,{displayName:displayName.trim()});await result.user.getIdToken(true);}
+      return result;
+    });
     useChildSessionStore.getState().unlockParent();
     return { success: true, credential };
   } catch (error) {

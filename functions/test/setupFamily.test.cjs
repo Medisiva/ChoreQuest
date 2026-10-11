@@ -22,6 +22,9 @@ function fixture() {
     if (name === 'firebase-functions/v2/https') return { onCall: (...args) => args.at(-1), HttpsError };
     if (name === 'firebase-admin/firestore') return { FieldValue: { serverTimestamp: () => 'server-time', delete: () => deletedField } };
     if (name === 'firebase-admin') return { firestore: Object.assign(() => db, { FieldValue: { serverTimestamp: () => 'server-time', delete: () => deletedField } }) };
+    if (name === './manageFamily') return {manageFamily:{run:async()=>{throw new Error('Unexpected administration action');}}};
+    if (name === '../utils/validation') return require('../lib/utils/validation');
+    if (name === 'crypto') return require('crypto');
     if (name === 'bcrypt') return require('bcrypt');
     throw new Error(name);
   } });

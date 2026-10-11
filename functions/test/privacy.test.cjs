@@ -6,9 +6,9 @@ function fixture({ uid = 'p', authTime = Date.now() / 1000, failStorage = false 
   const timestamp = (date) => ({ toMillis: () => date.getTime(), toDate: () => date });
   const ref = (path) => ({ path, id: path.split('/').at(-1), collection: (name) => collection(`${path}/${name}`), get: async () => snapshot(path), delete: async () => docs.delete(path) });
   const snapshot = (path) => ({ exists: docs.has(path), id: path.split('/').at(-1), ref: ref(path), data: () => docs.get(path) });
-  const collection = (path, filters = []) => ({ doc: (id) => ref(`${path}/${id}`), where: (...filter) => collection(path, [...filters, filter]), limit: () => collection(path, filters), get: async () => ({ docs: [...docs].filter(([key, value]) => key.startsWith(`${path}/`) && !key.slice(path.length + 1).includes('/') && filters.every(([field, operator, wanted]) => operator === '==' ? value[field] === wanted : value[field]?.toMillis() <= wanted.toMillis())).map(([key]) => snapshot(key)) }) });
+  const collection = (path, filters = []) => ({ isCollection: true, doc: (id) => ref(`${path}/${id}`), where: (...filter) => collection(path, [...filters, filter]), limit: () => collection(path, filters), get: async () => ({ docs: [...docs].filter(([key, value]) => key.startsWith(`${path}/`) && !key.slice(path.length + 1).includes('/') && filters.every(([field, operator, wanted]) => operator === '==' ? value[field] === wanted : value[field]?.toMillis() <= wanted.toMillis())).map(([key]) => snapshot(key)) }) });
   const db = { doc: ref, collection, runTransaction: async (callback) => {
-    const writes = []; const result = await callback({ get: async (ref) => snapshot(ref.path), update: (ref, value) => writes.push([ref.path, { ...docs.get(ref.path), ...value }]), create: (ref, value) => writes.push([ref.path, value]) });
+    const writes = []; const result = await callback({ get: async (ref) => ref.isCollection ? ref.get() : snapshot(ref.path), update: (ref, value) => writes.push([ref.path, { ...docs.get(ref.path), ...value }]), set: (ref,value,options) => writes.push([ref.path,options?.merge ? {...docs.get(ref.path),...value}:value]), create: (ref, value) => writes.push([ref.path, value]) });
     writes.forEach(([path, value]) => docs.set(path, value)); return result;
   }, recursiveDelete: async (ref) => { for (const path of docs.keys()) if (path === ref.path || path.startsWith(`${ref.path}/`)) docs.delete(path); } };
   const admin = { firestore: Object.assign(() => db, { Timestamp: { now: () => timestamp(new Date()), fromMillis: (ms) => timestamp(new Date(ms)) } }), auth: () => ({ verifyIdToken: async () => ({ uid, auth_time: authTime }), deleteUser: async (user) => deletedAuth.push(user) }), storage: () => ({ bucket: () => ({ deleteFiles: async ({ prefix }) => { assert.equal(prefix, 'families/f/'); storageCalls++; if (failStorage) throw new Error('Storage unavailable'); } }) }) };
@@ -61,7 +61,7 @@ test('deletion queues once, blocks access immediately and purges all persisted f
   assert.equal(f.deletedAuth.length, 0);
   f.docs.get('familyDeletionQueue/f').purgeAfter = { toMillis: () => 0 };
   await f.purgeDeletedFamilies(); await f.purgeDeletedFamilies();
-  assert.equal(f.docs.size, 0); assert.equal(f.deletedAuth.at(-1), 'p'); assert.match(f.deletedAuth[0], /^child-/); assert.equal(f.storageCalls, 1);
+  assert.equal(f.docs.size, 0); assert.equal(f.deletedAuth.includes('p'), false); assert.match(f.deletedAuth[0], /^child-/); assert.equal(f.storageCalls, 1);
 });
 test('storage cleanup failure retains the retry marker and all family data', async () => {
   const f = fixture({ failStorage: true }); await f.deleteFamilyAccount(request(), response());

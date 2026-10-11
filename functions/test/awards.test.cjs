@@ -35,6 +35,7 @@ function fixture(trigger, initial) {
       if (name === 'firebase-functions/v2/firestore') return { onDocumentUpdated: (_pattern, handler) => handler };
       if (name === 'firebase-functions') return { logger: { info() {}, error() {}, warn() {} } };
       if (name === 'firebase-admin/firestore') return firestore;
+      if (name === '../utils/validation') return require('../lib/utils/validation');
       if (name === '../utils/recurrence') return require('../lib/utils/recurrence');
     if (name === 'firebase-admin') return { firestore };
       return require(name);
@@ -51,7 +52,7 @@ const claimPath = 'families/f/taskClaims/q';
 function taskFixture(task = {}) {
   return fixture('onTaskClaimApproved', {
     [childPath]: { starBalance: 10, totalStarsEarned: 20 },
-    [taskPath]: { title: 'Make bed', starValue: 5, isMilestone: false, activeClaimId: 'q', ...task },
+    [taskPath]: { title: 'Make bed', category: 'Household', starValue: 5, isMilestone: false, activeClaimId: 'q', ...task },
     [claimPath]: { status: 'approved' },
   });
 }
@@ -77,13 +78,15 @@ test('milestone awards each approved step once and adds the bonus only on the fi
 });
 test('invalid milestone progress awards nothing', async () => {
   const f = taskFixture({ isMilestone: true, milestoneSteps: 2, starsPerStep: 3 });
-  await assert.rejects(f.handler(claimEvent(3)), /Invalid milestone progress/);
-  assert.equal(f.writeCount(), 0);
+  await f.handler(claimEvent(3));
+  assert.equal(f.documents.get(claimPath).status,'awardFailed');
+  assert.equal(f.documents.get(childPath).starBalance,10);
+  assert.equal(f.documents.get(taskPath).isActive,false);
 });
 test('negative task awards cannot alter a balance', async () => {
   const f = taskFixture({ starValue: -10 });
-  await assert.rejects(f.handler(claimEvent()), /Invalid star award/);
-  assert.equal(f.writeCount(), 0);
+  await f.handler(claimEvent()); assert.equal(f.documents.get(claimPath).status,'awardFailed');
+  assert.equal(f.documents.get(childPath).starBalance,10);
 });
 test('confirming a family request uses the app schema and credits parent once on retry', async () => {
   const parentPath = 'families/f/parentUsers/p';

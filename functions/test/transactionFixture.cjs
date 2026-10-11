@@ -30,6 +30,7 @@ function fixture() {
       if (name === 'firebase-admin') return { storage: () => ({ bucket: () => ({ name: 'test-bucket', file: () => ({ exists: async () => [true] }) }) }), firestore: Object.assign(() => db, { Timestamp: { fromMillis: (ms) => ({ toMillis: () => ms }) }, FieldValue: { serverTimestamp: () => 'server-time', delete: () => deleted } }) };
       if (name === '../utils/recurrence') return require('../lib/utils/recurrence');
       if (name === '../utils/authorization') return authorization;
+      if (name === '../utils/validation') return require('../lib/utils/validation');
       if (name === 'crypto') return crypto;
       throw new Error(name);
     } }); return module.exports;

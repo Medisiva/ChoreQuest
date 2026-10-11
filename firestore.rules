@@ -20,7 +20,7 @@ service cloud.firestore {
       let session = get(/databases/$(database)/documents/families/$(familyId)/childSessions/$(claims.sessionHash)).data;
       let child = get(/databases/$(database)/documents/families/$(familyId)/childProfiles/$(claims.childProfileId)).data;
       return request.auth != null && claims.role == 'child' && claims.familyId == familyId &&
-        session.childAuthUid == request.auth.uid && session.childProfileId == claims.childProfileId &&
+        child.get('isArchived',false) == false && session.childAuthUid == request.auth.uid && session.childProfileId == claims.childProfileId &&
         session.expiresAt > request.time &&
         (!('sessionsRevokedAt' in child) || session.createdAt > child.sessionsRevokedAt) &&
         exists(/databases/$(database)/documents/families/$(familyId)/parentUsers/$(session.parentUid)) &&
@@ -28,12 +28,36 @@ service cloud.firestore {
     }
     function canReadFamily(familyId) { return isFamilyMember(familyId) || isChild(familyId); }
 
+    function shortText(value, max) { return value is string && value.size() > 0 && value.size() <= max; }
+    function boundedInt(value, min, max) { return value is int && value >= min && value <= max; }
+    function validProfile(data) {
+      return shortText(data.nickname, 20) && shortText(data.get('avatarId', 'avatar-01'), 40) &&
+        data.get('ageGroup', '6-8') in ['3-5','6-8','9-11','12-14','15-17'] &&
+        boundedInt(data.get('weeklyTargetStars', 1), 1, 10000) &&
+        boundedInt(data.get('monthlyTargetStars', 1), data.get('weeklyTargetStars', 1), 10000) &&
+        data.get('progressDisplayStyle', 'ProgressBar') in ['ProgressBar','Countdown','FuelGauge'] &&
+        boundedInt(data.get('streakThreshold', 4), 1, 52) && boundedInt(data.get('streakBonusStars', 10), 0, 1000);
+    }
+    function validTask(data, familyId) {
+      return data.familyAccountId == familyId && shortText(data.title, 120) &&
+        data.category in ['Household','Learning','LifeSkills','Hobbies'] &&
+        data.get('description', '') is string && data.get('description','').size() <= 1000 &&
+        data.isActive is bool && data.get('requiresPhoto',false) is bool && data.get('isMilestone',false) is bool &&
+        boundedInt(data.starValue, data.get('isMilestone',false) ? 0 : 1, 1000) &&
+        data.get('recurrenceType','none') in ['none','daily','weekly','monthly'] &&
+        data.get('difficulty','Easy') in ['Easy','Medium','Hard'] &&
+        (!data.get('isMilestone',false) || (boundedInt(data.milestoneSteps,1,20) && boundedInt(data.starsPerStep,1,1000) && boundedInt(data.get('milestoneBonus',0),0,1000))) &&
+        (!('deadline' in data) || data.deadline == null || data.deadline is timestamp) &&
+        (!('recurrenceDays' in data) || (data.recurrenceDays is list && data.recurrenceDays.size() <= 7 && data.recurrenceDays.hasOnly([0,1,2,3,4,5,6])));
+    }
+    function validReward(data, familyId) { return data.familyAccountId == familyId && shortText(data.name,80) && boundedInt(data.starCost,1,10000) && data.isActive is bool; }
+
     // Family documents - only family members can read/write
     match /families/{familyId} {
       allow read: if canReadFamily(familyId);
       allow create: if false; // Authenticated setupFamily owns atomic bootstrap
       allow update: if isFamilyMember(familyId) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['familyName', 'timezone']);
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['familyName']) && shortText(request.resource.data.familyName,80);
       allow delete: if false; // Soft delete only via Cloud Function
 
       match /childCredentials/{childId} {
@@ -46,27 +70,29 @@ service cloud.firestore {
         allow create, delete: if false;
         allow update: if isFamilyMember(familyId) &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'nickname', 'avatarId', 'ageGroup', 'weeklyTargetStars', 'monthlyTargetStars',
+            'avatarId', 'ageGroup', 'weeklyTargetStars', 'monthlyTargetStars',
             'progressDisplayStyle', 'streakThreshold', 'streakBonusStars'
-          ]);
+          ]) && validProfile(request.resource.data);
       }
       match /parentUsers/{parentId} {
         allow read: if canReadFamily(familyId);
         allow create, delete: if false;
         allow update: if isFamilyMember(familyId) && request.auth.uid == parentId &&
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'avatarId']);
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'avatarId']) && shortText(request.resource.data.displayName,80) && shortText(request.resource.data.avatarId,40);
       }
 
       match /settings/{settingsId} {
         allow read: if canReadFamily(familyId);
-        allow write: if isFamilyMember(familyId) && settingsId == 'config';
+        allow create: if false;
+        allow update: if isFamilyMember(familyId) && settingsId == 'config' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leaderboardEnabled']) && request.resource.data.leaderboardEnabled is bool;
+        allow delete: if false;
       }
 
       // Tasks
       match /tasks/{taskId} {
         allow read: if canReadFamily(familyId);
-        allow create: if isFamilyMember(familyId) && !request.resource.data.keys().hasAny(['activeClaimId']);
-        allow update: if isFamilyMember(familyId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['activeClaimId']) &&
+        allow create: if isFamilyMember(familyId) && validTask(request.resource.data,familyId) && !request.resource.data.keys().hasAny(['activeClaimId','isInstance','sourceTaskId','templateOnly','periodKey','sourceRecurrenceType']);
+        allow update: if isFamilyMember(familyId) && validTask(request.resource.data,familyId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['activeClaimId','familyAccountId','createdAt','createdByParentId','isInstance','sourceTaskId','templateOnly','periodKey','sourceRecurrenceType']) &&
           (!resource.data.keys().hasAny(['activeClaimId']) || !request.resource.data.diff(resource.data).affectedKeys().hasAny([
             'starValue', 'starsPerStep', 'milestoneBonus', 'milestoneSteps', 'isMilestone', 'requiresPhoto', 'recurrenceType', 'recurrenceDays'
           ]));
@@ -98,13 +124,15 @@ service cloud.firestore {
       // Rewards (child)
       match /rewards/{rewardId} {
         allow read: if canReadFamily(familyId);
-        allow write: if isFamilyMember(familyId);
+        allow create, update: if isFamilyMember(familyId) && validReward(request.resource.data,familyId);
+        allow delete: if false;
       }
 
       // Parent rewards
       match /parentRewards/{rewardId} {
         allow read: if canReadFamily(familyId);
-        allow write: if isFamilyMember(familyId);
+        allow create, update: if isFamilyMember(familyId) && validReward(request.resource.data,familyId) && request.resource.data.addedBy in ['parent','child'] && request.resource.data.approvedByParent is bool;
+        allow delete: if false;
       }
 
       // Child redemption requests/reviews are validated by backend transactions.
@@ -141,7 +169,8 @@ service cloud.firestore {
       // Consequence definitions
       match /consequenceDefinitions/{defId} {
         allow read: if canReadFamily(familyId);
-        allow write: if isFamilyMember(familyId);
+        allow create, update: if isFamilyMember(familyId) && request.resource.data.familyAccountId == familyId && shortText(request.resource.data.name,80) && request.resource.data.level in ['Yellow','Orange','Red'] && shortText(request.resource.data.childProfileId,150) && request.resource.data.get('description','') is string && request.resource.data.get('description','').size() <= 500;
+        allow delete: if isFamilyMember(familyId);
       }
 
       // Achievements / badges

@@ -41,3 +41,7 @@ export async function resetChildPin(familyId: string, childId: string, pin: stri
 export async function setupFamily(data: Record<string, unknown>): Promise<void> {
   await httpsCallable(functions, 'setupFamily')(data);
 }
+
+export async function manageFamily<T = {success:boolean}>(data: Record<string,unknown>): Promise<T> {
+  return (await httpsCallable<Record<string,unknown>,T>(functions,'setupFamily')(data)).data;
+}

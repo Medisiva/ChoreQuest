@@ -28,7 +28,7 @@ export function buildRecurringInstance(
   const instance: Record<string, unknown> = {};
   for (const key of allowed) if (source[key] !== undefined) instance[key] = source[key];
   if (typeof instance.title !== "string" || !instance.title.trim() ||
-      !Number.isSafeInteger(instance.starValue) || Number(instance.starValue) < 1) {
+      !Number.isSafeInteger(instance.starValue) || Number(instance.starValue) < (instance.isMilestone ? 0 : 1)) {
     throw new Error("Recurring template requires a title and positive integer starValue");
   }
   return { ...instance, familyAccountId: familyId, recurrenceType: "none", isActive: true,

@@ -78,6 +78,7 @@ export const verifyChildPin = onRequest({ cors: true }, async (req, res) => {
     // A returning child uses another PIN, never an adult password. Delegation
     // remains bound to the same family and the verified original parent session.
     let parentUid = callerUid;
+    let sourceIdentity: {childId:string;hash:string} | undefined;
     if (callerClaims.role === 'child') {
       const previousChildId = callerClaims.childProfileId;
       const hash = callerClaims.sessionHash;
@@ -85,7 +86,13 @@ export const verifyChildPin = onRequest({ cors: true }, async (req, res) => {
       const expectedUid = `child-${crypto.createHash('sha256').update(`${familyId}/${previousChildId}`).digest('hex')}`;
       const source = (await db.doc(`families/${familyId}/childSessions/${hash}`).get()).data();
       if (callerUid !== expectedUid || source?.childAuthUid !== callerUid || source?.childProfileId !== previousChildId || typeof source?.parentUid !== 'string' || source.parentUid.includes('/')) { res.status(403).json({ error: 'Not authorized for this family' }); return; }
+      const origin = (await db.doc(`families/${familyId}/childProfiles/${previousChildId}`).get()).data();
+      if (!origin || origin.isArchived || (previousChildId !== childProfileId && (!source.expiresAt || source.expiresAt.toMillis() <= Date.now() ||
+          !source.createdAt || (origin.sessionsRevokedAt && source.createdAt.toMillis() <= origin.sessionsRevokedAt.toMillis())))) {
+        res.status(403).json({ error: 'This child session ended. Ask a parent to sign in again.' }); return;
+      }
       parentUid = source.parentUid;
+      sourceIdentity={childId:previousChildId,hash};
     }
     const parentSnap = await db.doc(`families/${familyId}/parentUsers/${parentUid}`).get();
     const familySnap = await db.doc(`families/${familyId}`).get();
@@ -103,8 +110,17 @@ export const verifyChildPin = onRequest({ cors: true }, async (req, res) => {
     const childAuthUid = `child-${crypto.createHash("sha256").update(`${familyId}/${childProfileId}`).digest("hex")}`;
     const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const result = await db.runTransaction(async (transaction) => {
+      const currentFamily = await transaction.get(db.doc(`families/${familyId}`));
+      const currentParent = await transaction.get(db.doc(`families/${familyId}/parentUsers/${parentUid}`));
+      if(!currentFamily.exists || currentFamily.data()?.isDeleted || !currentParent.exists)return {status:403,body:{error:'Family unavailable'}};
+      if(sourceIdentity && sourceIdentity.childId!==childProfileId){
+        const source=await transaction.get(db.doc(`families/${familyId}/childSessions/${sourceIdentity.hash}`));
+        const origin=await transaction.get(db.doc(`families/${familyId}/childProfiles/${sourceIdentity.childId}`));
+        const data=source.data(),profile=origin.data();
+        if(!profile || profile.isArchived || !data?.expiresAt || data.expiresAt.toMillis()<=Date.now() || !data.createdAt || (profile.sessionsRevokedAt && data.createdAt.toMillis()<=profile.sessionsRevokedAt.toMillis()))return {status:403,body:{error:'This child session ended. Ask a parent to sign in again.'}};
+      }
       const snapshot = await transaction.get(profileRef);
-      if (!snapshot.exists) return { status: 404, body: { error: "Child profile not found" } };
+      if (!snapshot.exists || snapshot.data()?.isArchived) return { status: 404, body: { error: "Child profile not found" } };
       const credentials = await transaction.get(credentialsRef);
       // Legacy profiles are migrated on verification; new hashes are never public.
       const profile = (credentials.exists ? credentials.data() : snapshot.data()) as ChildProfileData;

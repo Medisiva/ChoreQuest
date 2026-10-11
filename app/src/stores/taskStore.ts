@@ -63,7 +63,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     // Listener 2: Active claims (claimed or submitted)
     const claimsQuery = query(
       collection(db, 'families', familyId, 'taskClaims'),
-      where('status', 'in', ['claimed', 'submitted', 'rejected', 'approved', 'released'])
+      where('status', 'in', ['claimed', 'submitted', 'rejected', 'approved', 'released', 'awardFailed'])
     );
 
     const unsubClaims = onSnapshot(

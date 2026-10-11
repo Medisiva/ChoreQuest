@@ -30,7 +30,7 @@ function ChildTabIcon({ emoji, focused, activeColor }: ChildTabIconProps) {
         focused && { backgroundColor: activeColor + '20' },
       ]}
     >
-      <Text style={[styles.icon, focused && styles.iconActive]}>{emoji}</Text>
+      <Text accessible={false} style={[styles.icon, focused && styles.iconActive]}>{emoji}</Text>
     </View>
   );
 }
@@ -56,6 +56,7 @@ export default function ChildLayout() {
         name="home"
         options={{
           title: 'Home',
+          tabBarAccessibilityLabel: 'Home',
           tabBarActiveTintColor: TAB_COLORS.home,
           tabBarIcon: ({ focused }) => (
             <ChildTabIcon
@@ -70,6 +71,7 @@ export default function ChildLayout() {
         name="tasks"
         options={{
           title: 'Quests',
+          tabBarAccessibilityLabel: 'Quests',
           tabBarActiveTintColor: TAB_COLORS.tasks,
           tabBarIcon: ({ focused }) => (
             <ChildTabIcon
@@ -84,6 +86,7 @@ export default function ChildLayout() {
         name="rewards"
         options={{
           title: 'Rewards',
+          tabBarAccessibilityLabel: 'Rewards',
           tabBarActiveTintColor: TAB_COLORS.rewards,
           tabBarIcon: ({ focused }) => (
             <ChildTabIcon
@@ -98,6 +101,7 @@ export default function ChildLayout() {
         name="profile"
         options={{
           title: 'Me',
+          tabBarAccessibilityLabel: 'My profile',
           tabBarActiveTintColor: TAB_COLORS.profile,
           tabBarIcon: ({ focused }) => (
             <ChildTabIcon
