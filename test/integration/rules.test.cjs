@@ -93,3 +93,14 @@ test('restricted child session can read family but cannot perform parent writes;
   });
   await assertFails(getDoc(doc(db, 'families/f')));
 });
+
+test('1.0.4 adult-supervised quests accept 31 milestone steps and refuse 32', async () => {
+  const db = env.authenticatedContext('p').firestore();
+  const task = {familyAccountId:'f', title:'Supervised project', category:'LifeSkills', starValue:0,
+    difficulty:'AdultSupervised', isActive:true, requiresPhoto:false, isMilestone:true,
+    milestoneSteps:31, starsPerStep:2, milestoneBonus:5, recurrenceType:'none',
+    createdByParentId:'p', createdAt:Timestamp.now()};
+  await assertSucceeds(setDoc(doc(db,'families/f/tasks/steps31'),task));
+  await assertFails(setDoc(doc(db,'families/f/tasks/steps32'),{...task,milestoneSteps:32}));
+  await assertFails(setDoc(doc(db,'families/f/tasks/difficulty'),{...task,difficulty:'Unknown'}));
+});

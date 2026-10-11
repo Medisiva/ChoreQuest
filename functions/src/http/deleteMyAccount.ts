@@ -16,6 +16,13 @@ const RETENTION_DAYS = 30;
 export async function deleteMyAccount(request: CallableRequest): Promise<{ success: true; familyScheduledForDeletion: boolean }> {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Sign in first');
   const uid = request.auth.uid;
+  // Callable authentication alone accepts an unexpired token after revocation.
+  const header = request.rawRequest.headers.authorization;
+  if (!header?.startsWith('Bearer ')) throw new HttpsError('unauthenticated', 'Sign in again');
+  try {
+    const verified = await admin.auth().verifyIdToken(header.slice(7), true);
+    if (verified.uid !== uid) throw new Error('Identity mismatch');
+  } catch { throw new HttpsError('unauthenticated', 'Sign in again'); }
   if (request.auth.token.role === 'child' || uid.startsWith('child-')) throw new HttpsError('permission-denied', 'Parent sign-in required');
   const authTime = Number(request.auth.token.auth_time);
   if (!Number.isFinite(authTime) || Date.now() / 1000 - authTime > RECENT_SIGN_IN_SECONDS) {
@@ -25,27 +32,29 @@ export async function deleteMyAccount(request: CallableRequest): Promise<{ succe
 
   const db = admin.firestore();
   const mappingRef = db.doc(`parentProfiles/${uid}`);
-  let familyScheduledForDeletion = false;
-
-  await db.runTransaction(async (tx) => {
+  const familyScheduledForDeletion = await db.runTransaction(async (tx) => {
     const mapping = await tx.get(mappingRef);
     const familyId = mapping.data()?.familyAccountId;
     if (!mapping.exists || typeof familyId !== 'string' || !familyId || familyId.includes('/')) {
       if (mapping.exists) tx.delete(mappingRef);
-      return;
+      return false;
     }
     const familyRef = db.doc(`families/${familyId}`);
     const family = await tx.get(familyRef);
     const parents = await tx.get(familyRef.collection('parentUsers'));
-    const accepted = await tx.get(familyRef.collection('familyRequests').where('acceptedByParentId', '==', uid).where('status', 'in', ['accepted', 'completed']));
+    const accepted = await tx.get(familyRef.collection('familyRequests').where('acceptedByParentId', '==', uid));
     const wallet = await tx.get(familyRef.collection('parentStarTransactions').where('parentUserId', '==', uid));
     const redemptions = await tx.get(familyRef.collection('parentRedemptions').where('parentUserId', '==', uid));
     if (!family.exists || family.data()?.isDeleted || mapping.data()?.familyDeleted) {
       // Family already gone or scheduled for purge: only this adult's own records remain.
       tx.delete(mappingRef);
-      return;
+      return false;
     }
-    const others = parents.docs.filter((parent) => parent.id !== uid);
+    const memberIdsBefore: string[] = family.data()?.memberIds || [];
+    if (!parents.docs.some(parent => parent.id === uid) || !memberIdsBefore.includes(uid)) {
+      throw new HttpsError('permission-denied', 'Family membership could not be verified. Contact support.');
+    }
+    const others = parents.docs.filter(parent => parent.id !== uid && memberIdsBefore.includes(parent.id));
     const isOwner = (family.data()?.ownerUid ?? family.data()?.memberIds?.[0]) === uid;
     if (isOwner && others.length === 0) {
       const now = Timestamp.now();
@@ -55,18 +64,18 @@ export async function deleteMyAccount(request: CallableRequest): Promise<{ succe
       tx.update(familyRef, { isDeleted: true, deletedAt: now });
       if (!pending.exists) tx.create(queue, { familyId, requestedBy: uid, requestedAt: now, purgeAfter, reason: 'ownerAccountDeleted' });
       tx.delete(mappingRef);
-      familyScheduledForDeletion = true;
-      return;
+      return true;
     }
     const memberIds: string[] = (family.data()?.memberIds || []).filter((member: string) => member !== uid);
     tx.update(familyRef, { memberIds, ...(isOwner ? { ownerUid: others[0].id } : {}), profilesUpdatedAt: Timestamp.now() });
-    for (const request of accepted.docs) {
+    for (const request of accepted.docs.filter(doc => ['accepted', 'completed'].includes(doc.data().status))) {
       tx.update(request.ref, { status: 'pending', acceptedByParentId: FieldValue.delete(), agreedStars: FieldValue.delete(), acceptedAt: FieldValue.delete(), completedAt: FieldValue.delete() });
     }
     for (const entry of [...wallet.docs, ...redemptions.docs]) tx.delete(entry.ref);
     tx.delete(familyRef.collection('pushTokens').doc(uid));
     tx.delete(familyRef.collection('parentUsers').doc(uid));
     tx.delete(mappingRef);
+    return false;
   });
 
   try { await admin.auth().deleteUser(uid); }

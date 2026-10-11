@@ -76,6 +76,22 @@ test('account deletion for co-parent, owner with co-parent, and sole owner', { t
     const lone = client(); const lu = (await createUserWithEmailAndPassword(lone.auth, `del-lone-${stamp}@example.test`, pw)).user;
     await lone.call('setupFamily', { action: 'deleteAccount', confirmText: 'DELETE' });
     assert.equal(await exists(lu.uid), false);
+
+    // Stale mapping must not alter another family's ownership or membership.
+    const outsider = client(); const outsiderUser = (await createUserWithEmailAndPassword(outsider.auth, `del-outsider-${stamp}@example.test`, pw)).user;
+    await sdb.doc(`parentProfiles/${outsiderUser.uid}`).set({ familyAccountId: b.familyId });
+    await assert.rejects(outsider.call('setupFamily', { action: 'deleteAccount', confirmText: 'DELETE' }), /membership/);
+    assert.equal(await exists(outsiderUser.uid), true);
+    assert.equal((await sdb.doc(`families/${b.familyId}`).get()).data().ownerUid, coB.cu.uid);
+
+    // The destructive handler independently checks recent sign-in and token presence.
+    const handler = require(path.join(__dirname, '../../functions/lib/http/deleteMyAccount.js')).deleteMyAccount;
+    const token = await outsider.auth.currentUser.getIdToken();
+    const stale = { auth: { uid: outsiderUser.uid, token: { auth_time: Math.floor(Date.now()/1000)-600 } }, data: { confirmText: 'DELETE' }, rawRequest: { headers: { authorization: `Bearer ${token}` } } };
+    await assert.rejects(handler(stale), /sign out and sign in again/);
+    await assert.rejects(handler({ ...stale, rawRequest: { headers: {} } }), /Sign in again/);
+    assert.equal(await exists(outsiderUser.uid), true);
+
   } finally {
     for (const app of apps) await deleteApp(app).catch(() => {}); await server.delete().catch(() => {});
   }
