@@ -26,6 +26,9 @@ import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { signOut } from '@/services/auth';
 import { callBackend } from '@/services/backend';
+import { manageFamily } from '@/services/families';
+import { PRIVACY_POLICY_URL } from '@/constants/legal';
+import { Linking } from 'react-native';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -88,6 +91,41 @@ export default function SettingsScreen() {
     );
   }, [family, router]);
 
+  const handleDeleteMyAccount = useCallback(() => {
+    Alert.alert(
+      'Delete my account',
+      'This permanently deletes your ChoreQuest sign-in, your parent profile and your star wallet history. If another parent shares this family, they keep it and become its owner. If you are the only parent, the whole family is disabled now and permanently deleted after 30 days.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert('Delete your account now?', 'This cannot be undone.', [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Delete my account',
+                style: 'destructive',
+                onPress: async () => {
+                  try {
+                    const result = await manageFamily<{ familyScheduledForDeletion?: boolean }>({ action: 'deleteAccount', confirmText: 'DELETE' });
+                    await signOut().catch(() => undefined);
+                    router.replace('/(auth)/login');
+                    Alert.alert('Account deleted', result.familyScheduledForDeletion
+                      ? 'Your sign-in is deleted. Your family is disabled and its data will be permanently removed within 30 days.'
+                      : 'Your sign-in and parent data are deleted. The family stays with the other parent.');
+                  } catch (error) {
+                    Alert.alert('Could not delete account', error instanceof Error ? error.message.replace(/^Firebase:\s*/, '') : 'Please try again.');
+                  }
+                },
+              },
+            ]);
+          },
+        },
+      ]
+    );
+  }, [router]);
+
   const handleSignOut = useCallback(async () => {
     await signOut();
     router.replace('/(auth)/login');
@@ -121,6 +159,7 @@ export default function SettingsScreen() {
         <View style={styles.card}>
           <Text style={styles.cardLabel}>Family Leaderboard</Text>
           <Switch
+            accessibilityLabel="Family Leaderboard"
             value={leaderboardEnabled}
             onValueChange={(value) => { if (family) void setDoc(doc(db, "families", family.id, "settings", "config"), { leaderboardEnabled: value }, { merge: true }).catch(() => Alert.alert("Could not save", "Reconnect and try again.")); }}
             trackColor={{ true: '#65F3FF', false: '#17363A' }}
@@ -130,6 +169,7 @@ export default function SettingsScreen() {
         <View style={styles.card}>
           <Text style={styles.cardLabel}>Device alerts while the app is open</Text>
           <Switch
+            accessibilityLabel="Device alerts while the app is open"
             value={notificationsEnabled}
             disabled={Platform.OS === "web"}
             onValueChange={async (value) => { if (!family) return; if (!value) { choose(family.id, false); return; } try { const granted = await requestDeviceAlertsPermission(); choose(family.id, granted); if (!granted) Alert.alert("Device alerts off", "Allow notifications in your phone settings to enable device alerts."); } catch { Alert.alert("Could not enable alerts", "Please try again on your Android phone."); } }}
@@ -147,6 +187,13 @@ export default function SettingsScreen() {
         <TouchableOpacity style={[styles.card, styles.dangerCard]} onPress={handleDeleteAccount}>
           <Text style={styles.dangerLabel}>Delete family data</Text>
           <Text style={styles.dangerArrow}>→</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity accessibilityRole="button" style={[styles.card, styles.dangerCard]} onPress={handleDeleteMyAccount}>
+          <Text style={styles.dangerLabel}>Delete my account</Text>
+        </TouchableOpacity>
+        <TouchableOpacity accessibilityRole="link" style={styles.card} onPress={() => { void Linking.openURL(PRIVACY_POLICY_URL); }}>
+          <Text style={styles.cardLabel}>Privacy policy</Text>
         </TouchableOpacity>
 
         {/* Sign Out */}

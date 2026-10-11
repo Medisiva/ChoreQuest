@@ -155,9 +155,11 @@ export default function TaskDetailScreen() {
           <View style={[styles.infoBadge, getDifficultyBg(task.difficulty)]}>
             <Text style={styles.infoText}>{task.difficulty}</Text>
           </View>
-          <View style={styles.infoBadge}>
-            <Text style={styles.infoText}>Ages {task.ageGroupSuggestion}</Text>
-          </View>
+          {task.ageGroupSuggestion ? (
+            <View style={styles.infoBadge}>
+              <Text style={styles.infoText}>Ages {task.ageGroupSuggestion}</Text>
+            </View>
+          ) : null}
           {task.recurrenceType !== 'none' && (
             <View style={styles.infoBadge}>
               <Text style={styles.infoText}>🔄 {task.recurrenceType}</Text>
@@ -183,6 +185,10 @@ export default function TaskDetailScreen() {
         {otherClaim ? (
           <View style={styles.claimedNotice}>
             <Text style={styles.claimedText}>🔒 Someone else is working on this</Text>
+          </View>
+        ) : !myClaim && task.deadline && typeof task.deadline.toMillis === 'function' && task.deadline.toMillis() <= Date.now() ? (
+          <View style={styles.claimedNotice}>
+            <Text style={styles.claimedText}>⏰ This quest&apos;s deadline has passed. Pick another quest.</Text>
           </View>
         ) : !myClaim ? (
           <TouchableOpacity

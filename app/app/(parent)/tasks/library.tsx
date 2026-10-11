@@ -4,6 +4,7 @@
 // Library data loaded ONCE and cached in component state (not Zustand).
 
 import Alert from '@/services/dialogs';
+import { saveErrorMessage } from '@/services/errorMessage';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
@@ -101,8 +102,8 @@ export default function TaskLibraryBrowser() {
         createdByParentId: user.uid,
       });
       setSelectedItem(null);
-    } catch {
-      Alert.alert('Quest not saved', 'Please check your connection and try again.');
+    } catch (error) {
+      Alert.alert('Quest not saved', saveErrorMessage(error));
     } finally {
       setPosting(false);
     }

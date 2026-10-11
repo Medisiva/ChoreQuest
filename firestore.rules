@@ -45,8 +45,8 @@ service cloud.firestore {
         data.isActive is bool && data.get('requiresPhoto',false) is bool && data.get('isMilestone',false) is bool &&
         boundedInt(data.starValue, data.get('isMilestone',false) ? 0 : 1, 1000) &&
         data.get('recurrenceType','none') in ['none','daily','weekly','monthly'] &&
-        data.get('difficulty','Easy') in ['Easy','Medium','Hard'] &&
-        (!data.get('isMilestone',false) || (boundedInt(data.milestoneSteps,1,20) && boundedInt(data.starsPerStep,1,1000) && boundedInt(data.get('milestoneBonus',0),0,1000))) &&
+        data.get('difficulty','Easy') in ['Easy','Medium','Hard','AdultSupervised'] &&
+        (!data.get('isMilestone',false) || (boundedInt(data.milestoneSteps,1,31) && boundedInt(data.starsPerStep,1,1000) && boundedInt(data.get('milestoneBonus',0),0,1000))) &&
         (!('deadline' in data) || data.deadline == null || data.deadline is timestamp) &&
         (!('recurrenceDays' in data) || (data.recurrenceDays is list && data.recurrenceDays.size() <= 7 && data.recurrenceDays.hasOnly([0,1,2,3,4,5,6])));
     }

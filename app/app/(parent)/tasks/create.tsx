@@ -11,6 +11,7 @@ import {
   Platform,
   } from 'react-native';
 import Alert from '@/services/dialogs';
+import { saveErrorMessage } from '@/services/errorMessage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -120,7 +121,7 @@ export default function CreateTaskScreen() {
 
   const goNext = () => {
     if(currentStep===1 && !watchAll.title.trim()){Alert.alert('Quest title required','Enter a title before continuing.');return;}
-    if(currentStep===2 && watchAll.isMilestone && (!Number.isInteger(watchAll.milestoneSteps) || watchAll.milestoneSteps<1 || watchAll.milestoneSteps>20 || !Number.isInteger(watchAll.starsPerStep) || watchAll.starsPerStep<1 || watchAll.starsPerStep>1000 || !Number.isInteger(watchAll.milestoneBonus) || watchAll.milestoneBonus<0 || watchAll.milestoneBonus>1000)){Alert.alert('Check milestone details','Choose 1–20 steps, 1–1,000 stars per step and a 0–1,000 completion bonus.');return;}
+    if(currentStep===2 && watchAll.isMilestone && (!Number.isInteger(watchAll.milestoneSteps) || watchAll.milestoneSteps<1 || watchAll.milestoneSteps>31 || !Number.isInteger(watchAll.starsPerStep) || watchAll.starsPerStep<1 || watchAll.starsPerStep>1000 || !Number.isInteger(watchAll.milestoneBonus) || watchAll.milestoneBonus<0 || watchAll.milestoneBonus>1000)){Alert.alert('Check milestone details','Choose 1–31 steps, 1–1,000 stars per step and a 0–1,000 completion bonus.');return;}
 
     if (currentStep < TOTAL_STEPS && canGoNext()) {
       setCurrentStep((s) => s + 1);
@@ -149,8 +150,8 @@ export default function CreateTaskScreen() {
       }
       deadline = Timestamp.fromDate(date);
     }
-    if (data.isMilestone && (!Number.isInteger(data.milestoneSteps) || data.milestoneSteps < 1 || data.milestoneSteps > 20 || !Number.isInteger(data.starsPerStep) || data.starsPerStep < 1 || data.starsPerStep > 1000 || !Number.isInteger(data.milestoneBonus) || data.milestoneBonus < 0 || data.milestoneBonus > 1000)) {
-      Alert.alert('Check milestone details', 'Choose 1–20 steps, 1–1,000 stars per step and a 0–1,000 completion bonus.');
+    if (data.isMilestone && (!Number.isInteger(data.milestoneSteps) || data.milestoneSteps < 1 || data.milestoneSteps > 31 || !Number.isInteger(data.starsPerStep) || data.starsPerStep < 1 || data.starsPerStep > 1000 || !Number.isInteger(data.milestoneBonus) || data.milestoneBonus < 0 || data.milestoneBonus > 1000)) {
+      Alert.alert('Check milestone details', 'Choose 1–31 steps, 1–1,000 stars per step and a 0–1,000 completion bonus.');
       return;
     }
     try {
@@ -169,8 +170,8 @@ export default function CreateTaskScreen() {
         createdByParentId: user.uid,
       });
       router.back();
-    } catch {
-      Alert.alert('Quest was not saved', 'Check your connection and try again. Your details are still here.');
+    } catch (error) {
+      Alert.alert('Quest was not saved', saveErrorMessage(error));
     }
   };
 

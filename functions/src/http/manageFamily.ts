@@ -4,6 +4,7 @@ import * as admin from 'firebase-admin';
 import { createHash, randomBytes } from 'crypto';
 import { documentId, requireParent } from '../utils/authorization';
 import { validTimezone, nameKey } from '../utils/validation';
+import { deleteMyAccount } from './deleteMyAccount';
 
 const text = (value: unknown, max: number, field: string): string => {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > max) throw new HttpsError('invalid-argument', `Check ${field}`);
@@ -14,6 +15,7 @@ const text = (value: unknown, max: number, field: string): string => {
 export const manageFamily = onCall(async request => {
   if (!request.auth || request.auth.token.role === 'child' || request.auth.uid.startsWith('child-')) throw new HttpsError('permission-denied','Parent sign-in required');
   const uid = request.auth.uid, input = request.data, db = admin.firestore();
+  if (input?.action === 'deleteAccount') return deleteMyAccount(request);
   if (input.action === 'join') {
     if (request.auth.token.email_verified !== true) throw new HttpsError('failed-precondition','Verify your parent email before joining a family.');
     const code = text(input.code,100,'invitation code');

@@ -4,7 +4,7 @@ export function validTask(data: Record<string, any>): boolean {
   return typeof data.title === 'string' && data.title.trim().length > 0 && data.title.length <= 120 &&
     ['Household','Learning','LifeSkills','Hobbies'].includes(data.category) &&
     number(data.starValue, data.isMilestone ? 0 : 1, 1000) &&
-    (!data.isMilestone || (number(data.milestoneSteps,1,20) && number(data.starsPerStep,1,1000) && number(data.milestoneBonus ?? 0,0,1000))) &&
+    (!data.isMilestone || (number(data.milestoneSteps,1,31) && number(data.starsPerStep,1,1000) && number(data.milestoneBonus ?? 0,0,1000))) &&
     (data.description === undefined || (typeof data.description === 'string' && data.description.length <= 1000));
 }
 export function validTimezone(value: unknown): value is string {
