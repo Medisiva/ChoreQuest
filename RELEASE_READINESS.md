@@ -1,3 +1,13 @@
+# Current handoff — ChoreQuest 1.0.4 APK and tester package delivered
+
+This first entry is authoritative. Signed preview build2ac79415-c537-48b1-b421-b801d1ffa7ee FINISHED, version1.0.4/code7/sourcec9b53b49a60eb7d689904c319f3a84cf31c27be9. Actual APK ../outputs/ChoreQuest-1.0.4-android-test.apk,127855616bytes, packagecom.chorequest.app. ZIP integrity and Android v2 signature pass; certificateSHA256 bf147dbdbdcfae56782fdeadc470765ca5141d9a15a646ca041197501803fd9e matches1.0.3. APK SHA2566505478efcc4bb32da9ff1a45586143359bdab98003fc9c6305c70c5108bb8a6. Manifest version/code/SDK checked; backupfalse and overlay/legacy-write permissions absent. Download: https://expo.dev/artifacts/eas/J3yCkjOovEkfhpRQs30sFh0x1LA7Iq7usvIYRmeu1pA.apk?download=1
+
+Verified97unit,44clean demo-emulator,TypeScript/backend,20Doctor,Androidexport. Production28functions updated; existing post-success cleanup-policy warning unchanged, separate rules/Hosting release exits0. Publicpages200 and anonymoussetupFamily/createChildProfile401. Runtimec9b53b4 and handoff27027bc pushed on play-store-readiness; no runtime changes after build. Separate Desktop checkout's lone uncommitted CLAUDE.md edit preserved.
+
+Eight-file portable /Users/smedisetti/Desktop/ChoreQuest-Tester-Packages/1.0.4 package: APK, installation/five-member guides, review report, historical1.0.2 findings report, private family access0600, safe evidenceZIP, START-HERE. Root START-HERE points to1.0.4; previous versions preserved. APK/ZIP copied checksums, relative links, ZIP integrity and credential exclusion verified. Work/apk-v104-* records actual inspection. Never print credentials or include private access in Git/public evidence. Native-device testing and independent clean tester report pending; no production readiness/store publication. Destructive retests only on new disposable families, never shared validation family. Monitor deliver-chorequest-1-0-4-apk-and-tester-package deleted at delivery. Next choice: tester retest (recommended) or store preparation after sign-off. No duplicate/paid build.
+
+---
+
 # Current handoff — ChoreQuest 1.0.4 reviewed, pushed and building
 
 This first entry is authoritative. User authorized review/push of developer version 1.0.4 on play-store-readiness in this repo, deployment of rules/functions/hosting, signed preview APK, and the versioned Desktop tester package. Developer commit39cfe06 reviewed; hardened release c9b53b49a60eb7d689904c319f3a84cf31c27be9 pushed to GitHub origin/play-store-readiness. Existing release-readiness branch and old packages preserved. The separate Desktop/MyCoding/FamilyQuest/ChoreQuest2 checkout had only one observed uncommitted CLAUDE.md instruction edit; preserved and excluded from this release.
