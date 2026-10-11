@@ -17,7 +17,7 @@
     "dev": "concurrently \"npm run app:start\" \"npm run emulators\"",
     "app:typecheck": "tsc --noEmit -p app/tsconfig.json",
     "test": "node --test app/test/*.test.cjs && npm run test --workspace=chorequest-functions",
-    "test:integration": "npm run functions:build && FIREBASE_EMULATORS_PATH=./work/firebase-emulators XDG_CONFIG_HOME=./work/firebase-config firebase emulators:exec --config firebase.test.json --project demo-chorequest --only auth,firestore,functions,storage \"node --test --test-concurrency=1 test/integration/*.test.cjs\"",
+    "test:integration": "npm run functions:build && FIREBASE_EMULATORS_PATH=./work/firebase-emulators XDG_CONFIG_HOME=./work/firebase-config firebase emulators:exec --config firebase.test.json --project demo-chorequest --only auth,firestore,functions,storage \"node --test --test-concurrency=1 test/integration/*.test.cjs test/qa/*.test.cjs\"",
     "app:preview": "node scripts/start-browser-preview.cjs"
   },
   "devDependencies": {
