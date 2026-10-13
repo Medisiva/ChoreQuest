@@ -11,6 +11,7 @@
     "app:start": "cd app && npx expo start",
     "app:android": "cd app && npx expo start --android",
     "app:ios": "cd app && npx expo start --ios",
+    "app:ios:simulator": "node scripts/start-ios-simulator.cjs",
     "functions:build": "cd functions && npm run build",
     "functions:serve": "cd functions && npm run serve",
     "emulators": "firebase emulators:start --only auth,firestore,functions,storage",
