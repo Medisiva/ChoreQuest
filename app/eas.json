@@ -35,6 +35,14 @@
       },
       "autoIncrement": true
     },
+    "ios-simulator": {
+      "extends": "preview",
+      "developmentClient": false,
+      "autoIncrement": false,
+      "ios": {
+        "simulator": true
+      }
+    },
     "production": {
       "autoIncrement": true,
       "android": {

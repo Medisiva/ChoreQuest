@@ -6,6 +6,7 @@ import { Home, Flag, UserRound, ChartNoAxesColumnIncreasing, MessagesSquare } fr
 import { useAuthStore } from '@/stores/authStore';
 import { Tabs, Redirect } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChildSessionStore } from '@/stores/childSessionStore';
 import { colors, layout, typography } from '@/constants/tokens';
 
@@ -23,6 +24,8 @@ function TabIcon({ emoji, focused }: TabIconProps) {
 }
 
 export default function ParentLayout() {
+  const { bottom } = useSafeAreaInsets();
+  const bottomPadding = Math.max(16, bottom);
   const parentLocked = useChildSessionStore((state) => state.parentLocked);
   const role = useAuthStore((state) => state.role);
   if (parentLocked || role !== 'parent') return <Redirect href="/parent-unlock" />;
@@ -30,7 +33,7 @@ export default function ParentLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [styles.tabBar, { paddingBottom: bottomPadding, height: layout.tabBarHeight + bottomPadding - 16 }],
         tabBarActiveTintColor: colors.navy900,
         tabBarInactiveTintColor: colors.ink400,
         tabBarLabelStyle: styles.tabBarLabel,

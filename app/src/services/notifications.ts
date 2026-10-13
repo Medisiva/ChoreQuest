@@ -26,27 +26,8 @@ export async function registerForPushNotifications(
   familyId: string,
   uid: string
 ): Promise<string | null> {
-  // Android requires a notification channel
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', {
-      name: 'ChoreQuest',
-      importance: Notifications.AndroidImportance.HIGH,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#1A3E6E',
-    });
-  }
-
   // Request permission
-  const { status: existingStatus } =
-    await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
-
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-
-  if (finalStatus !== 'granted') {
+  if (!(await requestDeviceAlertsPermission())) {
     console.warn('[Notifications] Permission not granted');
     return null;
   }
@@ -119,8 +100,25 @@ export async function scheduleRequestNotification(
 /** Permission for local device alerts; no remote push credential is needed. */
 export async function requestDeviceAlertsPermission(): Promise<boolean> {
  if (Platform.OS === 'web') return false;
- if (Platform.OS === 'android') await Notifications.setNotificationChannelAsync('default', { name: 'ChoreQuest', importance: Notifications.AndroidImportance.HIGH });
+ if (Platform.OS === 'android') await Notifications.setNotificationChannelAsync('default', {
+   name: 'ChoreQuest',
+   importance: Notifications.AndroidImportance.HIGH,
+   vibrationPattern: [0, 250, 250, 250],
+   lightColor: '#1A3E6E',
+ });
  let permission = await Notifications.getPermissionsAsync();
- if (permission.status !== 'granted') permission = await Notifications.requestPermissionsAsync();
- return permission.status === 'granted';
+ if (!allowsDeviceAlerts(permission) && permission.canAskAgain) {
+   permission = await Notifications.requestPermissionsAsync();
+ }
+ return allowsDeviceAlerts(permission);
+}
+
+// iOS can authorize quiet notifications without granting full alert permission.
+function allowsDeviceAlerts(permission: Notifications.NotificationPermissionsStatus): boolean {
+ if (Platform.OS === 'ios') {
+   return permission.ios?.status === Notifications.IosAuthorizationStatus.AUTHORIZED
+     || permission.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL
+     || permission.ios?.status === Notifications.IosAuthorizationStatus.EPHEMERAL;
+ }
+ return permission.granted || permission.status === 'granted';
 }

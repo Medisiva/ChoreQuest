@@ -172,7 +172,7 @@ export default function SettingsScreen() {
             accessibilityLabel="Device alerts while the app is open"
             value={notificationsEnabled}
             disabled={Platform.OS === "web"}
-            onValueChange={async (value) => { if (!family) return; if (!value) { choose(family.id, false); return; } try { const granted = await requestDeviceAlertsPermission(); choose(family.id, granted); if (!granted) Alert.alert("Device alerts off", "Allow notifications in your phone settings to enable device alerts."); } catch { Alert.alert("Could not enable alerts", "Please try again on your Android phone."); } }}
+            onValueChange={async (value) => { if (!family) return; if (!value) { choose(family.id, false); return; } try { const granted = await requestDeviceAlertsPermission(); choose(family.id, granted); if (!granted) Alert.alert("Device alerts off", "Allow notifications in your phone settings to enable device alerts."); } catch { Alert.alert("Could not enable alerts", "Please try again on your device."); } }}
             trackColor={{ true: '#65F3FF', false: '#17363A' }}
             thumbColor="#FFFFFF"
           />

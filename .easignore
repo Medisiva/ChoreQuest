@@ -49,6 +49,10 @@ coverage/
 # Local verification scratch files
 work/
 
+# Regenerate native projects from Expo config for cloud builds.
+app/ios/
+app/android/
+
 # APK upload exclusions
 .git/
 outputs/

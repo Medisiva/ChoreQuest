@@ -7,6 +7,7 @@ import { Home, Flag, Gift, UserRound } from 'lucide-react-native';
 import { Tabs, Redirect } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { useEffect } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChildSessionStore } from '@/stores/childSessionStore';
 import { colors, layout } from '@/constants/tokens';
 
@@ -37,6 +38,8 @@ function ChildTabIcon({ emoji, focused, activeColor }: ChildTabIconProps) {
 }
 
 export default function ChildLayout() {
+  const { bottom } = useSafeAreaInsets();
+  const bottomPadding = Math.max(16, bottom);
   const { activeChildId, sessionExpiry, endSession } = useChildSessionStore();
   useEffect(() => {
     if (!sessionExpiry) return;
@@ -48,7 +51,7 @@ export default function ChildLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [styles.tabBar, { paddingBottom: bottomPadding, height: layout.tabBarHeight + bottomPadding - 16 }],
         tabBarShowLabel: true,
         tabBarLabelStyle: { fontFamily: 'Nunito_700Bold', fontSize: 11 },
         tabBarInactiveTintColor: colors.ink400,
